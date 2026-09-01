@@ -1,0 +1,56 @@
+{
+  "benchmark": {
+    "ar_branch": 4,
+    "device": "cpu",
+    "diffusion_branch": 2,
+    "image_payload_shape": [
+      1,
+      2,
+      2
+    ],
+    "observation_branch": 1,
+    "percentile": "nearest-rank",
+    "repeats": 100,
+    "root_counts": [
+      8,
+      32,
+      128
+    ],
+    "threads": 1,
+    "timer": "time.perf_counter_ns",
+    "torch_num_interop_threads": 1,
+    "torch_num_threads": 1,
+    "warmup": 10
+  },
+  "command": "/private/tmp/unirl-paper-venv/bin/python experiments/trajectory_ir/run_cpu_evidence.py --unirl-root ../UniRL --output-dir artifacts/trajectory_ir/cpu_f5d7104_macos_arm64 --expected-commit f5d710406b215bb7a0b387fdd37e4d4778b92338 --warmup 10 --repeats 100 --threads 1",
+  "hardware": {
+    "cpu_brand": null,
+    "cuda_available": false,
+    "logical_cpu_count": 14,
+    "machine": "arm64",
+    "memory_bytes": null,
+    "mps_available": false,
+    "platform": "macOS-26.3-arm64-arm-64bit",
+    "processor": "arm"
+  },
+  "run_id": "cpu_f5d7104_macos_arm64",
+  "schema_version": 1,
+  "scope": "synthetic single-process CPU trajectory-container regression evidence; not GPU or end-to-end performance",
+  "software": {
+    "numpy": "2.5.2",
+    "pillow": "12.3.0",
+    "python": "3.12.14",
+    "python_executable": "/private/tmp/unirl-paper-venv/bin/python",
+    "ray": "2.55.1",
+    "torch": "2.11.0"
+  },
+  "timestamp_utc": "2026-08-30T01:21:05.977049+00:00",
+  "unirl": {
+    "clean": true,
+    "commit": "f5d710406b215bb7a0b387fdd37e4d4778b92338",
+    "dirty_entries": [],
+    "expected_commit": "f5d710406b215bb7a0b387fdd37e4d4778b92338",
+    "remote_origin": "https://github.com/Tencent-Hunyuan/UniRL.git",
+    "root": "/Users/haonannwang/Downloads/UniRL"
+  }
+}
