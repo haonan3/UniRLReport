@@ -559,7 +559,7 @@ This guard diagnoses collapse and is not itself a perceptual-quality metric.
 \toprule
 ID & Workload / external endpoint & Base & Reference/control & UniRL & Seeds \\
 \midrule
-E1 & Qwen3-4B-Base GRPO; MATH-500/AIME & \multicolumn{3}{c}{\emph{in progress --- seed 11 at rollout 470/800; primary endpoint is the rollout-800 checkpoint}} & 0/3 \\
+E1 & Qwen3-4B-Base GRPO; MATH-500/AIME & \multicolumn{3}{c}{\emph{trained to budget; primary endpoint not yet measured --- internal validation only}} & 1/3 \\
 \midrule
 \multicolumn{6}{@{}l}{E2 --- SD3.5-M FlowGRPO, 1{,}632 prompts at $K{=}16$, 26{,}112 images per preference row, 19/19 rows scored, 0 errors} \\
 E2a & HPSv3, held-out preference (primary endpoint) & 1.2024 & -- & \textbf{9.8126} & 3 \\
@@ -576,7 +576,7 @@ At three seeds the $t$ interval carries $2$ degrees of freedom and is wide by co
 \emph{The diversity guard fired on all three seeds}, and the narrowing is already present at rollout 50 ($-15.69/-14.08/-12.91\%$), so truncating the budget does not avoid it.
 PickScore, the optimized objective, rises monotonically at all six checkpoints on all three seeds, and the two frozen judges \emph{decelerate rather than flatten}: their first two increments carry nearly all of the gain, and both rise again at the final checkpoint on every seed, HPSv3's final increment exceeding PickScore's entire 150-to-300 movement. A decline appears on exactly one seed at one checkpoint (seed 11's HPSv3 at 250) and recovers by 300. \textbf{So the shape is deceleration, not divergence, and this row does not exhibit reward overfitting} as \texttt{GPU\_HANDOFF\_README.md} \S8.5 defines it --- \emph{``PickScore rises while independent metrics/diversity fall materially''} --- because all three independent judges rise on every seed. What falls is diversity alone, which \S8.5's taxonomy has no branch for.
 \par\vspace{1mm}
-\paperTODO{Still open: the E2-R VeRL-Omni reference column --- three seeds are trained and their exports audited (15/15 consecutive pairs, native $=$ export bit-identical), but no held-out evaluation was run because the estimator mismatch between the stacks is unresolved. Also outstanding: exact checkpoint revisions and released run IDs. The E1 row is a single-seed negative result: seed 11 ran its full 800-rollout budget and its final checkpoint scores below the untrained baseline, while seeds 22 and 33 were not run, so the row carries no replication.}
+\paperTODO{Still open: the E2-R VeRL-Omni reference column --- three seeds are trained and their exports audited (15/15 consecutive pairs, native $=$ export bit-identical), but no held-out evaluation was run because the estimator mismatch between the stacks is unresolved. Also outstanding: exact checkpoint revisions and released run IDs. The E1 row is two single-seed arms, both trained to the full 800-rollout budget. On internal validation the GRPO arm's final checkpoint scores \emph{below} its untrained baseline ($0.85\times$) while a DRPO arm reaches $6.4\times$; both peak in mid-training and decline, at rollouts 280 and 400 respectively. Seeds 22 and 33 were not run, so neither arm is replicated, and the prespecified MATH-500 endpoint at the larger generation cap has not been measured --- every figure available is internal AIME at a different sampler and half the token budget.}
 \end{table}
 
 \subsection{RQ2: What is end-to-end system performance?}
