@@ -1,6 +1,6 @@
 # UniRL Paper Experiment Runbook
 
-Last updated: 2026-09-05
+Last updated: 2026-09-23
 
 This document turns the paper's evaluation plan into a GPU-cluster execution and
 evidence protocol. It contains **no experimental results**. Values below are either
@@ -56,12 +56,16 @@ Record any residual scheduling nondeterminism without claiming bitwise reproduct
 | E4 | P0 | Frozen-Qwen rewrite -> SD3, original-prompt versus rewrite-local grouping | Lineage selects an executable cross-stage objective | RQ3 lineage/enablement result |
 | E5 | P0 minimum / P2 extensions | IR/transport costs plus a matched UniRL topology pair | Representation and execution cost | RQ3 table/scaling plot |
 | E6 | P1 | Matched sync/async Qwen3 sweep | Bounded staleness has a measurable useful region | RQ4 Pareto plot and table |
+| E7 | P1 | HunyuanImage3 shared-backbone AR recaption -> image diffusion training | One trajectory can carry two replay types and credit through a jointly updated AR/diffusion backbone | RQ1/RQ3 generalization row and appendix trace |
+| E8 | P1 | MiniMax H3 text-to-video post-training, subject to trainable-model access | The trajectory contract extends from image diffusion to temporal video values and replay state | RQ1 video extension and modality-cost appendix |
 
 E1/E2 establish training validity, E3 establishes comparative full-stack efficiency,
 and E4 directly tests the paper's lineage thesis. The minimum E5 topology/cost slice
 bounds the price of the design and is also required for paper completion. Complete
 primary E0-E5 before adding model families, objectives, E6, or broad scaling points;
-broader E5 backends/scaling are extensions.
+broader E5 backends/scaling and E7/E8 are extensions. E7 and E8 answer different
+questions and neither substitutes for the other: E7 tests a shared AR/diffusion
+backbone, while E8 tests a video diffusion model with temporal outputs and rewards.
 At least one full-budget E1/E2 reference must pass mathematical and effective-work
 parity before the paper claims reference-implementation reproduction. Omitting
 both references leaves that author-requested evidence obligation open.
@@ -81,6 +85,7 @@ The current code already emits some—but not all—metrics required by the pape
 | Buffer occupancy, rejected/discarded work, barrier duration | Manager logs exist, but no complete structured per-step series is emitted | **Instrumentation TODO before RQ4.** Add root/prompt counts and time for admission, ready, carry, filter rejection, suspension, finish, quiesce, and publication barrier. |
 | GPU utilization/power | No authoritative internal time series | Collect externally (DCGM or equivalent), synchronized to run timestamps. |
 | External text/image quality | `benchmarks.run` and `BenchmarkSpec` registry | Ready after dataset/reward availability is verified; archive completions/images, scores, and `summary.json`. |
+| External video quality | Video primitives and reward-service video routing exist; VideoAlign/VideoReward has a vendored inference path | **Partial.** GPU-smoke the exact scorer and video serialization path, freeze frame sampling/FPS, and add a held-out evaluator distinct from the optimized training reward before E8. |
 
 For phase and async metrics, set `logging.report_to_wandb=true`. On clusters where
 network logging is undesirable, use W&B offline mode and archive the entire offline
@@ -478,13 +483,172 @@ pass and no asynchronous point Pareto-improves on its relevant control, preserve
 negative result and conclude that this workload/allocation has no demonstrated useful
 async region.
 
-## 9. Failure ownership and paper fill-in checklist
+## 9. Model- and modality-generalization extensions (E7/E8)
+
+E7 and E8 follow the primary E0--E5 evidence. They strengthen different parts of
+the heterogeneous-model claim and must remain separate experiments. E7 asks whether
+one shared backbone can consume AR and diffusion replay in one lineage-aware update.
+E8 asks whether the diffusion trajectory contract survives the substantially larger
+temporal state, serialization, reward, and evaluation surface of video generation.
+Neither extension is required to validate the primary SD3.5 result, and neither may
+be represented by a configuration file or inference-only demo without the gates below.
+
+### 9.1 HunyuanImage3 shared-backbone AR and diffusion training (E7)
+
+**Starting path:** `examples/unified_model/hi3/hi3_vllmomni.yaml` with
+`python -m unirl.train_unified_model`. This implementation was observed in a source
+checkout newer than the manuscript's audited commit. Before E7, pin the exact source
+commit, archive its diff from the audited paper commit, and re-run the applicable E0
+gates. Do not describe E7 as functionality of commit `f5d7104` unless that exact tree
+contains and passes the exercised path.
+
+E7 uses one HunyuanImage3 backbone in AR text-generation and DiT image-generation
+modes. The intended trajectory is
+`original prompt -> N reasoning/recaption children -> M image children per recaption`.
+ARGRPO replays each `TextSegment`; DiffusionGRPO replays each `LatentSegment`; both
+backward passes accumulate into one shared LoRA adapter before one optimizer step.
+
+#### E7a: semantic and lifecycle gate
+
+Run a dump-first smoke before any learning claim and require:
+
+- a real `P x N x M` trace with `N >= 2` and `M >= 2`, unique root/part IDs, exact
+  parent IDs, distinct recaptions, and distinct per-image initial-noise identities;
+- equality of root/recaption/image groups, propagated rewards, per-track advantages,
+  and replay inputs against an explicit flat ID-join oracle on the same payload;
+- AR rollout/replay token-log-prob consistency and diffusion rollout/replay
+  transition-log-prob consistency at initialization;
+- proof that the same adapter update is published to both AR and DiT rollout engines,
+  followed by post-publication parity probes for both modes;
+- checkpoint/resume preservation of the shared optimizer, adapter, RNG state, both
+  replay paths, and behavior-policy versions;
+- a trace showing that image reward reaches only the correct recaption ancestors and
+  that the evaluator joins every image to the intended original prompt.
+
+If the engine produces only one image for each recaption, or reconstructs the
+`N x M` structure from positional assumptions rather than archived IDs, E7a fails.
+Fix and pin the fan-out/response-lineage implementation before E7b. Configuration
+comments are not evidence of the runtime trajectory shape.
+
+#### E7b: training-validity comparison
+
+Use the same prompt manifest, generation geometry, initial adapter, noise manifest,
+reward revision, evaluator, optimizer work, and checkpoint cadence for:
+
+1. frozen base inference;
+2. image-only updating, with the AR loss disabled by an explicit, logged stage-loss
+   control while retaining the same AR rollout/recaption path;
+3. joint ARGRPO + DiffusionGRPO updating through the shared adapter.
+
+The current shared stack has no paper-audited stage-loss weighting control. Implement
+and test an explicit switch before the image-only row; zeroing advantages or silently
+skipping a backward pass is not an admissible substitute. After E7a and one
+capacity-only pilot, register prompts/rollout, `N`, `M`, image size, denoising/SDE
+schedule, LoRA targets/rank, loss weights, optimizer budget, checkpoint cadence, GPU
+allocation, and the exact HunyuanImage3 checkpoint. Formal learning summaries use
+seeds 11/22/33 and may not change those fields per condition.
+
+The primary endpoint is held-out image quality scored against the original root
+prompt by a frozen evaluator distinct from the optimized reward. Also report
+rewrite-conditioned quality, within-recaption image diversity, recaption validity,
+length and duplication, AR/diffusion ratio and clipping diagnostics, per-stage
+gradient norms, and complete system time/memory. Gradient cosine similarity between
+the two stage losses is a useful diagnostic if it can be collected without changing
+the update. A valid but non-improving joint row supports execution generality, not a
+claim that joint optimization improves image quality.
+
+### 9.2 MiniMax H3 text-to-video post-training (E8)
+
+MiniMax H3 is not implemented by a checked-in UniRL model bundle or recipe in the
+source audited for this runbook. First pin the exact public/product identity,
+checkpoint or service revision, license, tokenizer/text encoders, scheduler, VAE,
+maximum duration, frame rate, resolution, and available training interface. Do not
+substitute HunyuanImage3, HunyuanVideo, or WAN results for MiniMax H3.
+
+#### E8-access: determine the admissible claim
+
+- **Trainable weights or an official gradient/update interface:** E8 may proceed to
+  rollout/replay integration and multi-seed RL training.
+- **Inference API with controllable seeds but no parameter updates:** only an
+  inference/trajectory interoperability row is admissible. It cannot establish
+  post-training, replay correctness, weight publication, or learning validity.
+- **API without reproducible version, seed, raw video, or complete error accounting:**
+  omit the row from quantitative evidence and retain only a stated limitation.
+
+Archive the access contract and model revision before implementing the adapter. A
+local imitation using another video model must carry that model's actual name.
+
+#### E8a: video trajectory and replay gate
+
+For a trainable path, add a versioned MiniMax H3 bundle, typed conditions, diffusion
+stage, rollout adapter, and recipe in the UniRL source repository. The first admitted
+smoke must use more than one frame and more than one sample per prompt. Require:
+
+- `Videos` decoded values with exact sample/root IDs plus archived frame count, FPS,
+  duration, resolution, codec/container, and preprocessing metadata;
+- temporal latent/replay tensors with recorded shapes, dtypes, selected SDE indices,
+  sigma schedule, initial-noise identity, and byte counts;
+- exact split/concat/select and serialization round trips without dropping temporal
+  order or associating a reward with the wrong video;
+- rollout/replay transition-log-prob agreement, finite gradients, optimizer movement,
+  and post-publication parity for every supported weight-sync path;
+- a video reward smoke that demonstrably consumes multiple frames. First-frame
+  VideoPickScore may be retained as a diagnostic but is not sufficient evidence for
+  temporal video quality;
+- GPU validation of VideoAlign/VideoReward or the selected training reward, including
+  its frame-sampling/FPS policy, missing/error handling, and deterministic scoring
+  tolerance on repeated inputs.
+
+Use an existing stable UniRL video recipe such as WAN 2.2 only as a pipeline control
+for `Videos`, reward routing, artifact serialization, and metric generation. It is
+not a MiniMax H3 quality or efficiency baseline unless effective work, model access,
+generation geometry, reward, and hardware are explicitly aligned.
+
+#### E8b: training-validity and modality-cost study
+
+After E8a and one capacity-only pilot, freeze in the registration manifest:
+
+- prompt dataset and held-out split, MiniMax H3 revision, prompt preprocessing, and
+  overlap audit;
+- frames, FPS, duration, resolution, denoising steps, SDE step selection, guidance,
+  samples per prompt, and initial-noise policy;
+- reward model/revision and frame sampler, group-normalization population, replay
+  anchor, optimizer/update count, LoRA or full-weight target, precision, checkpoint
+  cadence, total rollout budget, and allocation;
+- seeds 11/22/33 for the formal row, with identical base and checkpoint evaluation
+  manifests.
+
+Required rows are the frozen base and at least three trained seeds. A framework or
+model baseline is optional and must not delay the within-model learning-validity
+result. The primary external endpoint must be a frozen prompt-video alignment or
+video-quality evaluator distinct from the optimized reward. Report temporal
+consistency/motion, visual quality, prompt alignment, safety/error rate, and
+within-prompt diversity as separate views; do not collapse them into an unversioned
+single score. Archive every generated video and its prompt/sample/seed/checkpoint
+identity, evaluator output, and failure.
+
+Because video changes the payload scale, also report latent and decoded bytes per
+trajectory, VAE encode/decode time, rollout time, reward-service time, transfer and
+materialization time, peak memory by role, samples/GPU-hour, frames/GPU-hour, and
+failed/retried generations. Normalize any image-versus-video cost discussion by
+explicit pixels, frames, denoising work, and allocated resources; raw iteration-time
+ratios across SD3.5 and MiniMax H3 do not isolate modality overhead.
+
+Reward improvement without held-out improvement, or improvement accompanied by
+temporal collapse or diversity loss, is reported as reward overfitting. If E8a passes
+but formal training does not improve, retain the negative result and limit the claim
+to video-path execution. If trainable MiniMax H3 access is unavailable, report the
+inference-only result separately and do not count E8 as diffusion training validity.
+
+## 10. Failure ownership and paper fill-in checklist
 
 Statistics use training seeds and process repetitions as independent units. Report
 all seeds/repetitions, means and 95% t intervals; pooled timing steps show within-run
 variation and are not independent replicate counts for a speed-ratio CI. Primary
 endpoints are final MATH-500 for E1 and final PartiPrompts HPSv3 for E2. Secondary
 metrics remain visible even when they disagree; no post hoc endpoint switching.
+E7/E8 primary endpoints and budgets must be registered after their correctness and
+capacity gates but before formal multi-seed runs or inspection of treatment results.
 
 Codex/engineering work may correct paths, dependencies, Hydra mistakes, parity
 reports, logging/parsers, deterministic divisibility, smoke-only OOM geometry,
