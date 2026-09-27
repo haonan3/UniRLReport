@@ -59,7 +59,7 @@ Across Heterogeneous Generative Models}
 \maketitle
 
 \begin{abstract}
-Reinforcement-learning post-training systems share an outer loop---generate, score, assign credit, and update---yet their implementations fragment because autoregressive tokens, diffusion trajectories, multimodal values, and multi-stage rollouts carry different state and impose different execution constraints.
+Reinforcement-learning systems share an outer loop---generate, score, assign credit, and update---yet their implementations fragment because autoregressive tokens, diffusion trajectories, multimodal values, and multi-stage rollouts carry different state and impose different execution constraints.
 We present \system, a trajectory-centric system that places a lineage-preserving, modality-aware intermediate representation at the boundary between post-training semantics and distributed execution.
 A trajectory batch is a sequence of typed frontiers encoding prompt-rooted trees, with decoded values, model conditions, replay segments, rewards, and behavior-policy versions.
 Rollout engines implement one transformation, $\sample\!\rightarrow\!\sample$, while logical roles, placement, tensor transport, weight publication, and phase residency determine how the transformation executes.
