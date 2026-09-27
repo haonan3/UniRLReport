@@ -1,0 +1,302 @@
+{
+  "schema_version": 1,
+  "report_as_of": "2026-09-22",
+  "retrieved_on": "2026-09-27",
+  "evidence_tier": "reported_summary_not_independently_verified",
+  "boundary": "These are transcribed report/manuscript summaries, not a rerun or a reanalysis of raw experiment logs. The underlying experiment repositories were inaccessible during this review. Rounded reported seed values are not used to reconstruct aggregates, uncertainty, or learning curves.",
+  "sources": [
+    {
+      "id": "notion-20260922",
+      "title": "UniRL Experiment Report",
+      "url": "https://app.notion.com/p/UniRL-Experiment-Report-3e324a4934c8816c841ecdbc58d616ff",
+      "snapshot": "sources/notion-report.txt",
+      "description": "Live rendered page fetched on 2026-09-27; the report explicitly states as of 2026-09-22."
+    },
+    {
+      "id": "pr2-ecce5097",
+      "title": "UniRLReport PR #2 manuscript, main.tex",
+      "url": "https://github.com/haonan3/UniRLReport/blob/ecce5097fa88a2ca336cf39c13e3cfd940e8c1ef/main.tex",
+      "revision": "ecce5097fa88a2ca336cf39c13e3cfd940e8c1ef",
+      "snapshot": "sources/pr2-main.tex",
+      "description": "Precision source for values rounded in the Notion report. This manuscript contains incomplete and conflicting claims and is not treated as validated raw evidence."
+    },
+    {
+      "id": "issue1-20260927",
+      "title": "UniRLReport issue #1",
+      "url": "https://github.com/haonan3/UniRLReport/issues/1",
+      "snapshot": "sources/issue-1.json",
+      "description": "Context source retrieved 2026-09-27; not an additional raw experiment record."
+    },
+    {
+      "id": "pr2-api-20260927",
+      "title": "UniRLReport PR #2 description and metadata",
+      "url": "https://github.com/haonan3/UniRLReport/pull/2",
+      "snapshot": "sources/pr-2.json",
+      "description": "Context for reported methodology and aggregate/replicate discrepancies; retrieved 2026-09-27."
+    },
+    {
+      "id": "upstream462-20260927",
+      "title": "UniRL upstream evaluation hang fix, PR #462",
+      "url": "https://github.com/Tencent-Hunyuan/UniRL/pull/462",
+      "snapshot": "sources/upstream-pr-462.json",
+      "description": "Code-fix context only; merged 2026-09-15T12:19:58Z. Not evidence of experiment quality."
+    }
+  ],
+  "e2": {
+    "experiment": "E2",
+    "model": "SD3.5-Medium",
+    "comparison": "rollout 300 checkpoint versus frozen base",
+    "training_seeds": 3,
+    "seed_labels": [
+      "A",
+      "B",
+      "C"
+    ],
+    "seed_label_note": "A/B/C preserve the reported list order; no mapping to numeric training seed IDs has been verified.",
+    "preference_images_per_row": 26112,
+    "source_ids": [
+      "notion-20260922",
+      "pr2-ecce5097"
+    ],
+    "source_locator": "Notion: RQ1 / Diffusion: E2. PR #2: RQ1 table and the immediately following per-seed paragraph.",
+    "metrics": [
+      {
+        "id": "hpsv3",
+        "name": "HPSv3",
+        "role": "external preference",
+        "base": "1.2024",
+        "final": "9.8126",
+        "absolute_change": "8.6102",
+        "relative_change_percent": null,
+        "seed_changes": [
+          "8.579",
+          "8.713",
+          "8.538"
+        ],
+        "seed_change_unit": "score",
+        "source_ids": [
+          "pr2-ecce5097"
+        ]
+      },
+      {
+        "id": "image_reward",
+        "name": "ImageReward",
+        "role": "external preference",
+        "base": null,
+        "final": null,
+        "absolute_change": "1.3932",
+        "relative_change_percent": null,
+        "seed_changes": [],
+        "seed_change_unit": "score",
+        "source_ids": [
+          "pr2-ecce5097"
+        ]
+      },
+      {
+        "id": "pickscore",
+        "name": "PickScore",
+        "role": "optimized objective",
+        "base": null,
+        "final": null,
+        "absolute_change": "0.0970",
+        "relative_change_percent": null,
+        "seed_changes": [],
+        "seed_change_unit": "score",
+        "source_ids": [
+          "pr2-ecce5097"
+        ]
+      },
+      {
+        "id": "composition",
+        "name": "Composition (VQAScore)",
+        "role": "synthetic compositional check",
+        "base": "0.1011",
+        "final": "0.1552",
+        "absolute_change": null,
+        "relative_change_percent": "53.5",
+        "seed_changes": [
+          "54.5",
+          "50.4",
+          "55.5"
+        ],
+        "seed_change_unit": "percent_relative_to_base",
+        "source_ids": [
+          "notion-20260922",
+          "pr2-ecce5097"
+        ]
+      },
+      {
+        "id": "lpips",
+        "name": "LPIPS diversity",
+        "role": "within-prompt diversity guard",
+        "base": null,
+        "final": null,
+        "absolute_change": null,
+        "relative_change_percent": "-24.79",
+        "seed_changes": [
+          "-23.95",
+          "-25.19",
+          "-25.22"
+        ],
+        "seed_change_unit": "percent_relative_to_base",
+        "source_ids": [
+          "pr2-ecce5097"
+        ]
+      }
+    ],
+    "early_diversity": {
+      "rollout": 50,
+      "seed_relative_change_percent": [
+        "-15.69",
+        "-14.08",
+        "-12.91"
+      ],
+      "source_ids": [
+        "pr2-ecce5097"
+      ],
+      "note": "Sparse early endpoint only; not enough data for a learning curve."
+    }
+  },
+  "e3": {
+    "experiment": "E3",
+    "comparison": "shape-matched native recipes",
+    "total_gpus": 8,
+    "reported_process_repetitions": 3,
+    "source_ids": [
+      "notion-20260922",
+      "pr2-ecce5097"
+    ],
+    "source_locator": "Notion: RQ2. PR #2: RQ2 systems table.",
+    "rows": [
+      {
+        "id": "unirl",
+        "system": "UniRL",
+        "configuration": "Native flow / SDPA-class",
+        "seconds_per_iteration": "64.22",
+        "samples_per_gpu_hour": "5381"
+      },
+      {
+        "id": "verl_sdpa",
+        "system": "VeRL-Omni",
+        "configuration": "Native CPS / SDPA",
+        "seconds_per_iteration": "111.33",
+        "samples_per_gpu_hour": "3104"
+      },
+      {
+        "id": "verl_fa3",
+        "system": "VeRL-Omni",
+        "configuration": "Native CPS / FA3",
+        "seconds_per_iteration": "112.26",
+        "samples_per_gpu_hour": "3079"
+      }
+    ],
+    "limitations": [
+      "Native estimator and LoRA target count differ; reward-service placement remains unaudited. The ratios are not an algorithm-equivalent estimate of framework overhead.",
+      "The PR table and PR body disagree about replicate medians. Only the reported table aggregates are preserved; no dispersion or significance inference is generated.",
+      "The short timing study does not establish time to target quality.",
+      "The reported 1.70 parameter-matched ratio lacks a verified measured control and is not included."
+    ],
+    "display_note": "The table and figure show one decimal place, matching the public Notion summary; JSON/CSV retain PR table precision without asserting that precision is independently verified."
+  },
+  "e5t": {
+    "experiment": "E5-T",
+    "comparison": "deployment regimes at fixed total GPU allocation",
+    "total_gpus": 8,
+    "source_ids": [
+      "pr2-ecce5097",
+      "notion-20260922"
+    ],
+    "source_locator": "PR #2: E5-T result paragraph. Notion: RQ3 / Topology.",
+    "rows": [
+      {
+        "id": "colocated",
+        "configuration": "Colocated, 8 shared GPUs",
+        "seconds_per_iteration": "64.223"
+      },
+      {
+        "id": "separate",
+        "configuration": "Separate, 4 training + 4 rollout GPUs",
+        "seconds_per_iteration": "146.244"
+      }
+    ],
+    "limitations": [
+      "Training parallelism, reward residency and weight publication change together; this is not an isolated transport or representation overhead measurement.",
+      "No verified raw phase timings are available; no phase stack or reward-cost attribution is plotted."
+    ]
+  },
+  "exploratory": [
+    {
+      "id": "e1_grpo_base",
+      "experiment": "E1",
+      "metric": "internal AIME validation / GRPO / base",
+      "value": "0.0208",
+      "macro": "EOneGRPOBase",
+      "source_ids": [
+        "notion-20260922"
+      ],
+      "note": "Single training seed; not the prespecified external MATH-500 endpoint."
+    },
+    {
+      "id": "e1_grpo_final",
+      "experiment": "E1",
+      "metric": "internal AIME validation / GRPO / rollout 800",
+      "value": "0.0177",
+      "macro": "EOneGRPOFinal",
+      "source_ids": [
+        "notion-20260922"
+      ]
+    },
+    {
+      "id": "e1_drpo_base",
+      "experiment": "E1",
+      "metric": "internal AIME validation / DRPO / base",
+      "value": "0.0250",
+      "macro": "EOneDRPOBase",
+      "source_ids": [
+        "notion-20260922"
+      ]
+    },
+    {
+      "id": "e1_drpo_final",
+      "experiment": "E1",
+      "metric": "internal AIME validation / DRPO / rollout 800",
+      "value": "0.159",
+      "macro": "EOneDRPOFinal",
+      "source_ids": [
+        "notion-20260922"
+      ]
+    },
+    {
+      "id": "e4a_checks",
+      "experiment": "E4a",
+      "metric": "synthetic semantic checks passing in each scope",
+      "value": "24",
+      "macro": "EFourChecks",
+      "source_ids": [
+        "notion-20260922"
+      ],
+      "note": "Not a recorded-rollout validation."
+    },
+    {
+      "id": "e6_quality_early",
+      "experiment": "E6",
+      "metric": "reported MATH-500 / rollout 150",
+      "value": "0.798",
+      "macro": "ESixQualityEarly",
+      "source_ids": [
+        "notion-20260922"
+      ],
+      "note": "Failed pilot; evaluation scorer/protocol audit pending. Preserve manuscript avg@4 preset; do not infer Pass@k from a report comment."
+    },
+    {
+      "id": "e6_quality_late",
+      "experiment": "E6",
+      "metric": "reported MATH-500 / rollout 300",
+      "value": "0.773",
+      "macro": "ESixQualityLate",
+      "source_ids": [
+        "notion-20260922"
+      ]
+    }
+  ]
+}

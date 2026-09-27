@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "evidence_tier": "reported_summary_not_independently_verified",
+  "report_as_of": "2026-09-22",
+  "retrieved_on": "2026-09-27",
+  "generator": "experiments/reported_results/generate.py",
+  "generator_sha256": "0cd46564a50989f4e925eeb2871b0e19ccbd35718579860ed71b962e9cc1a874",
+  "versions": {
+    "python": "3.9.6",
+    "matplotlib": "3.9.4",
+    "numpy": "2.0.2"
+  },
+  "reproduction": "python3 experiments/reported_results/generate.py",
+  "note": "Hashes preserve this reported-summary bundle; they do not verify the underlying experiment runs.",
+  "sha256": {
+    "README.md": "d0645dc2cec63ea3131548614d1eac719d75e6576dd4a3ebe877d86acb40a678",
+    "e2_table.tex": "2009db3db9a2a93739a3657e6ec17883da1b849c3c9ba09c2e9345eeb014cf97",
+    "evidence.json": "e70eee8a5d9a53087b3709f79b2d187f1d8bf9620ae772212b5e2562b8e0c110",
+    "figures/e2_quality_diversity.pdf": "bfd563d5d63f11c2c2144a208320ea2602cc9cd3e8fa429228e8b29681af1570",
+    "figures/e2_quality_diversity.png": "0207807a19a479093967b555b5c702d02ce66a000af68da584b373e68499dd79",
+    "figures/e3_e5_systems.pdf": "a862b40d28894403bfce5a456890bbb57608e05faa9a8debc02b5f59c6b02c49",
+    "figures/e3_e5_systems.png": "b33858ce43ebc8e7518778c738b4963928f1117f7742d04be7748187e0005af5",
+    "macros.tex": "76cee7fe73a4e11f5c5be00410d42581fc5d497e7c6501a86710a107b744bbc6",
+    "reported_values.csv": "8f2bab35d0ab0f2934cb4ba72cb49ab265a94c716497e5302969d1f304c8f5d0",
+    "sources/issue-1.json": "0e2eb21c7e8f3a6796be1420117c0e79170660ed68a1a482b280b84ef6546a5c",
+    "sources/notion-report.txt": "453ba3f8b7b879920de89f2182c06c5642c938f215dfdee70590de64877b2504",
+    "sources/pr-2.json": "9e3898ff73c952d382927b383d271237dbab4ce76a93367a5baa6f7c571e7a38",
+    "sources/pr2-main.tex": "22f9cc27e9c028f3cb501f9df1b1a4a41000864c36ea4164efee4fdb7dbc89d8",
+    "sources/upstream-pr-462.json": "f3d25f2c774ba1447f3050257d5bcb5ffcaaaf2a88d7c7fc36f521a748fe81c3",
+    "systems_table.tex": "c8ff11cd6ef3383f583f410ee44edfca7c607f2177c17fc339a46d5ab531d2f0"
+  }
+}
