@@ -1,0 +1,37 @@
+experiment,metric,arm_or_seed,rollout,statistic,value,unit,provenance_ids
+E2,hpsv3,reported_aggregate,0,base,1.2024,score,pr2-ecce5097
+E2,hpsv3,reported_aggregate,300,final,9.8126,score,pr2-ecce5097
+E2,hpsv3,reported_aggregate,300,absolute_change,8.6102,score,pr2-ecce5097
+E2,hpsv3,reported_seed_A,300,change_from_base,8.579,score,pr2-ecce5097
+E2,hpsv3,reported_seed_B,300,change_from_base,8.713,score,pr2-ecce5097
+E2,hpsv3,reported_seed_C,300,change_from_base,8.538,score,pr2-ecce5097
+E2,image_reward,reported_aggregate,300,absolute_change,1.3932,score,pr2-ecce5097
+E2,pickscore,reported_aggregate,300,absolute_change,0.0970,score,pr2-ecce5097
+E2,composition,reported_aggregate,0,base,0.1011,score,notion-20260922;pr2-ecce5097
+E2,composition,reported_aggregate,300,final,0.1552,score,notion-20260922;pr2-ecce5097
+E2,composition,reported_aggregate,300,relative_change_percent,53.5,percent_relative_to_base,notion-20260922;pr2-ecce5097
+E2,composition,reported_seed_A,300,change_from_base,54.5,percent_relative_to_base,notion-20260922;pr2-ecce5097
+E2,composition,reported_seed_B,300,change_from_base,50.4,percent_relative_to_base,notion-20260922;pr2-ecce5097
+E2,composition,reported_seed_C,300,change_from_base,55.5,percent_relative_to_base,notion-20260922;pr2-ecce5097
+E2,lpips,reported_aggregate,300,relative_change_percent,-24.79,percent_relative_to_base,pr2-ecce5097
+E2,lpips,reported_seed_A,300,change_from_base,-23.95,percent_relative_to_base,pr2-ecce5097
+E2,lpips,reported_seed_B,300,change_from_base,-25.19,percent_relative_to_base,pr2-ecce5097
+E2,lpips,reported_seed_C,300,change_from_base,-25.22,percent_relative_to_base,pr2-ecce5097
+E2,lpips,reported_seed_A,50,change_from_base,-15.69,percent_relative_to_base,pr2-ecce5097
+E2,lpips,reported_seed_B,50,change_from_base,-14.08,percent_relative_to_base,pr2-ecce5097
+E2,lpips,reported_seed_C,50,change_from_base,-12.91,percent_relative_to_base,pr2-ecce5097
+E3,iteration_time,unirl,,reported_aggregate,64.22,seconds,notion-20260922;pr2-ecce5097
+E3,throughput,unirl,,reported_aggregate,5381,samples_per_gpu_hour,notion-20260922;pr2-ecce5097
+E3,iteration_time,verl_sdpa,,reported_aggregate,111.33,seconds,notion-20260922;pr2-ecce5097
+E3,throughput,verl_sdpa,,reported_aggregate,3104,samples_per_gpu_hour,notion-20260922;pr2-ecce5097
+E3,iteration_time,verl_fa3,,reported_aggregate,112.26,seconds,notion-20260922;pr2-ecce5097
+E3,throughput,verl_fa3,,reported_aggregate,3079,samples_per_gpu_hour,notion-20260922;pr2-ecce5097
+E5-T,iteration_time,colocated,,reported_aggregate,64.223,seconds,pr2-ecce5097;notion-20260922
+E5-T,iteration_time,separate,,reported_aggregate,146.244,seconds,pr2-ecce5097;notion-20260922
+E1,internal AIME validation / GRPO / base,e1_grpo_base,,reported_exploratory,0.0208,score,notion-20260922
+E1,internal AIME validation / GRPO / rollout 800,e1_grpo_final,,reported_exploratory,0.0177,score,notion-20260922
+E1,internal AIME validation / DRPO / base,e1_drpo_base,,reported_exploratory,0.0250,score,notion-20260922
+E1,internal AIME validation / DRPO / rollout 800,e1_drpo_final,,reported_exploratory,0.159,score,notion-20260922
+E4a,synthetic semantic checks passing in each scope,e4a_checks,,reported_exploratory,24,count,notion-20260922
+E6,reported MATH-500 / rollout 150,e6_quality_early,,reported_exploratory,0.798,score,notion-20260922
+E6,reported MATH-500 / rollout 300,e6_quality_late,,reported_exploratory,0.773,score,notion-20260922

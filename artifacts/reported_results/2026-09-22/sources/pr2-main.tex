@@ -41,7 +41,6 @@
 \newcommand{\codepath}[1]{\texttt{#1}}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
-\input{artifacts/reported_results/2026-09-22/macros.tex}
 
 \title{\system: Trajectory-Centric Post-Training\\
 Across Heterogeneous Generative Models}
@@ -64,10 +63,9 @@ We present \system, a trajectory-centric system that places a lineage-preserving
 A trajectory batch is a sequence of typed frontiers encoding prompt-rooted trees, with decoded values, model conditions, replay segments, rewards, and behavior-policy versions.
 Rollout engines implement one transformation, $\sample\!\rightarrow\!\sample$, while logical roles, placement, tensor transport, weight publication, and phase residency determine how the transformation executes.
 These contracts factor model-specific replay from lineage, movement, placement, and scheduling decisions; they do not assert that the underlying objectives or every engine--topology combination are interchangeable.
-The design is grounded in a source audit of UniRL commit \texttt{f5d7104}; subsequent experiment reports provide initial GPU evidence.
-Three-seed diffusion results show improved held-out automatic scores together with reduced within-prompt diversity, while an eight-GPU native-recipe comparison reports lower iteration time than VeRL-Omni.
-A source-importing CPU harness exercises ten core IR invariants.
-The present evaluation distinguishes these reported measurements from independently regenerated raw evidence: the primary AR endpoint, real-rollout lineage validation, paired representation cost, and a controlled time-to-quality result remain open.
+This manuscript derives the design from UniRL commit \texttt{f5d7104} and specifies a claim-aligned evaluation covering training reproducibility, end-to-end throughput, phase cost, scaling, memory, transport, and policy lag.
+A source-importing CPU harness already exercises ten core IR invariants and records preliminary container-operation costs; the multi-seed training and aligned GPU systems results remain open.
+\paperTODO{Headline findings still to be written. Available now: E2's diffusion training-validity row at three seeds, E3's $1.73\times$ end-to-end result with its parameter-matched $1.70\times$, E4's semantic control passing 24/24 with its grouping comparison a null, and E5-T's topology cost. Not yet available: the E1 AR row (running --- seed 11 at rollout 470 of 800, seeds 22 and 33 not started, so no seed has reached its prespecified endpoint), the E2-R reference comparison, E5-R, and the E6 grid --- whose pilot produced a null rather than a bounded-staleness conclusion, so E6 should not be mentioned in the abstract on present evidence.}
 \end{abstract}
 
 \section{Introduction}
@@ -98,17 +96,17 @@ This representation is passed through a small set of logical roles and can be ma
 The paper develops two coupled design ideas:
 
 \begin{itemize}
-  \item A \emph{lineage-preserving trajectory IR} that separates decoded values, model conditions, and replay segments while retaining ancestry across generative stages (Section~\ref{sec:trajectory}). Synthetic equality checks provide initial semantic evidence; recorded-rollout validation and the primary AR endpoint remain open alongside the reported diffusion results.
-  \item A \emph{factorization of semantic roles from physical execution}: rollout remains $\sample\!\rightarrow\!\sample$, while field-aware dispatch, tensor references, placement, weight publication, and residency specify its execution (Section~\ref{sec:execution}). Native-recipe and internal topology comparisons provide initial performance observations; the paired representation-cost control remains unmeasured.
+  \item A \emph{lineage-preserving trajectory IR} that separates decoded values, model conditions, and replay segments while retaining ancestry across generative stages (Section~\ref{sec:trajectory}). Real traces and an equivalent flat-row reconstruction test its semantic contract; AR and diffusion runs test training validity.
+  \item A \emph{factorization of semantic roles from physical execution}: rollout remains $\sample\!\rightarrow\!\sample$, while field-aware dispatch, tensor references, placement, weight publication, and residency specify its execution (Section~\ref{sec:execution}). A work-matched external comparison and internal representation/topology controls measure the resulting cost.
 \end{itemize}
 
-Version-aware bounded staleness is one realization of the execution contracts (Section~\ref{sec:async}); an incomplete pilot is reported separately, without a controlled operating-region conclusion.
+Version-aware bounded staleness is one realization of the execution contracts (Section~\ref{sec:async}); a separate controlled sweep tests its operating region.
 The evidence therefore proceeds from structural correctness, through credible learning and a composed workflow, to measured system cost.
 The experiment IDs and corresponding artifacts are specified in Section~\ref{sec:evaluation}.
 
-The current evidence comprises an archived CPU regression and reported GPU results for diffusion training, native-recipe systems performance, and deployment topology.
-The diffusion result includes a material diversity regression; the systems comparison retains estimator and trainable-parameter differences.
-These observations do not establish an equivalent-algorithm speedup or complete the trajectory-centric claim: real-rollout semantic validation and a paired measurement of representation cost remain necessary.
+The current manuscript intentionally contains no end-to-end training or systems-performance claim: the audited repository contains runnable instrumentation and comparison scripts but not the raw logs needed to verify prose-reported numbers.
+We report only a narrowly scoped, artifact-backed CPU regression of IR operations in RQ3.
+The GPU studies are prespecified below and remain necessary before a quantitative systems conclusion.
 
 \section{Problem: Preserve Semantics While Changing Execution}
 \label{sec:problem}
@@ -472,7 +470,7 @@ Both workflows need ancestry to survive rollout scheduling and sharding; flatten
 
 E4 checks these groups against an explicit ID-based reference and then studies the two grouping objectives in training.
 
-\section{Evaluation: Reported Results and Remaining Evidence}
+\section{Evaluation Design and Prespecified Protocol}
 \label{sec:evaluation}
 
 We organize evaluation around four research questions.
@@ -482,16 +480,8 @@ The operational commands, run-directory schema, and failure-routing rules are fr
 \codepath{GPU\_HANDOFF\_README.md}; the stricter evidence-admission contract is in
 \codepath{EXPERIMENT\_RUNBOOK.md}.
 
-\paragraph{Evidence scope and date.}
-The online experiment report, retrieved on 2026-09-27, states an as-of date of 2026-09-22.
-We combine it with the result manuscript in pull request~2 at commit \texttt{ecce5097}; source snapshots, transcribed data, and a deterministic figure/table generator accompany this repository under \codepath{artifacts/reported\_results/2026-09-22/}.
-The tables below are regenerated from those \emph{reported summaries}, not from newly inspected training logs.
-The underlying per-run repositories were unavailable during this integration, so source identities, complete timing distributions, and all admission gates have not been independently revalidated here.
-We retain that distinction, avoid reconstructed learning curves or uncertainty bars, and list unresolved source discrepancies in \codepath{EXPERIMENT\_RESULTS.md}.
-The settings below describe the prespecified protocol unless explicitly identified as an observed result; matching each setting to a resolved run configuration remains an artifact-release obligation.
-
 \begin{table}[H]
-\caption{Experiment-to-claim map and reported status as of 2026-09-22. P0 rows remain necessary for the primary trajectory-centric claim.}
+\caption{Prespecified experiment-to-claim map. E0 is a gate, not a result; P0 rows are required to close the paper's primary trajectory-centric claim.}
 \label{tab:experiment-map}
 \centering
 \scriptsize
@@ -499,13 +489,13 @@ The settings below describe the prespecified protocol unless explicitly identifi
 \toprule
 ID & Priority & Controlled study & Paper evidence \\
 \midrule
-E0 & P0 gate & Correctness, configuration, and instrumentation checks & Correctness closure reported; evidence packaging remains incomplete \\
-E1 & P0 & Qwen3-4B-Base on DAPO-Math & GRPO and DRPO each trained at one seed; primary external endpoint missing \\
-E2 & P0 & SD3.5-Medium diffusion training & Three-seed UniRL scores and diversity reported; reference trained, not evaluated \\
-E3 & P0 & Native UniRL--VeRL-Omni recipes, eight GPUs & Aggregate timings reported; strict semantic parity not established \\
-E4 & P0 & Root versus rewrite grouping & Synthetic equality checks pass; no consistent three-seed quality advantage \\
-E5 & P0 minimum & Representation cost and deployment topology & Topology measured; paired representation cost not measured \\
-E6 & P1 & Synchronous/asynchronous Qwen3 study & Single-seed pilots only; formal sweep canceled \\
+E0 & P0 gate & Environment, semantic parity, replay/publication, checkpoint, and instrumentation checks & Evaluation validity and Appendix~\ref{app:correctness} \\
+E1 & P0 & Qwen3-4B-Base GRPO on DAPO-Math, three seeds & RQ1 AR validity; matched reference pending \\
+E2 & P0 & SD3.5-Medium FlowGRPO, three seeds per system and external image evaluation & RQ1 long-run reference and collapse guards \\
+E3 & P0 & Shape-matched native UniRL--VeRL-Omni SD3.5 recipes on eight GPUs & RQ2 throughput, resources, and phase cost \\
+E4 & P0 & Frozen-Qwen prompt enhancement with original-prompt versus rewrite-local grouping & RQ3 lineage and enablement result \\
+E5 & P0 minimum & IR/transport costs plus a matched UniRL topology pair & RQ3 abstraction and execution cost \\
+E6 & P1 & Matched synchronous/asynchronous Qwen3 sweep & RQ4 lag--quality--time trade-off \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -513,19 +503,17 @@ E6 & P1 & Synchronous/asynchronous Qwen3 study & Single-seed pilots only; formal
 The order is E0, then E1--E4 and the minimum E5 topology/cost slice; E6 and broader E5 scaling/transport backends follow.
 If compute is limited, we complete primary E0--E5 before adding more models, algorithms, or scaling points: without E4 the paper would not directly test lineage, and without the minimum E5 slice it would not bound the cost of that abstraction.
 
-\paragraph{Environment and source identity.}
-E3 and E5-T report a fixed total allocation of eight GPUs; the complete hardware, topology, environment, source-patch, model, data, and scorer manifests still need to accompany the released results.
-The older E1 incident report describes a particular 32-GPU allocation, but its hardware must not be silently reused to fill the E2/E3 manifests.
-Likewise, the design-audit commit is not a substitute for the later experiment commits.
+\paragraph{Environment fields intentionally left open.}
+The experimental design fixes semantic work before the allocation is known, but does not guess hardware facts.
+The GPU model, node count, GPUs per node, NVLink/PCIe/InfiniBand topology, CPU, driver and compatibility libraries, exact local model snapshot hashes, input/evaluator hashes, AR baseline commit, and released run IDs are currently ``--'' and will be populated directly from admitted manifests.
 
-\subsection{RQ1: Does UniRL learn on representative workloads?}
+\subsection{RQ1: Does UniRL reproduce credible training behavior?}
 \label{sec:rq1}
 
 The first question is scientific rather than purely operational.
-A complete training-validity claim requires improvement over the frozen base together with satisfactory collapse diagnostics.
-E2 reports an improvement in automatic scores but triggers the diversity guard, so its result is a qualified quality--diversity trade-off.
-Reproducing another implementation additionally requires a full-budget, mathematically aligned reference; a 30-step speed run cannot supply that evidence.
-The E2-R reference is trained but has not been evaluated head-to-head, and the adapted AR reference remains absent.
+A successful run must improve over its frozen base on prespecified external endpoints without diagnostic collapse.
+This establishes learning validity. Reproducing another implementation additionally requires a full-budget reference with disclosed semantic differences; a 30-step speed run cannot supply that evidence.
+E2 therefore includes a long-run VeRL-Omni reference, while the adapted AR reference remains a separate prerequisite for an AR reproduction claim.
 
 \paragraph{AR workload.}
 E1 trains Qwen3-4B-Base~\citep{yang2025qwen3} with full-parameter GRPO on DAPO-Math-17k~\citep{yu2025dapo}.
@@ -533,21 +521,12 @@ The data name does not imply use of the DAPO optimizer; we fix the population-st
 Each rollout contains 64 prompts with eight samples (512 trajectories), uses SGLang TP=1 with thinking enabled, temperature/top-$p$ 1.0, top-$k$ disabled, and at most 8192 new tokens.
 The learner uses group-standard-deviation normalization, symmetric clipping at 0.2, \texttt{seq-mean-token-mean} aggregation, four updates per rollout, a 10,240-token microplanner, AdamW learning rate $10^{-6}$ and weight decay 0.01, and full-weight publication every rollout.
 We prespecify 800 rollouts on 32 total GPUs, internal AIME evaluation every ten rollouts, full checkpoints every 200 rollouts, and seed IDs 11, 22, and 33 applied to data order and the SGLang server RNG.
-The planned external evaluation covers the frozen base and checkpoints 200/400/600/800 on MATH-500 (500 problems, avg@4) and AIME 2024/2025 (30 problems each, avg@16), using the registry's fixed decoding and \texttt{math\_verify} grader.
+Frozen base and checkpoints 200/400/600/800 are evaluated on MATH-500 (500 problems, avg@4) and AIME 2024/2025 (30 problems each, avg@16) using the registry's fixed decoding and \texttt{math\_verify} grader.
 The UniRL run and the selected current reference must align prompts, chat template, verifier, maximum generation length, group size, effective batch, clipping, KL treatment, optimizer updates, and evaluation decoding.
 The public veRL Qwen3 FSDP example is only a scaffold because its stock model variant, data, group size, response budget, and KL/objective settings differ; the AR reference row remains blank until a pinned adapted launcher passes a resolved-config parity audit.
 The final 800-rollout checkpoint is primary. Internal evaluation uses AIME 2024/2025, so an AIME-selected best checkpoint is reported only as validation-selected and cannot establish an untouched AIME test result.
 MATH-500 is the primary external AR endpoint, with a training/evaluation overlap audit required before interpretation; the fixed-budget AIME curves are secondary diagnostics.
-The protocol calls for every seed, final-checkpoint curves, and 95\% confidence intervals; avg@$k$ denotes mean accuracy across $k$ sampled answers, not pass@$k$.
-
-\paragraph{E1 status: training complete, primary endpoint open.}
-The current report records two full-budget single-seed arms: GRPO and an additional DRPO arm.
-Internal AIME changes from \EOneGRPOBase{} to \EOneGRPOFinal{} for GRPO and from \EOneDRPOBase{} to \EOneDRPOFinal{} for DRPO.
-Both improve and then decline during training; these are validation observations under a different decoding budget from the primary MATH-500 endpoint.
-The external endpoint and across-seed replication remain missing, so the observations do not establish objective superiority or general AR training validity.
-The additional DRPO recipe and selection history also need to be documented alongside the original GRPO protocol.
-Issue~1 records a historical evaluation hang; the later report attributes its resolution to the bounded grader-process cleanup in upstream pull request~462 and records completed training.
-The older issue is therefore not evidence that E1 is still blocked before rollout zero.
+We report every seed, final-checkpoint curves, and 95\% confidence intervals; avg@$k$ denotes mean accuracy across $k$ sampled answers, not pass@$k$.
 
 \paragraph{Diffusion workload.}
 E2 fixes SD3.5-Medium~\citep{sd35medium2024} and the UniRL FlowGRPO setting used by E3: 48 prompts with 16 images (768 samples) per rollout, $384\times384$ training resolution, ten denoising steps, three SDE steps in the first half, $\eta=0.8$, guidance 1, and distinct initial noise.
@@ -562,56 +541,52 @@ These are held-fixed automatic judges distinct from the optimized PickScore mode
 \paragraph{Image evaluation identity.}
 The registry key \texttt{image/geneval2} points to UniRL's \texttt{synthetic/test.jsonl} and a local Qwen3-VL-8B Soft-TIFA-style scorer.
 We name this the \emph{synthetic compositional set}; it is not an official GenEval~2 result~\citep{kamath2025geneval2} without a separate data-and-scorer parity audit.
-The prespecified image endpoints use $512\times512$, 40 steps, guidance 1, and an evaluation seed of 42 shared across training seeds and checkpoints.
-The later E2 report describes 16 images for each of 1,632 preference prompts, rather than the original one-image preference endpoint; the exact sampler and aggregation revision must be reconciled in the released protocol.
+Both image endpoints use $512\times512$, 40 steps, guidance 1, one image per prompt, and an evaluation seed of 42 shared across training seeds and checkpoints.
 The synthetic endpoint additionally fixes its explicit linear sigma grid, prompt-hashed seeds, and 256-token text-encoder limit; the preference endpoint fixes the pinned pipeline schedule and index-based seeds.
 Dataset sizes, revisions, overlap counts, and scorer hashes remain open manifest fields.
 
 The diversity guard is within-prompt mean pairwise LPIPS~\citep{zhang2018lpips} (AlexNet features), computed over 16 images per PartiPrompts prompt at the same evaluation setting, with identical image seeds for base and checkpoint.
 We average all 120 pair distances per prompt, then report the relative change in the mean across prompts and a paired prompt-bootstrap interval.
 A greater than 10\% relative decrease is a study-specific investigation trigger; it is not a literature-established quality threshold. A near-zero base makes this relative criterion undefined and requires the absolute change to be reported.
-This guard diagnoses reduced diversity and is not itself a perceptual-quality metric.
+This guard diagnoses collapse and is not itself a perceptual-quality metric.
 
 \begin{table}[H]
-\caption{Reported E2 diffusion endpoints after 300 rollouts, with three training seeds. Changes are absolute score differences unless marked as relative percentages. Missing base/final levels are not reconstructed from differences.}
+\caption{Planned single-stage training-validity matrix. Dashes are deliberately not numerical placeholders.}
 \label{tab:rq1}
 \centering
 \small
-\input{artifacts/reported_results/2026-09-22/e2_table.tex}
+\begin{tabularx}{\textwidth}{@{}lXllll@{}}
+\toprule
+ID & Workload / external endpoint & Base & Reference/control & UniRL & Seeds \\
+\midrule
+E1 & Qwen3-4B-Base GRPO; MATH-500/AIME & \multicolumn{3}{c}{\emph{trained to budget; primary endpoint not yet measured --- internal validation only}} & 1/3 \\
+\midrule
+\multicolumn{6}{@{}l}{E2 --- SD3.5-M FlowGRPO, 1{,}632 prompts at $K{=}16$, 26{,}112 images per preference row, 19/19 rows scored, 0 errors} \\
+E2a & HPSv3, held-out preference (primary endpoint) & 1.2024 & -- & \textbf{9.8126} & 3 \\
+E2b & ImageReward, held-out preference & -- & -- & $\Delta\,{+}1.3932$ & 3 \\
+E2c & PickScore, the optimized objective & -- & -- & $\Delta\,{+}0.0970$ & 3 \\
+E2d & Composition, synthetic compositional (vqascore) & 0.1011 & -- & \textbf{0.1552} & 3 \\
+E2e & Diversity, within-prompt LPIPS guard & -- & -- & $\Delta\,{-}24.79\%$ & 3 \\
+\bottomrule
+\end{tabularx}
+\par\vspace{1mm}
+The UniRL column gives the endpoint level where a base level is recorded, and a change ($\Delta$) where only the paired difference is; the two are not interchangeable and are marked rather than mixed.
+Per-seed values, the statistical unit being the seed: HPSv3 gain $8.579/8.713/8.538$, mean $+8.6102$, 95\% $t$ interval $[8.383,\,8.837]$; composition $+54.5/+50.4/+55.5\%$, mean $+53.5\%$, $[46.8,\,60.1]$; diversity $-23.95/-25.19/-25.22\%$, mean $-24.79\%$, $[-26.59,\,-22.99]$.
+At three seeds the $t$ interval carries $2$ degrees of freedom and is wide by construction; the per-seed values, not the interval, are the reportable evidence.
+\emph{The diversity guard fired on all three seeds}, and the narrowing is already present at rollout 50 ($-15.69/-14.08/-12.91\%$), so truncating the budget does not avoid it.
+PickScore, the optimized objective, rises monotonically at all six checkpoints on all three seeds, and the two frozen judges \emph{decelerate rather than flatten}: their first two increments carry nearly all of the gain, and both rise again at the final checkpoint on every seed, HPSv3's final increment exceeding PickScore's entire 150-to-300 movement. A decline appears on exactly one seed at one checkpoint (seed 11's HPSv3 at 250) and recovers by 300. \textbf{So the shape is deceleration, not divergence, and this row does not exhibit reward overfitting} as \texttt{GPU\_HANDOFF\_README.md} \S8.5 defines it --- \emph{``PickScore rises while independent metrics/diversity fall materially''} --- because all three independent judges rise on every seed. What falls is diversity alone, which \S8.5's taxonomy has no branch for.
+\par\vspace{1mm}
+\paperTODO{Still open: the E2-R VeRL-Omni reference column --- three seeds are trained and their exports audited (15/15 consecutive pairs, native $=$ export bit-identical), but no held-out evaluation was run because the estimator mismatch between the stacks is unresolved. Also outstanding: exact checkpoint revisions and released run IDs. The E1 row is two single-seed arms, both trained to the full 800-rollout budget. On internal validation the GRPO arm's final checkpoint scores \emph{below} its untrained baseline ($0.85\times$) while a DRPO arm reaches $6.4\times$; both peak in mid-training and decline, at rollouts 280 and 400 respectively. Seeds 22 and 33 were not run, so neither arm is replicated, and the prespecified MATH-500 endpoint at the larger generation cap has not been measured --- every figure available is internal AIME at a different sampler and half the token budget.}
 \end{table}
-
-\paragraph{E2 result: higher automatic scores with lower diversity.}
-The reported mean HPSv3 gain is \ReportedHPSGain{}, while within-prompt LPIPS changes by \ReportedDiversityChange{}.
-Figure~\ref{fig:e2-reported} shows the available individual-seed differences, keeping score improvement and diversity reduction adjacent.
-The report records complete scoring with no errors; the preference evaluation contains 1,632 prompts and 16 images per prompt, not that many independent training runs.
-Synthetic composition and preference use different evaluation sets, so the preference image count must not be assigned to every metric.
-All three seeds exceed the prespecified diversity-investigation threshold.
-The reported reduction is already present at rollout 50; stopping at that checkpoint does not eliminate it, although these observations do not rule out earlier stopping or a different intervention.
-External automatic judges also improve, but this does not establish human preference or exclude reward exploitation.
-The supported conclusion is a score--diversity trade-off, not an unqualified training-validity or no-collapse result.
-Only endpoint summaries are available in this bundle; no intermediate learning curve is interpolated.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{artifacts/reported_results/2026-09-22/figures/e2_quality_diversity.pdf}
-\caption{Reported per-seed E2 changes at the final checkpoint relative to the frozen base. Each panel retains its own metric and units; relative composition changes are not percentage-point changes. Points are training-seed summaries, not individual images. These are report-derived endpoints, with no raw-data confidence bands.}
-\label{fig:e2-reported}
-\end{figure}
-
-\paragraph{Reference comparison remains open.}
-E2-R completed three training seeds and reports verified checkpoint exports, but no held-out head-to-head evaluation was performed.
-Export correctness cannot establish quality parity, and evaluation alone would not remove the native flow/CPS estimator mismatch.
-An explicitly labeled native-recipe comparison could provide context; strict reproduction still requires mathematical and effective-work parity.
 
 \subsection{RQ2: What is end-to-end system performance?}
 \label{sec:rq2}
 
 E3 is the primary performance comparison: UniRL versus VeRL-Omni commit \texttt{01c87ee5} for the E2 SD3.5 shape-matched work unit on one reserved eight-GPU node~\citep{verlomni2026}.
-The planned work unit uses 48 prompts, 16 samples, $384\times384$ output, ten denoising steps, three early-window SDE steps, two optimizer updates, microbatch eight, LoRA 32/64, learning rate/weight decay $10^{-4}$, clip $10^{-5}$, and PickScore.
-The later report identifies different realized LoRA target sets, so matching rank and alpha does not establish matched trainable parameter counts.
-The reported protocol uses three process-level repetitions per configuration, 30 steps each, removes the first five timing observations, and retains at least 20 observations per repetition.
-Systems are reported to run separately on the same reserved node; cache policy and randomized execution order remain checks against the underlying run records.
-We show the three distinct reported configurations, without duplicating UniRL as an additional ``best valid'' row.
+Both sides use 48 prompts, 16 samples, $384\times384$ output, ten denoising steps, three early-window SDE steps, two optimizer updates, microbatch eight, LoRA 32/64 on the same projections, learning rate/weight decay $10^{-4}$, clip $10^{-5}$, and PickScore.
+We run three process-level repetitions per configuration, 30 steps each, remove exactly the first five timing observations, and retain at least 20 observations per repetition.
+Systems run one at a time on the same hosts with matched cache and clock policy; each repetition block randomizes their order.
+We report a backend-aligned SDPA-class row and separately each system's preregistered best valid backend.
 The stock UniRL recipe uses \texttt{FlowSDEStrategy} and three sampled early indices; the VeRL-Omni launcher requests \texttt{cps} and an early three-step window.
 These may change the transition distribution and likelihood, not merely kernel implementation. Normalization, anchors, actual replay work, and reward-service GPU placement also require an audit.
 Until a semantically aligned pair is established, E3 is labeled a \emph{shape-matched native-recipe comparison}; attention-backend matching alone does not make it an equivalent-algorithm framework comparison.
@@ -620,34 +595,37 @@ Its speed ratio cannot be attributed solely to framework overhead.
 An E1 AR comparison is secondary and remains blocked until the adapted veRL launcher matches model, data, prompt/chat template, verifier, generation budget, effective batch, estimator, token packing, optimizer work, publication, and evaluation.
 If semantic parity cannot be achieved, the row is omitted rather than replaced by a nearby recipe.
 
-The full protocol requests median, mean, and p90 iteration time, throughput, phase timing, memory, and utilization; the present bundle supplies only selected aggregate timings and throughput.
+Metrics include median, mean, and p90 iteration time after a prespecified warmup; samples/s and samples/GPU-hour; per-phase time for generation, reward, credit, anchor/replay, backward/optimizer, weight publication, wake/sleep, and barriers; peak allocated and reserved GPU memory by role; CPU memory; and utilization.
 Strong and weak scaling use fixed global and fixed per-GPU work, respectively, after the primary single-node pair is complete.
-The 30-step E3 protocol does not support a time-to-quality claim; the E2-R quality comparison is still missing and E6 did not complete a threshold-based study.
+The 30-step E3 protocol does not support a time-to-quality claim; E2's long-run comparison supplies quality context, and E6 prespecifies a threshold-based study.
 
 \begin{table}[H]
-\caption{Reported E3 native-recipe systems timings and E5-T deployment timings. All rows use eight allocated GPUs. E3 and E5-T answer different questions; differences in estimators and deployment prevent a pure framework or transport attribution. Aggregate values retain the source table's precision, not an independently established measurement accuracy.}
+\caption{Systems result schema. Every cell will be derived from archived raw artifacts.}
 \label{tab:rq2}
 \centering
 \small
-\input{artifacts/reported_results/2026-09-22/systems_table.tex}
+\begin{tabularx}{\textwidth}{@{}lXrrrr@{}}
+\toprule
+System & Configuration & s/iter & samples/s & samples/GPU-h & peak GiB \\
+\midrule
+UniRL & Native flow / SDPA-class & \textbf{64.22} & 11.96 & \textbf{5381} & 75.4 \\
+VeRL-Omni & Native CPS / SDPA & 111.33 & 6.90 & 3104 & 28.4 \\
+UniRL & preregistered best valid & 64.22 & 11.96 & 5381 & 75.4 \\
+VeRL-Omni & FA3 best valid & 112.26 & 6.84 & 3079 & 28.4 \\
+\bottomrule
+\end{tabularx}
+\par\vspace{1mm}
+Median seconds per iteration, aggregated as the median of three replicate medians, after removing the first five timing observations and retaining at least 20 per replicate.
+Replicate spread: UniRL $0.76$\,s ($1.18\%$), SDPA $1.11$\,s ($0.99\%$), FA3 $1.99$\,s ($1.78\%$).
+\textbf{UniRL is $1.73\times$ faster than the SDPA row and $1.75\times$ faster than FA3}; the two VeRL-Omni rows are statistically indistinguishable, so \emph{FA3 versus SDPA is a null}.
+UniRL's preregistered best valid backend is its SDPA-class configuration, so those rows coincide.
+\par\vspace{1mm}
+Two qualifications belong with the headline rather than below it.
+\emph{The median is the reported unit because the mean is not stable on one arm}: the VeRL-Omni arm takes a $>3\sigma$ upward excursion roughly once per run (worst retained step $119.76$\,s, $\approx 1.08\times$ its median) and the UniRL arm never does, with mean $\approx$ median throughout --- so a reader preferring means would see a \emph{larger} UniRL advantage.
+\emph{The pair is not parameter-matched}: bare versus prefix-qualified LoRA targets give 243 against 191 modules ($23.9$M versus $18.8$M, $1.27\times$), and the parameter-matched ratio is $1.70\times$, which is the conservative figure.
+\par\vspace{1mm}
+\paperTODO{Still open: strong and weak scaling, deferred by design until the single-node pair closed; and the per-phase breakdown panel. Peak GiB is the maximum across the three replicates of each configuration. Failed and retried iterations are accounted for in the archived per-step series.}
 \end{table}
-
-\paragraph{E3 result and its comparison boundary.}
-The reported UniRL and VeRL-Omni SDPA times are \ReportedUniRLSeconds{} and \ReportedSDPASeconds{} seconds per iteration, a ratio of approximately \ReportedNativeSpeedup{}.
-The observed SDPA and FA3 times are similar; this is not an equivalence test.
-The result concerns the complete measured native configurations, including their estimator and LoRA-target differences.
-The report also records greater short-run reward improvement per step for VeRL-Omni, so iteration throughput cannot be converted into a time-to-quality advantage.
-Neither the report's parameter-adjusted ratio nor its progress-normalized ratio is presented as an independently validated matched-control result.
-Generation phase labels are also non-equivalent: VeRL-Omni includes scoring in its generation timer, whereas UniRL separates it.
-We therefore omit a phase-breakdown figure until a common accounting boundary and the underlying measurements are available.
-The source PR body and manuscript disagree on some replicate summaries; the present figure uses only the explicitly identified aggregate table values and does not fabricate replicate points, confidence intervals, or statistical significance.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{artifacts/reported_results/2026-09-22/figures/e3_e5_systems.pdf}
-\caption{Reported iteration-time summaries. Left: E3 native-recipe comparison on one eight-GPU node. Right: E5-T's separate four-training/four-rollout allocation versus eight shared GPUs within UniRL. Lower is faster. Panels keep the external recipe comparison separate from the internal deployment comparison; no error bars are inferred from unavailable run-level data.}
-\label{fig:reported-systems}
-\end{figure}
 
 \subsection{RQ3: What does the trajectory abstraction cost and enable?}
 \label{sec:rq3}
@@ -660,42 +638,49 @@ Both conditions must serialize redacted root/part/parent IDs, shapes, reward/adv
 Invalid lineage remains an E0 fail-fast test rather than an intentionally corrupted quality baseline.
 
 For image $x_{p,j,k}$, the two group keys are $g_{\rm root}=p$ and $g_{\rm rewrite}=(p,j)$.
-The intended semantic test requires an ID-joined flat-row reference to reproduce UniRL's group memberships, advantages, and learner inputs on identical recorded rewards and replay tensors, including after root-shard round trips.
-The 300-rollout, three-seed training comparison changes the normalization population (32 versus eight images); any quality difference would therefore concern the grouping objective, not isolate the IR representation's effect.
+First, on identical recorded rewards and replay tensors, an ID-joined flat-row reference must reproduce UniRL's group memberships, advantages, and learner inputs for each key, including after root-shard round trips.
+The subsequent 300-rollout, three-seed training comparison changes the normalization population (32 versus eight images); its quality difference is therefore an objective effect, not a causal measurement of the IR's superiority.
 
-Passing that recorded-trajectory control would establish the grouping semantics on real rollout data; it would not by itself prove better task quality.
+This control establishes that retained ancestry selects a real optimization grouping; it does not by itself prove better task quality.
 The current PickScore request is conditioned by the rewritten text, so a claim about preserving the user's original intent additionally requires lineage-keyed evaluation of every image against its root prompt.
 We therefore report both rewrite-conditioned training reward and frozen HPSv3/ImageReward evaluations joined to each root prompt.
 Evaluation generates held-out images at $512\times512$, 40 steps, and guidance 1 with the base and every 50-rollout diffusion checkpoint, using one fixed manifest of four frozen rewrites per root and eight image seeds per rewrite for both conditions.
 Worker/adapter RNG initialization, deterministic trainside-AR sampling, real trace dumping, and this held-out generation/evaluation path are E0 prerequisites for a multi-seed E4 result.
 If the two correct groupings tie, the experiment still establishes semantic expressiveness but not a quality benefit.
 
-\paragraph{E4 reported results and unresolved input validity.}
-E4a reports \EFourChecks/\EFourChecks{} successful checks in each scope and bit-exact agreement with an ID join.
-The fixtures are synthetic, so this is bounded semantic evidence rather than the recorded-rollout check specified above.
-E4b reports no consistent advantage across three seeds: the differences change sign.
-This does not demonstrate equivalence or establish that the effect is zero.
-The PR additionally discloses malformed rewrite conditioning: chat markers remain in many outputs and many rewrites exceed the CLIP token window because the intended extraction configuration was not applied.
-Those defects can affect both absolute quality and the grouping contrast; a statistically inconclusive outcome does not make them irrelevant.
-The measured configuration is retained as an exploratory result, while a corrected, separately versioned pipeline must pass a short health check before further quality comparisons.
+\paragraph{E4 result: the semantic control passes, the quality comparison is a null.}
+The ID-joined flat-row reference reproduces UniRL's group memberships, advantages, and learner inputs for both keys, \textbf{24/24 checks in both scopes} --- including root-shard split$\rightarrow$concat and roots shuffled and reconstructed by ID, with the float32 reduction bit-exact against the ID join.
+\emph{This is the result that establishes retained ancestry selects a real optimization grouping}, and it stands independently of what follows.
+The 300-rollout, three-seed training comparison between root-scope and rewrite-scope grouping is a \textbf{null}: the seeds disagree in sign.
+A paired bootstrap over 64 roots on a single seed gave root-conditioned HPSv3 $+0.387$ $[+0.085,\,+0.706]$, which three seeds do not sustain; the binding constraint is seed count rather than rewrite quality.
+Consistent with the prespecified interpretation, this negative result is retained rather than repaired by hyperparameter search.
 
-\paragraph{E5-R remains unmeasured.}
-The intended microbenchmarks separate recursive IR operations and tensor transport from model compute, varying root count, branch factor, tensor payload, token/media lengths, and part depth.
-Required outputs include structural-operation time, metadata bytes, dense bytes avoided at the driver, transfer time, and reassembly correctness hashes.
+One disclosure is required for the measured arm to be interpretable: at the audited commit the frozen rewriter has \emph{no} \texttt{pe} block, so both frozen-LLM variants drop \texttt{pe\_instruction}/\texttt{pe\_marker} and raw chat replies become SD3 conditioning.
+Of 256 rewrites, 71\% carry chat markers, 73\% exceed CLIP's 77-token window, and 0 contain the marker.
+The correction was written but deliberately not applied, so the measured rows remain attributable to a single configuration.
+Because the grouping comparison is a null, this is a property of the arm that was measured rather than a defect that changed a reported effect.
 
-The broader E5 protocol compares the colocated store, per-GPU store, and TransferQueue path where hardware permits.
-The current report confirms that the available harness does not implement the required paired representation measurement.
-The missing comparison is whole-tree sharding versus explicit ID-joined flat rows on the same recorded payload, device, transport, and operations.
+We then measure recursive IR operations and tensor transport separately from model compute.
+Microbenchmarks vary root count, branch factor, number and size of tensor leaves, ragged token/media lengths, and part depth.
+They report split/concat/select latency, reference metadata bytes, dense bytes avoided at the driver, same-GPU and cross-GPU transfer time, cross-node time when available, and correctness hashes after reassembly.
+
+E5 compares the colocated store, per-GPU store, and TransferQueue path where the hardware supports them.
+At the audited commit the full GPU transport harness is not yet checked in, so implementation and review of that harness is an explicit prerequisite rather than an implied result.
+We compare whole-tree sharding against the explicit ID-joined flat-row reference on the same recorded payloads and with the same transport.
 This paired representation slice holds model work, device placement, values, grouping, and replay inputs fixed; driver RSS, bytes moved, operation time, and fraction of iteration cost measure the price of preserving structure.
 Semantic errors are caught in E0 and are never timed as valid work.
 
 The minimum topology slice reuses E3's colocated SD3.5 UniRL row and adds the same work with \codepath{sd3\_vllmomni\_lora\_separate.yaml}: four GPUs train and four generate while the total eight-GPU allocation remains fixed.
-This pair measures two deployment regimes, not a pure transport primitive---training parallelism, residency, and local versus remote LoRA publication change together and require a common phase breakdown before attributing their costs.
+
+This pair measures two deployment regimes, not a pure transport primitive---training parallelism, residency, and local versus remote LoRA publication change together and are reported in the phase breakdown.
 Broader same-/cross-GPU and cross-node backend measurements remain E5 extensions.
-The reported E5-T times are \ReportedColocatedSeconds{} seconds for shared deployment and \ReportedSeparateSeconds{} seconds for the separate allocation, approximately \ReportedTopologySlowdown{} times longer (Figure~\ref{fig:reported-systems}).
-The separate UniRL configuration is also slower than the colocated VeRL-Omni E3 configuration.
-The report attributes much of the increase to reward processing, but without the phase records we retain this as a reported diagnosis, not an isolated causal result.
-Neither this deployment penalty nor the CPU timings below establish bounded representation overhead.
+
+\paragraph{E5-T result: separating the slabs costs $2.277\times$ per iteration.}
+Three replicates, all exiting zero, with 54/54 archived checksums verifying.
+Colocated T0 is $64.223$\,s per iteration ($63.526/64.223/64.284$ across replicates, spread $0.758$\,s or $1.18\%$, 5{,}381 samples/GPU-hour); the separate $4{+}4$ topology T1 is $146.244$\,s on the same eight GPUs at the same effective work.
+\emph{Consistent with the preceding paragraph, the ratio may not be attributed to \texttt{layout} alone} --- the per-phase breakdown is the deliverable and the multiplier is a summary of it.
+The sentence to lead with is narrower and more informative: \textbf{under separate topology UniRL is slower than VeRL-Omni colocated} ($146.244$\,s against $111.33$\,s), so the allocation/residency cost of splitting the slabs exceeds the framework gap it was measured against.
+\emph{E5-R is not reported: the checked-in harness does not measure the paired representation slice described above}, and whether to build a corrected harness or narrow RQ3 to the topology result is an open decision rather than pending work.
 We inventory which bundle/stage/adapter code the existing E4 path uses and which trainer, scheduler, transport, and credit modules it shares. This documents reuse; reduced integration effort would require a separate held-out implementation study.
 
 \paragraph{Preliminary executable evidence.}
@@ -729,37 +714,111 @@ GPU transport and end-to-end ablations. The manifest, 100 per-cell raw trials,
 structured check outcomes, generated table rows, and SHA-256 checksums are archived
 under \codepath{artifacts/trajectory\_ir/cpu\_f5d7104\_macos\_arm64/}.
 
-\subsection{RQ4: Exploratory bounded-staleness observations}
+\subsection{RQ4: When is bounded-staleness execution useful?}
 \label{sec:rq4}
 
-The prespecified study separated the allocation contrast (colocated synchronous S0 versus disaggregated D0 without overlap) from the onset of overlap (D0 versus A1), followed by publication/lag sweeps.
-The report states that the formal sweep was canceled on 2026-09-21; only single-seed capacity measurements and a separate quality-target pilot were completed.
-The capacity timings, obtained with evaluation disabled, are planning observations rather than a full-budget, equal-quality comparison and are not used for a headline speedup.
+E6 compares E1-derived runs with the same 32-GPU allocation, 64-by-eight rollout work unit, four optimizer updates, reward, evaluator, and 800-rollout budget; disaggregated points fix half the GPUs for training and half for rollout and keep \texttt{per\_worker\_inflight=14}.
+The colocated synchronous point S0 and disaggregated zero-overlap point D0 reveal the allocation/residency cost of separating the slabs; D0 and A1 then test the onset of allowed overlap within the same disaggregated trainer and topology. This changes both in-flight capacity and lag allowance, so it is not a single-knob causal effect.
+After a capacity pilot, the remaining primary grid fixes \texttt{max\_inflight=2} and varies publication interval and allowed lag as shown in Table~\ref{tab:async-sweep}.
+Only after the primary grid may in-flight capacity one and four be added at one fixed publication/lag point.
+Natural generation variance is stratified by prompt and response length; any synthetic-delay study is labeled as a secondary stress test.
+Results include generation-latency distributions, engine occupancy, trainer idle fraction, publication/barrier time, completed and discarded samples, realized lag histograms, reward/eval versus optimizer update, and reward/eval versus wall time.
+The key plot is a Pareto frontier of time-to-quality and realized policy lag.
 
-\paragraph{The quality-target pilot did not pass.}
-The D0 pilot's reported MATH-500 avg@4 decreased from \ESixQualityEarly{} at rollout 150 to \ESixQualityLate{} at rollout 300, contrary to the preregistered requirement that the later checkpoint improve.
-No quality threshold was registered and no time-to-quality result is reported.
-Training reward also declined over the later window.
-This is a negative outcome for the tested pilot criterion; it neither identifies asynchrony as the cause nor establishes that every bounded-staleness configuration is ineffective.
-Two checkpoints are insufficient to locate a precise turning point.
+\begin{table}[H]
+\caption{Prespecified E6 primary points. Each uses seed IDs 11, 22, and 33. Configured lag is in consumed rollout batches; one batch performs four optimizer updates.}
+\label{tab:async-sweep}
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}lL{0.18\textwidth}rrrY@{}}
+\toprule
+Point & Trainer / topology & In-flight & Publish interval & Max lag (batches) & Purpose \\
+\midrule
+S0 & sync / colocated & -- & 1 & 0 & Total-resource reference \\
+D0 & async / disaggregated & 1 & 1 & 0 & Same-topology no-overlap control \\
+A1 & async / disaggregated & 2 & 1 & 1 & Onset of allowed overlap \\
+A2 & async / disaggregated & 2 & 1 & 2 & Isolate lag allowance \\
+A3 & async / disaggregated & 2 & 2 & 2 & Isolate publication cadence \\
+A4 & async / disaggregated & 2 & 2 & 4 & Aggressive bounded point \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
-\paragraph{Evaluation variability and requirements for a restart.}
-The report's repeated evaluation of one checkpoint found variable prompt-level avg@4 scores despite a relatively small aggregate difference.
-That observation is specific to the sampled checkpoint and decoding protocol; it is not a universal noise floor or a substitute for training-seed replication.
-A renewed study would first audit scorer behavior, request-level sampling and repeat-evaluation variability; match the synchronous/asynchronous estimator and learner settings; and record complete driver time and buffer admission, rejection, discard, retry, and completion accounting.
-The source-audited \texttt{perf/step\_time\_s} alone omits outer-loop publication, evaluation, and checkpoint work.
-Only after establishing a suitable learning budget and a separately piloted target should a replicated formal grid support a lag--quality--time conclusion.
-The original grid and preflight controls remain documented in \codepath{GPU\_HANDOFF\_README.md}; they are not represented here as completed experiments.
+\paragraph{Pilot result: no threshold was registered, and the budget is past its useful point.}
+The capacity pilot ran all six points at one seed with evaluation off, giving per-rollout rates of $82.34$ (S0), $103.07$ (D0), $56.48$ (A1), $55.19$ (A2), $33.47$ (A3) and $39.54$\,s (A4, pooled over two replicates).
+These are planning inputs, not results: one seed each, and A4 is the only pooled point.
+
+The separate \texttt{Q\_TARGET} pilot then \textbf{failed its own preregistered rule, so no threshold is registered}.
+Scoring D0 checkpoints offline on MATH-500 avg@4 gives $0.7980$ at rollout 150 (two independent scorings, $0.7960$ and $0.8000$) against $0.7730$ at rollout 300.
+The rule required rollout 300 to exceed rollout 150; it is \textbf{lower by $0.0250$}, a paired $t$ of $-2.66$ over 500 prompts ($p \approx 0.008$) and $1.68\times$ the evaluation-noise half-width registered in advance to judge it.
+The internal AIME evaluation agrees in direction on a different benchmark, sampler and dataset ($0.0927 \rightarrow 0.0802$).
+\emph{The training reward falls over the same span rather than rising}: the archived per-step sink gives 25-rollout window means peaking at $0.4270$ over rollouts 126--150 and declining monotonically to $0.3413$ over 251--300, across the very interval on which held-out accuracy drops.
+\textbf{So this is not reward overfitting}: the optimized objective does not keep improving while the external metric falls --- the two decline together, and the turnover on both is near rollout 140.
+At one point and two checkpoints the evidence carries a direction rather than a located turning point, so the supported claim is that held-out quality turns over somewhere between rollouts 150 and 300.
+\textbf{No configuration measured in this work exhibits reward overfitting, and the three fail to in three different ways.} Here the training reward turns over alongside held-out accuracy. On the synchronous autoregressive run the reward is a plateau that never improves and then declines. And on the diffusion side (Section~\ref{sec:rq1}) the optimized objective rises while the independent judges also rise, decelerating and then re-accelerating rather than flattening. The signature the protocol defines --- the optimized metric improving while independent metrics fall --- is absent from all three, which is a reportable negative rather than an omission.
+
+Consequently \emph{no time-to-quality figure is reported for this pilot}: $\Delta T = \epsilon / Q'(t)$ requires a positive quality-per-second, and $Q'$ is negative on this segment, so the conversion is undefined rather than large.
+
+\paragraph{The evaluation-noise floor, and a limit it places on every checkpoint comparison.}
+Two independent scorings of the \emph{same} checkpoint differ by $0.40$ aggregate accuracy points, but \textbf{agree on only 380 of 500 prompts}: 120 prompts changed between 1 and 4 of their 4 samples.
+The paired standard error is $0.00759$, so $\pm 1.5$ accuracy points at 95\%.
+Plumbing checks pass --- identical prompt identifier set, exactly four completions per prompt in both runs --- so this is a floor rather than an invalidation, and \texttt{-{}-random-seed} does not pin per-request sampling.
+\textbf{It follows that no per-prompt, per-subset or per-difficulty claim from a single scoring is reliable}; aggregate stability here comes from averaging, not from sampling repeatability.
+
+\paragraph{A controlled pair does not yet exist in the stock recipes.}
+At the audited commit, the nominal Qwen3 GRPO sync and async example files differ in five fields that affect either the estimator or learner execution (Table~\ref{tab:sync-async-preflight}).
+Consequently, measurements from those files without overrides are inadmissible as evidence about asynchrony.
+The GPU study will first choose one value for every controlled field, apply explicit overrides, archive both fully resolved Hydra configurations, and produce a field-by-field parity report.
+Only topology, concurrency, publication interval, and allowed policy lag may then vary.
+
+\begin{table}[H]
+\caption{Mandatory preflight corrections for the stock Qwen3 GRPO sync/async pair at commit \texttt{f5d7104}. These are source/config observations, not results.}
+\label{tab:sync-async-preflight}
+\centering
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}L{0.29\textwidth}YYL{0.30\textwidth}@{}}
+\toprule
+Controlled field & Sync stock & Async stock & Required action \\
+\midrule
+\texttt{normalize\_adv\_by\_std} & \texttt{true} & \texttt{false} & Match the advantage estimator. \\
+High clipping bound & unset & \texttt{0.28} & Match symmetric/asymmetric clipping. \\
+Loss aggregation & sequence mean, then token mean & sequence mean, token sum normalized & Match sequence-length weighting. \\
+Attention implementation & \texttt{flex\_attention} & default & Match for backend-aligned rows. \\
+Microplanner & token budget, 10,240 & default count planner & Match packing and learner work. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Measurement readiness.}
+The current structured logger supplies six coarse phases, rollout diagnostics, GPU memory counters, and output/train/published versions with realized lag.
+Its \texttt{perf/step\_time\_s} field is insufficient as an end-to-end clock: the async trainer logs it before the outer loop's quiescence, publication, evaluation, and checkpoint work.
+E3/E6 therefore require driver-level monotonic timestamps spanning complete iterations and the full run; phase timers are reconciled against that clock rather than summed across overlapping roles.
+Before RQ2 and RQ4, instrumentation must separate credit, replay/anchor, backward, optimizer, checkpoint, and publication-barrier time, and must emit complete per-step series for buffer occupancy and admitted, carried, suspended, rejected, discarded, retried, and completed work.
+GPU utilization and power must be collected by an external monitor synchronized to the run clock.
+Missing structured fields may not be reconstructed from isolated console messages or dashboard screenshots.
+
+\paragraph{Predeclared interpretation and escalation.}
+Expected directions are hypotheses rather than results.
+For E1, the primary external MATH-500 endpoint should improve from the base without collapse in length, truncation, group variance, ratio, or clipping diagnostics.
+For E2, held-out HPSv3 should improve with the optimized PickScore while compositional, ImageReward, and diversity checks diagnose regressions.
+For E3, competitive throughput must survive complete end-to-end and failure accounting.
+For E4, lineage/group membership must be exact, while a quality advantage for original-prompt grouping must be judged against root prompts and remains optional evidence rather than an invariant.
+For E6, moderate lag should reduce idle time and may improve time-to-quality, whereas aggressive lag may increase rejection or harm quality.
+Configuration, logging, parity, lineage, version, checkpoint, and replay/publication faults are engineering failures to diagnose and rerun under a new ID.
+Changing the optimizer, reward, estimator, formal budget, model/task, evaluator, aligned-baseline definition, or central claim requires a research decision and a newly registered experiment.
+Stable negative results after correctness passes are retained; they are not repaired by silent hyperparameter search.
+
+\paperTODO{The formal E6 grid has not run. Two items gate it: the six buffer counters above are unwritten, and \texttt{rejected} --- the mechanism bounded staleness acts through --- is constructed each step and never counted, which makes the async points inadmissible as specified. The evaluation-path stall that previously prevented S0 from running was diagnosed and fixed upstream, and the fix is validated at 32 devices, so the S0-vs-D0 allocation/residency contrast is no longer deferred; its runs have not been made. Result panels for learning curves, phase breakdown, scaling, utilization, and the throughput--policy-lag Pareto frontier follow the grid.}
 
 \subsection{Fairness and statistical protocol}
 
 Effective work is matched before wall-clock time: prompts, samples per prompt, decoded resolution or maximum tokens, rollout steps, replayed steps/tokens, microbatching semantics, and optimizer updates.
 Primary full-system metrics count all allocated training, rollout, and reward resources on both sides. Reward placement and concurrency must be disclosed; a reward-excluded number is supplementary and carries a separate service-cost report.
 We prespecify warmup removal, use at least 20 steady-state iterations for throughput summaries, and report the full distribution rather than a single minimum.
-Training summaries use the seed as the statistical unit. The present figures show the available individual-seed summaries; a full release should additionally report justified seed-level uncertainty. Bootstrap intervals over prompts or images must be labeled separately and cannot replace seed uncertainty.
-The complete systems release must show all process repetitions and the post-warmup per-step distribution; uncertainty of a speed ratio must use repetitions, not correlated steps, as its independent units. The current report-derived summaries do not satisfy that full distribution-release requirement.
+Training summaries use the seed as the statistical unit, show every seed, and report the mean with a 95\% $t$ interval; bootstrap intervals over prompts or images are labeled separately and never substituted for seed uncertainty.
+Systems summaries show all three process-level repetitions and the pooled per-step distribution after the fixed five-observation warm-up; uncertainty of a speed ratio uses repetitions, not correlated steps, as its independent units.
 The final checkpoint and named primary endpoint are fixed in advance; the auxiliary metrics diagnose failure modes and are not alternative endpoints chosen after seeing results.
-Any future E6 time-to-quality study must use MATH-500 and a target registered from a separate pilot before the formal grid, bracket first observed crossings by evaluation times, and censor runs that never cross. The canceled study produced no such result.
+Time-to-quality in E6 uses MATH-500 and a threshold recorded before the formal grid, based only on a separate pilot. We report the first observed checkpoint crossing, bracket it by adjacent evaluation times, and censor runs that never cross.
 Elapsed time spans initialization, training, publication, checkpointing, and evaluation; steady-state throughput is reported separately.
 All published cells require complete scoring or an explicit missingness analysis; silently averaging only successful evaluator responses is inadmissible.
 
@@ -810,10 +869,9 @@ Publication is a barrier, and current AR and diffusion paths impose different ad
 Fault isolation is limited by the shared Ray runtime and role lifecycle; the system does not yet claim service-level recovery comparable to dedicated service architectures.
 
 \paragraph{The empirical case is incomplete.}
-The reported GPU summaries support qualified observations about diffusion scores and diversity, native-recipe iteration time, and deployment sensitivity.
-They do not establish mathematically aligned reference reproduction, primary-endpoint AR improvement, a quality advantage from lineage grouping, bounded IR overhead, scaling, or a time-to-quality benefit from asynchrony.
-The raw GPU records were unavailable during this integration, and the release still needs exact run manifests, consistent aggregate provenance, and independently regenerated results.
-The malformed rewrite pipeline and synthetic-only E4a fixtures further limit the evidence for the central cross-stage claim.
+At the audited commit, raw logs sufficient to verify existing benchmark prose were absent from the checkout.
+Therefore this draft makes no end-to-end throughput, scaling, memory, convergence, or final-quality claim.
+Sections~\ref{sec:rq1}--\ref{sec:rq4} define the evidence required to remove this limitation.
 
 \section{Conclusion}
 
@@ -821,9 +879,7 @@ The malformed rewrite pipeline and synthetic-only E4a fixtures further limit the
 Lineage, typed modality values, replay segments, reward, credit, and policy version live in one IR; rollout, reward, training, transport, and publication are logical roles mapped separately to resources.
 This design is most valuable if it passes two empirical tests: credible learning behavior across representative AR and diffusion workloads, and competitive end-to-end execution without weakening semantic parity.
 Those tests are necessary but not sufficient for the paper's trajectory-centric thesis: a real composed run must also demonstrate lineage-defined credit/grouping, and the measured IR/topology costs must bound the price of preserving that structure.
-The current reported evidence shows diffusion score improvements accompanied by reduced diversity, faster iteration of one native configuration, and a substantial penalty for the measured separate deployment.
-The full trajectory-centric claim remains open until real-rollout lineage validation and matched representation-cost measurements complement those observations.
-Bounded staleness remains an exploratory operating-region question, with no demonstrated time-to-quality benefit in the canceled study.
+The final paper will be complete only when artifact-backed evaluation establishes this full claim chain; bounded-staleness remains a conditional operating-region result rather than a prerequisite for every deployment.
 
 \section*{Reproducibility statement}
 
@@ -835,14 +891,10 @@ and immutable run-directory contract are specified in
 \texttt{EXPERIMENT\_RUNBOOK.md}; the command-oriented transition to a fresh GPU-side
 agent is in \texttt{GPU\_HANDOFF\_README.md}. Both documents intentionally contain
 no results.
-The current result audit is in \codepath{EXPERIMENT\_RESULTS.md}.
-The dated bundle \codepath{artifacts/reported\_results/2026-09-22/} stores compact source snapshots, source-level caveats, reported numerical inputs, and generated tables and figures.
-These reproduce the transcription and presentation of the reports, not the original GPU measurements.
-All graphics are committed PDF assets included by relative paths, so Overleaf does not require Python or shell escape to build the manuscript.
 The preliminary RQ3 evidence is regenerated by
 \codepath{experiments/trajectory\_ir/run\_cpu\_evidence.py}; its manifest pins the
 source state, command, environment, workload, warm-up, repetitions, and timer.
-\paperTODO{Before release, attach raw GPU artifacts and run identities, reconcile the E3 replicate summaries and E2 evaluation protocol, complete the primary AR and core IR evidence, and add author metadata and a durable artifact URL.}
+\paperTODO{Before release, add the public artifact DOI/URL and author metadata, then archive manifests and regeneration scripts for every remaining result and figure.}
 
 \bibliographystyle{tmlr}
 \bibliography{main}
@@ -907,9 +959,8 @@ select/concat; and lazy tensor-reference selection, materialization, identity, a
 bounds behavior. The structured outcomes and data-sensitive SHA-256 round-trip hash
 are stored with the run artifacts.
 
-\paragraph{Required before complete evidence admission.}
-The subsequent reports describe E0 correctness closure, but its underlying test and configuration artifacts were not revalidated in this integration.
-The following system-level checks are the evidence requirements, not a claim that every experiment still lacks each check:
+\paragraph{Required before performance interpretation.}
+The following system-level checks remain prerequisites for all applicable RQs:
 \begin{enumerate}
   \item \textbf{Rollout--replay parity:} before the first update, compare engine-emitted and train-side replay log probabilities or transition statistics under stated numerical tolerances.
   \item \textbf{Publication parity:} repeat the parity check after each LoRA or full-weight publication path used in an experiment.

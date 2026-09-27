@@ -1,0 +1,270 @@
+Skip to content
+You’re almost there — sign up to start building in Notion today.
+Sign up or login
+📊
+UniRL Experiment Report
+📊
+UniRL Experiment Report
+What the UniRL experiment programme measured, by research question. As of 2026-09-22. Links to every underlying record are at the bottom.
+📊
+The short version
+Diffusion training works — but image variety drops 25%.
+AR training is unsettled — DRPO reaches 6.4× its baseline, GRPO ends below its own start, one seed each.
+UniRL is 1.73× faster than VeRL-Omni — with a fairness caveat that could shrink it.
+The trajectory-IR and async claims are not supported yet — one null, one blocked row, one canceled row.
+RQ1 — Does training work?
+AR: E1, Qwen3-4B-Base on DAPO-Math
+	
+GRPO
+	
+DRPO
+
+
+start
+	
+0.0208
+	
+0.0250
+
+
+best
+	
+0.126 at rollout 280
+	
+0.227 at rollout 400
+
+
+end (rollout 800)
+	
+0.0177
+	
+0.159
+
+
+end vs start
+	
+0.85× — worse than untrained
+	
+6.4×
+Both arms ran the full 800 rollouts cleanly. Both rise, peak, then decline.
+DRPO looks far better, but this is one seed per arm — not enough to call the objectives apart.
+These are internal AIME scores, which are validation. The paper's actual endpoint (MATH-500) has not been scored yet.
+DRPO's peak was saved as checkpoint 400. GRPO's peak was not saved.
+Diffusion: E2, SD3.5-Medium, three seeds
+Metric
+	
+Change
+	
+Per seed
+
+
+HPSv3
+	
++8.61
+	
+8.58 / 8.71 / 8.54
+
+
+ImageReward
+	
++1.39
+	
+—
+
+
+PickScore (the trained objective)
+	
++0.10
+	
+—
+
+
+Composition
+	
++53.5%
+	
++54.5 / +50.4 / +55.5%
+
+
+Image diversity
+	
+−24.8%
+	
+−24.0 / −25.2 / −25.2%
+26,112 images per metric, all three seeds scored, zero errors. The averages are solid; the seed-to-seed spread rests on three points, so per-seed values are shown instead of a standard deviation.
+Quality rises on every judge. Diversity falls 25% on every seed — and it is already down by rollout 50, so stopping training early does not avoid it.
+This is not reward hacking: the independent judges rise too. It is quality up, variety down.
+For you to decide: does the diversity number go inside the RQ1 claim, or beside it?
+The VeRL-Omni reference: E2-R
+Trained on three seeds; checkpoint exports verified bit-identical, 15 of 15. No head-to-head quality comparison was run, deliberately — the two stacks use different estimators, so the number would look like a fair fight and would not be one.
+RQ2 — Is UniRL faster?
+E3, same model and workload on the same reserved node. Three runs per configuration, 30 steps each.
+System
+	
+s per step
+	
+samples/GPU-h
+	
+vs UniRL
+
+
+UniRL
+	
+64.2
+	
+5,381
+	
+—
+
+
+VeRL-Omni, sdpa
+	
+111.3
+	
+3,104
+	
+1.73× slower
+
+
+VeRL-Omni, fa3
+	
+112.3
+	
+3,079
+	
+1.75× slower
+Run-to-run spread is about 1%, so the gap is far bigger than the noise. FA3 versus SDPA is a tie.
+Matched on parameter count, the gap is 1.70× — VeRL trains 27% more LoRA parameters.
+The fairness caveat. VeRL made more progress per step: +0.10 reward against UniRL's +0.075. Normalised by progress the gap would fall to roughly 1.2×. We do not think that normalisation is sound at 30 steps, but the paper has to say it rather than leave it to be found.
+One easy misreading: VeRL's reported generation time includes scoring, UniRL's does not. Compared like for like it is 1.57×, not the 3.3× the raw rows suggest.
+RQ3 — What does the trajectory IR cost and enable?
+Grouping correctness (E4a) — passes. 24 of 24 checks in both scopes, bit-exact against a plain ID join. Caveat: the test data is synthetic, not a recorded rollout.
+Grouping quality (E4b) — null. Root-scope versus rewrite-scope: the three seeds disagree in sign. The limit is seed count, not prompt quality. Basically the reward collapse
+Topology (E5-T) — measured. Splitting into 4 training + 4 rollout GPUs is 2.277× slower than sharing 8. Almost all of it is reward computation, not communication. In that layout UniRL is slower than VeRL-Omni colocated.
+Representation cost (E5-R) — not measured. The existing harness measures something else, and the comparison arm has to be written from scratch (multi-day). Either build it, or narrow the paper's cost claim.
+RQ4 — Does bounded staleness help?
+E6 was canceled on 2026-09-21. What exists is six timing points at one seed and one failed pre-registered check.
+Setting
+	
+s per rollout
+
+
+S0 — sync, colocated
+	
+82.3
+
+
+D0 — async, split, no overlap
+	
+103.1
+
+
+A1
+	
+56.5
+
+
+A2
+	
+55.2
+
+
+A3
+	
+33.5
+
+
+A4
+	
+39.5
+Faster per rollout, but the quality did not hold: MATH-500 went 0.798 at rollout 150 down to 0.773 at rollout 300, where the registered rule required an increase. So no quality target was registered.
+This is training getting worse, not reward hacking — the training reward falls from about rollout 150 too.
+A side finding that constrains every row: scoring the same checkpoint twice agrees on only 76% of prompts (±1.5 accuracy points). Never read per-prompt or per-topic results off a single scoring.
+Also worth knowing
+The evaluation hang that cost E1 several days is fixed upstream (UniRL#462). Cause: a grader subprocess that refused to die, waited on with no timeout.
+Three traps when serving a checkpoint: export_full writes no tokenizer; serving needs --disable-piecewise-cuda-graph; and a virtualenv missing math_verify silently scores every answer 0.
+What needs a decision
+RQ1 wording — diversity inside the claim, or beside it.
+E1's endpoint — score the checkpoints on MATH-500, and decide whether a second seed runs. An idle 4×8 pod is available.
+E2-R — run the held-out comparison or not; it needs a pod and a rebuilt reward service.
+E5-R — build the missing measurement, or narrow RQ3.
+RQ4 — drop the section, or publish the negative result.
+E3's fairness disclosure — text only, no new runs.
+Records
+Row
+	
+Report
+	
+Raw record
+
+
+E0 gates · LIN-1170
+	
+E0 report
+	
+E0-readiness.md
+
+
+E1 AR · LIN-1171
+	
+E1 results
+	
+E1-final-status.md
+
+
+E2 and E2-R · LIN-1172
+	
+E2 report
+	
+E2-run-record.md
+
+
+E3 systems · LIN-1173
+	
+E3 results
+	
+E3-REPORT.md
+
+
+E4 lineage · LIN-1174
+	
+E4 results
+	
+E4-run-log.md
+
+
+E5 · LIN-1175
+	
+E5 results
+	
+E5T-results.md · E5R audit
+
+
+E6 async · LIN-1192
+	
+—
+	
+E6-pilot-results.md
+
+
+Eval-path fix · LIN-1195
+	
+—
+	
+pod-check-and-calling-context.md
+Programme level: results digest · full tracker, which carries every defect and withdrawal · live status · draft paper PR UniRLReport#2.
+Linyu
+Sep 22
+Double check
+Linyu
+Sep 22
+VeRL baseline needed
+Linyu
+Sep 22
+Pass@k
+Linyu
+Sep 22
+Double check with bowen
+Linyu
+Sep 22
+Double check with haonan
