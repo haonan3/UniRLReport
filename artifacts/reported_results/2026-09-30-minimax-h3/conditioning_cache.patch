@@ -1,0 +1,76 @@
+diff --git a/unirl/models/minimax_h3/text_embed.py b/unirl/models/minimax_h3/text_embed.py
+index e62e538c..d3ad86fa 100644
+--- a/unirl/models/minimax_h3/text_embed.py
++++ b/unirl/models/minimax_h3/text_embed.py
+@@ -2,6 +2,7 @@
+
+ from __future__ import annotations
+
++from collections import OrderedDict
+ from typing import TYPE_CHECKING, List
+
+ import torch
+@@ -14,6 +15,8 @@ from .vendor import MINIMAX_H3_TEXT_ENCODER_LAYER
+ if TYPE_CHECKING:
+     from .bundle import MiniMaxH3Bundle
+
++_PROMPT_CACHE_SIZE = 64
++
+
+ class MiniMaxH3TextEmbedStage:
+     """Encode prompts into the conditioning MiniMax-H3 was trained on."""
+@@ -25,6 +28,7 @@ class MiniMaxH3TextEmbedStage:
+         self.tokenizer = bundle.tokenizer
+         self.dtype = bundle.dtype
+         self.device = bundle.device
++        self._cache: OrderedDict[str, torch.Tensor] = OrderedDict()
+
+     @property
+     def _encoder_device(self) -> torch.device:
+@@ -56,22 +60,30 @@ class MiniMaxH3TextEmbedStage:
+         encoder_device = self._encoder_device
+         embeds = []
+         for prompt in prompts:
+-            token_ids = self.tokenizer(prompt, add_special_tokens=False)["input_ids"]
+-            input_ids = torch.tensor([token_ids], dtype=torch.long, device=encoder_device)
+-            # Qwen3-VL lays its 3D rotary positions out per modality run, read
+-            # off the token type ids the processor derives (0 text, 1 image,
+-            # 2 video). Text-only here, but the conditioner still wants them.
+-            mm_token_type_ids = torch.tensor(
+-                self.processor.create_mm_token_type_ids([token_ids]), dtype=torch.long, device=encoder_device
+-            )
+-            outputs = self.text_encoder.model(
+-                input_ids=input_ids,
+-                attention_mask=torch.ones_like(input_ids),
+-                mm_token_type_ids=mm_token_type_ids,
+-                use_cache=False,
+-                output_hidden_states=True,
+-            )
+-            embeds.append(outputs.hidden_states[MINIMAX_H3_TEXT_ENCODER_LAYER].to(device=self.device, dtype=self.dtype))
++            cached = self._cache.get(prompt)
++            if cached is None:
++                token_ids = self.tokenizer(prompt, add_special_tokens=False)["input_ids"]
++                input_ids = torch.tensor([token_ids], dtype=torch.long, device=encoder_device)
++                # Qwen3-VL lays its 3D rotary positions out per modality run, read
++                # off the token type ids the processor derives (0 text, 1 image,
++                # 2 video). Text-only here, but the conditioner still wants them.
++                mm_token_type_ids = torch.tensor(
++                    self.processor.create_mm_token_type_ids([token_ids]), dtype=torch.long, device=encoder_device
++                )
++                outputs = self.text_encoder.model(
++                    input_ids=input_ids,
++                    attention_mask=torch.ones_like(input_ids),
++                    mm_token_type_ids=mm_token_type_ids,
++                    use_cache=False,
++                    output_hidden_states=True,
++                )
++                cached = outputs.hidden_states[MINIMAX_H3_TEXT_ENCODER_LAYER].detach().to("cpu").contiguous()
++                self._cache[prompt] = cached
++                if len(self._cache) > _PROMPT_CACHE_SIZE:
++                    self._cache.popitem(last=False)
++            else:
++                self._cache.move_to_end(prompt)
++            embeds.append(cached.to(device=self.device, dtype=self.dtype))
+
+         lengths = {int(e.shape[1]) for e in embeds}
+         require(
