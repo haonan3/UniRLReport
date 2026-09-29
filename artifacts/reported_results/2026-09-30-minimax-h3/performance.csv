@@ -1,3 +1,4 @@
 system,framework,run_id,step_start,step_end,measured_steps,median_step_time_s,p25_step_time_s,p75_step_time_s,median_generate_time_s,median_reward_time_s,median_train_time_s,median_old_log_prob_time_s,samples_per_step,gpus,samples_per_gpu_hour
-UniRL PR403,UniRL,x8b0x8al,2,98,97,1882.257,1785.658,1995.566,743.659,40.776,1098.290,,128,8,30.602
-veRL-Omni,veRL-Omni,646mvxxs,2,98,97,1567.215,1558.771,1574.157,420.693,,850.201,285.958,128,8,36.753
+UniRL PR403,UniRL,x8b0x8al,2,100,99,1886.915,1786.355,1997.534,744.988,40.776,1098.290,,128,8,30.526
+UniRL + cache fix,UniRL,munhe02k,2,4,3,1550.527,1533.945,1576.282,405.392,41.444,1103.678,,128,8,37.149
+veRL-Omni,veRL-Omni,646mvxxs,2,100,99,1567.957,1558.923,1574.273,420.645,,850.201,285.958,128,8,36.736
