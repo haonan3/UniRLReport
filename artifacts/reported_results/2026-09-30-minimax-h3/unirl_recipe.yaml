@@ -1,0 +1,168 @@
+# @package _global_
+# MiniMax-H3 t2va (text -> video + stereo audio) Flow-GRPO — trainside FSDP.
+#
+# Reward rises at this canvas, +0.00234/step over two seeds. WARNING: nothing in
+# this reward relates the prompt to the video, and the NFT sibling on it decoded
+# to luma 2/255 while imagebind peaked — check frames before trusting the number.
+# For 768x768, restore height/width and pin `sde_indices: [0, 3, 6, 9]`.
+#
+# Launch (1 node x 8 GPUs):
+#   bash examples/run_experiment_multinode_taiji.sh diffusion/minimax_h3/minimax_h3_t2va_trainside
+
+num_devices: 8
+batch_size: 8
+adv_use_global_std: true
+num_rollouts: 1000
+
+logging:
+  report_to_wandb: true
+  project_name: ${oc.env:WANDB_PROJECT,unirl-minimax-h3-t2va}
+  run_name: ${oc.env:WANDB_RUN_NAME,minimax_h3_t2va_flowgrpo}
+  entity: ${oc.env:WANDB_ENTITY,null}
+  tags: [minimax-h3, t2va, flowgrpo, trainside, audio, stereo]
+  log_media: true
+  media_max_items: 2
+  media_log_interval: 100
+
+bundle:
+  _target_: unirl.models.minimax_h3.bundle.MiniMaxH3Bundle.from_config
+  config:
+    _target_: unirl.models.minimax_h3.config.MiniMaxH3PipelineConfig
+    pretrained_model_ckpt_path: ${oc.env:PRETRAINED_MODEL,MiniMaxAI/MiniMax-H3}
+    model_precision: bf16
+    # The audio VAE emits ~20 dB too quiet in bf16.
+    vae_dtype: fp32
+    audio_vae_dtype: fp32
+    autocast_precision: bf16
+    trajectory_precision: fp16
+    logprob_precision: fp32
+    video_shift: 12.0
+    audio_shift: 3.0
+    text_encoder_hidden_layer: 50
+    audio_joint_sde: true
+    aux_components_on_cpu: true
+    vae_components_on_cpu: false
+    meta_init_transformer: true
+
+pipeline:
+  _target_: unirl.models.minimax_h3.pipeline.MiniMaxH3Pipeline.from_bundle
+  config: ${bundle.config}
+  strategy:
+    # FlowSDE adds noise on top of the schedule and speckles at eta 0.7.
+    _target_: unirl.sde.kernels.CPSSDEStrategy
+
+backend:
+  _target_: unirl.train.backend.fsdp.FSDPBackend
+  block_class_names: ["MiniMaxH3TransformerBlock"]
+  trainable_attr: transformer
+  fsdp_cfg:
+    _target_: unirl.train.configs.FSDPConfig
+    param_dtype: bf16
+    cpu_offload: false
+    mixed_precision: true
+    fsdp_mode: full
+    reshard_after_forward: true
+    activation_checkpointing: true
+    use_torch_compile: false
+    # Keeps the fp32-pinned modules unsharded: H3 conditions on t = 1 - sigma, and
+    # a bf16 timestep MLP costs ~40% relative error on sigma near t=1.
+    root_wrap: false
+  optimizer_cfg:
+    _target_: unirl.train.backend.base.OptimizerConfig
+    learning_rate: 1.0e-4
+    adam_beta1: 0.9
+    adam_beta2: 0.999
+    # grad_norm is 3e-5 because the log-prob averages ~354k latent elements; at a
+    # larger eps Adam degrades toward SGD. Do not "fix" the small grad_norm.
+    adam_epsilon: 1.0e-12
+    weight_decay: 0.0
+  scheduler_cfg:
+    _target_: unirl.train.backend.base.LrSchedulerConfig
+    type: constant
+    warmup_steps: 0
+    total_steps: 1000
+  lora_cfg:
+    _target_: unirl.train.configs.LoraConfig
+    rank: 32
+    alpha: 64
+    dropout: 0.0
+    bias: none
+    task_type: FEATURE_EXTRACTION
+    # These suffixes recur in `token_refiner.refiner_blocks.*`, outside
+    # block_class_names, where injected LoRA params get no DP gradient sync.
+    module_prefix: transformer_blocks
+    target_modules:
+      - attn.to_q
+      - attn.to_k
+      - attn.to_v
+      - attn.to_out.0
+      - ff.net.0.proj
+      - ff.net.2
+
+rollout:
+  _target_: unirl.rollout.engine.trainside.engine.TrainsideRolloutEngine
+  stage_attrs: [diffusion]
+  forward_batch_size: 1
+
+reward:
+  _target_: unirl.reward.service.RewardService
+  backend:
+    _target_: unirl.reward.local.t2av_composite.T2AVCompositeScorer
+    base_device: cuda
+    config:
+      _target_: unirl.reward.local.t2av_composite.T2AVCompositeSpec
+      device: auto
+      batch_size: 2
+      frame_selection: middle
+      # ImageBind is CC-BY-NC-SA, so this recipe is NonCommercial.
+      weights:
+        imagebind: 1.0
+        clap: 1.0
+
+algorithm:
+  _target_: unirl.algorithms.flowgrpo.FlowGRPO
+  stage_attr: diffusion
+  clip_range: 5.0e-3
+  clip_schedule: constant
+  old_logp_source: replay
+  conditions_cls:
+    _target_: hydra.utils.get_class
+    path: unirl.models.minimax_h3.conditions.MiniMaxH3Conditions
+  params: ${sampling}
+
+stack:
+  _target_: unirl.train.stack.TrainStack
+  micro_batch_size: 1
+  max_grad_norm: 1.0
+  num_updates_per_batch: 1
+
+data_source:
+  _target_: unirl.data.data_source.MultimodalRLDataSource
+  args:
+    run:
+      data_path: datasets/pickscore/train.txt
+      eval_data_path: datasets/pickscore/test.txt
+      seed: 42
+    algorithm:
+      prompts_per_rollout: ${batch_size}
+
+sampling:
+  _target_: unirl.types.sampling.DiffusionSamplingParams
+  num_inference_steps: 10
+  guidance_scale: 1.0
+  # Omitted deliberately, which trains all 10 steps: replay builds one autograd
+  # graph over them, ~2.2 GB per step here against ~12 GB at 768x768 where ten
+  # exceed 100 GB/rank and OOM after a paid rollout.
+  height: 256
+  width: 384
+  # 17n+5 pixel frames map to 5n+2 latent, so the 5 s minimum makes 124 the
+  # smallest legal count; frames cannot be traded for row budget.
+  num_frames: 124
+  eta: 0.7
+  # Keep total samples near 128: 512 per step exhausted a 2.2 TB host in scoring.
+  samples_per_prompt: 16
+  seed: 42
+  init_same_noise: false
+  autocast_precision: bf16
+  trajectory_precision: fp16
+  logprob_precision: fp32
