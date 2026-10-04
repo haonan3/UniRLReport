@@ -82,7 +82,7 @@ With a remote judge this wastes time twice: the training node idles while the ju
 An optional worker-side role, \texttt{RewardStack}, changes the unit of work instead of the contract.
 It is built on the same worker as the rollout engine and the reward role, slices the frontier of its shard into micro-batches of a configured number of rows, and for each micro-batch calls the engine and then the reward in process.
 The scored parts are concatenated in the original row order, so group membership and credit assignment are unchanged, and the driver skips its own reward phase.
-A micro-batch may be a single row; if the engine packs a whole sibling group into one request, the micro-batch is extended to the end of the group it would otherwise split.
+A micro-batch may be a single row; if the engine packs a whole sibling group into one request, the micro-batch is extended to the end of the group it would otherwise split. (Section~\ref{sec:fidelity-pack} removes that floor for the engine measured below.)
 With \texttt{overlap} enabled, scoring calls are queued in order on one background thread and generation never waits for a score; a scorer failure surfaces after the next micro-batch is generated.
 Figure~\ref{fig:reward-timeline} shows recorded rollouts under the three schedules.
 
@@ -100,6 +100,7 @@ A rollout has 32 prompts with eight edits each, or 32 rows per rank, which a mic
 An EditScore judge~\citep{luo2025editscore} on a second node scores every source--edit pair over HTTP, in an 8B and a 72B variant, both as one tensor-parallel vLLM engine behind the single-scorer server.
 Runs last two or three rollouts; the first is discarded as warm-up and the rest are pooled over repeated sessions on two allocations of the same hardware.
 Times are the driver's phase timers.
+These runs predate the conditioning fix of Section~\ref{sec:fidelity-layout}, so their generation phase carries the engine's own, more expensive source prefix; Section~\ref{sec:fidelity-combined} says what that implies for the figures below.
 The number of rollouts is small and the workload is single, so the table supports the direction and rough size of the effect for this shape, not a distribution.
 Thirteen of the runs also logged, inside each worker, when every micro-batch was generated and when every reward call was sent and answered, and the judge's server logged the arrival and completion of every request; Figure~\ref{fig:reward-timeline} and the judge-side numbers below come from these traces.
 

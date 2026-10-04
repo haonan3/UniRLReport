@@ -198,6 +198,14 @@ same instrumentation; `fe57386` is the final tree before the squash merge
   (0.15 s of a 108.8 s step), which is a different workload and is not in this
   bundle.
 - These are reward-path measurements. They do not revise E3 or E5-T.
+- **Measured before UniRL #547.** On this path the BAGEL image-editing rollout
+  did not inject its own source-image contexts, so generation carried the
+  serving engine's more expensive prefix: 49.2 s against 36.8 s per rank for
+  16 rows at the same shape. Reward cost is unaffected, so a corrected
+  baseline spends relatively more of its rollout on reward than the tables
+  above show, and the overlap they measure would matter more rather than
+  less. See `../2026-10-04-rollout-fidelity/`. This study has not been re-run
+  on the corrected path.
 
 ## MPS sharing (transcribed)
 

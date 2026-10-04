@@ -1,0 +1,8 @@
+probe,workload,engine_kv_len,trainer_kv_len,layout_check,first_update_ratio_dev,note
+main before the injection fix,it2i,5938,2263,raises at the first replay,5.0e-05,4902 ViT tokens against 1227
+trainer prompt lengthened by three tokens,t2i,63,66,raises at the first replay,,injected by a local patch
+trainer source image halved in width,it2i,2268,1161,raises at the first replay,,injected by a local patch
+after the injection fix,it2i,2263,2263,passes,3.4e-05,
+healthy run (rollout anchor),t2i,equal,equal,passes,8.6e-06,
+healthy run (rollout anchor),it2i,equal,equal,passes,5.4e-05,
+healthy run (replay anchor),it2i,equal,equal,passes,0,the trainer against itself
