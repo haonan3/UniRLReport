@@ -135,6 +135,14 @@ The rollout therefore ends at that arrival plus the judge's total work, whatever
 That work was \RSLargeSerialWorkMin{}--\RSLargeSerialWorkMax{}\,s per traced rollout under the serial schedule and \RSLargeOverlapWorkMin{}--\RSLargeOverlapWorkMax{}\,s under the overlapped one, and it drifts by two to three seconds between consecutive rollouts of one arm, so the few seconds between the two rows of Table~\ref{tab:reward-overlap} are not an effect of the schedule.
 Once the judge is busy for the whole rollout, adding judge capacity or making its requests cheaper is the remaining lever.
 
+\paragraph{How one gets into that regime.}
+The regime is defined by the ratio of reward cost to generation cost, not by the judge's parameter count, and this deployment reaches it in a way a production one need not.
+A 72B judge scoring for a 7B policy is an unusual pairing; one judge replica serves all eight training ranks; and the single-scorer server scores one request at a time, so the small requests that arrive concurrently from different ranks are never merged into one forward.
+The last of these is measurable and is most of the effect.
+On the same judge a 32-pair request costs \RSLargeWholePerPair{}\,s per pair and an eight-pair request \RSLargeMicroPerPair{}\,s, so serving a rollout as 32 small requests raises the judge's total work from \RSLargeWholeWork{}\,s to \RSLargeSerialWork{}\,s --- which is the whole distance between having headroom and having none.
+A judge that batched across concurrent requests, split prefill from decode, or ran more than one replica would not be saturated at this shape.
+We report the arm as a stress test of the schedule, not as a shape to plan for.
+
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{artifacts/reported_results/2026-09-30-reward-service/figures/overlap_wallclock.pdf}
@@ -147,7 +155,9 @@ Micro-batching increases the judge's work.
 An eight-pair request costs the 72B judge \RSLargeSerialService{}\,s and a 32-pair request \RSLargeWholeService{}\,s, so a rollout scored in micro-batches needs \RSLargeSerialWork{}\,s of judge time against \RSLargeWholeWork{}\,s for whole shards; for the 8B judge the figures are \RSSmallMicroWork{}\,s and \RSSmallWholeWork{}\,s.
 The schedule wins because that work starts a quarter of the way into generation instead of after it, not because there is less of it.
 Smaller requests without the stack only pay the price: in a shallower shape with 16 rows per rank, splitting the whole-shard request into eight-row requests was slower than the baseline on both judges (\RSSmallShallowBase{}\,s to \RSSmallShallowSplit{}\,s and \RSLargeShallowBase{}\,s to \RSLargeShallowSplit{}\,s), whereas two micro-batches per rank were faster (\RSSmallShallowSerial{}\,s and \RSLargeShallowSerial{}\,s).
-The single-scorer server scores one request at a time; a judge that batched across concurrent requests would recover this cost.
+Per pair the same judge is \RSLargeMicroPerPair{}\,s against \RSLargeWholePerPair{}\,s, and the 8B judge \RSSmallMicroPerPair{}\,s against \RSSmallWholePerPair{}\,s: the penalty is the serving path, not the schedule.
+The single-scorer server used here scores one request at a time, so requests that arrive together from different ranks wait rather than batch.
+Continuous batching across them, a separate prefill stage, or simply more replicas would remove this cost and leave the schedule's arrival stagger as a pure gain.
 
 \paragraph{An in-process scorer.}
 With PickScore in the policy's workers, reward is a small part of the rollout, and the stack reduces generation plus reward from \RSLocalBase{}\,s to \RSLocalSerial{}\,s.

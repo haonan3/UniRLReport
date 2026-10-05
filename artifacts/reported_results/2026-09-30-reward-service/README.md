@@ -81,7 +81,13 @@ What the numbers support:
 - Overlapping adds a further step only while the judge has headroom (8B:
   111.5 → 106.9 s). With the 72B judge it is indistinguishable from the serial
   schedule (146.3 s, range 144.3–149.1, against 145.0 s, range 144.4–146.0);
-  see the judge-side view below for why.
+  see the judge-side view below for why. That arm is a stress test, not a
+  production shape: a 72B judge for a 7B policy, one replica, and a server that
+  scores one request at a time. Per pair the same judge costs 0.47 s on an
+  8-pair request against 0.30 s on a 32-pair one, so serving a rollout as 32
+  small requests is what raises its work from 76.9 s to 120.4 s and removes its
+  headroom. Continuous batching across concurrent requests, a split prefill
+  stage, or more replicas would avoid that.
 - Smaller requests alone are not the mechanism: splitting the whole-shard
   request into 8-row requests without the stack is slower than the baseline on
   both judges.

@@ -150,7 +150,12 @@ And the two mechanisms compose with the reward schedule of Section~\ref{sec:rewa
 The negative result is the useful one.
 Against the saturated 72B judge, balancing made the step \emph{slower}: \RFLargeBase{}\,s against \RFLargeSteal{}\,s in the steady rollout and \RFLargeFirstBase{}\,s against \RFLargeFirstSteal{}\,s in the first.
 It still flattened generation---the slowest rank fell from \RFLargeTail{}\,s to \RFLargeTailSteal{}\,s---but that is exactly the harm: with ranks finishing together they reach the judge together, and the queueing that the uneven baseline had spread out now happens all at once.
-This is the same mechanism that Section~\ref{sec:reward-results} found behind micro-batching's gain, read in reverse, and it says that such a scheduler must be gated on whether the reward has headroom rather than enabled by default.
+This is the same mechanism that Section~\ref{sec:reward-results} found behind micro-batching's gain, read in reverse.
+Two things follow, and the second matters more.
+Such a scheduler has to be gated on measured reward headroom rather than enabled by default.
+But the regime that makes it harmful is the one Section~\ref{sec:reward-results} shows this deployment manufactures: one judge replica, and a server that scores one request at a time, which turns the scheduler's small concurrent requests into a queue instead of a batch.
+A reward service with continuous batching across concurrent requests, a disaggregated prefill stage, or more replicas would not put a judge of this size into saturation at this shape, and the gate would rarely close.
+The arm belongs in this report as the boundary of the mechanism, not as a configuration to expect.
 A second cost, measured and not yet addressed: the training phase ran 3--9\% slower, because after the rows are restored to their original order a rank replays rows that another rank generated and their latents cross workers.
 The step is still shorter overall where the scheduler helps, but an assignment that also followed the rows into training would not pay this.
 None of this is proposed yet.

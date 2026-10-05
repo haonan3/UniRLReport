@@ -264,6 +264,10 @@ def write_macros(
         "RSTrainRemoteCollect": train_seconds(runs, "20260928-093100", "1"),
         "RSTrainLocalNoCollect": train_seconds(runs, "20260928-093606", "0"),
         "RSTrainLocalCollect": train_seconds(runs, "20260928-093606", "1"),
+        "RSLargeWholePerPair": f"{float(judged('editscore_72b', 'baseline', 'service_per_request_s')) / float(judged('editscore_72b', 'baseline', 'pairs_per_request')):.2f}",
+        "RSLargeMicroPerPair": f"{float(judged('editscore_72b', 'serial', 'service_per_request_s')) / float(judged('editscore_72b', 'serial', 'pairs_per_request')):.2f}",
+        "RSSmallWholePerPair": f"{float(judged('editscore_8b', 'baseline', 'service_per_request_s')) / float(judged('editscore_8b', 'baseline', 'pairs_per_request')):.3f}",
+        "RSSmallMicroPerPair": f"{float(judged('editscore_8b', 'serial', 'service_per_request_s')) / float(judged('editscore_8b', 'serial', 'pairs_per_request')):.3f}",
         "RSMpsThreeLight": mixed["three light rewards (CLIP / PickScore / HPSv2 / ImageReward)"]["mps_gain_pct"] + "\\%",
         "RSMpsTwoLight": mixed["two light rewards"]["mps_gain_pct"] + "\\%",
     }

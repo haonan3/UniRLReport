@@ -128,8 +128,11 @@ Steady rollout (the second of each arm) of the headline arms:
   naive estimate that counts rows, balancing gave back 25 s of its gain
   (108.6 → 133.9 s) and stealing recovered 18 of them (→ 115.9 s).
 - Against the saturated 72B judge the scheduler is a **regression**: 128.4 → 131.1 s
-  in the steady rollout, 118.3 → 133.3 s in the first. Generation is still flattened
+  in the steady rollout, 118.3 → 131.5 s in the first. Generation is still flattened
   (90.8 → 68.4 s), but ranks that finish together queue at the judge together.
+  That saturation is largely an artifact of the serving path rather than of the
+  judge's size: see `../2026-09-30-reward-service/README.md`. A judge with
+  continuous batching or more replicas would not be in it at this shape.
 - The train phase ran 3–9% slower in every scheduled arm, because a rank replays
   rows another rank generated and their latents cross workers.
 

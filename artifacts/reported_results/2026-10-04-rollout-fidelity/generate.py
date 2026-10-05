@@ -185,7 +185,7 @@ def write_macros(arms: list[dict[str, str]], costs: list[dict[str, str]], longta
         "RFLargeBase": f"{lt('it2i', 'editscore_72b', 'baseline', 'rollout_score_s'):.1f}",
         "RFLargeSteal": f"{lt('it2i', 'editscore_72b', 'steal+overlap', 'rollout_score_s'):.1f}",
         "RFLargeFirstBase": f"{lt('it2i', 'editscore_72b', 'baseline', 'rollout_score_s', '1'):.1f}",
-        "RFLargeFirstSteal": f"{lt('it2i', 'editscore_72b', 'steal', 'rollout_score_s', '1'):.1f}",
+        "RFLargeFirstSteal": f"{lt('it2i', 'editscore_72b', 'steal+overlap', 'rollout_score_s', '1'):.1f}",
         "RFLargeTail": f"{lt('it2i', 'editscore_72b', 'baseline', 'slowest_rank_generate_s'):.1f}",
         "RFLargeTailSteal": f"{lt('it2i', 'editscore_72b', 'steal+overlap', 'slowest_rank_generate_s'):.1f}",
         "RFTtoiBase": f"{lt('t2i', 'pickscore_local', 'baseline', 'rollout_score_s'):.1f}",
