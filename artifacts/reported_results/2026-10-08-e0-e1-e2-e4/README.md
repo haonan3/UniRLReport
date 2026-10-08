@@ -23,7 +23,7 @@ the 2026-09-22 bundle.
 | E1 repetition loops | loop counts per evaluation (`e1_evaluations.csv`), counted at export from the completions with the rule in `e1_runs.json` | the completions, so the counts cannot be regenerated here |
 | E2 | per-seed, per-checkpoint means for four judges and the within-prompt LPIPS change at rollouts 50 and 300 (`e2_curves.json`), computed by the experiment from its per-image score files | the per-image scores and the images |
 | E4 v2 quality comparison | the output of the pre-registered analysis, byte-identical (`e4v2_analysis_output.json`) | the per-image rows it was computed from |
-| E4 quality comparison | the paired-analysis output (`e4_paired_analysis.json`) and per-run trajectories (`e4_trajectories.json`) | the per-image rows |
+| Earlier E4 run, cited in one sentence | the paired-analysis output (`e4_paired_analysis.json`) and per-run trajectories (`e4_trajectories.json`) | the per-image rows; the account of its defects comes from the experiment's record |
 | E4 v2 recorded-rollout check | none | the check's outputs; the manuscript attributes this statement to the experiment's execution record |
 | E0 parity on smoke runs | the 15 raw gauge rows (`e0_parity.json`) | the run logs |
 | Status of the six checks in Appendix C | none beyond the parity rows | the statements summarize the E0 and E4 records |
@@ -62,7 +62,7 @@ preference rows have 1,632 prompts with 16 images each, the composition rows
 800 prompts with one image each, and the diversity guard 120 image pairs per
 prompt.
 
-**E4.** Six runs at training commit
+**E4, earlier run.** Six runs at training commit
 [`fa095260`](https://github.com/celve/unirl-pub/commit/fa0952602956e435e909a436540098a405cb5f3e),
 evaluated at
 [`698eaa0f`](https://github.com/celve/unirl-pub/commit/698eaa0f9e33258edd6405fbfcffaa154f40255c),
@@ -124,14 +124,16 @@ count, so the one-image endpoint is the first-sample subset of the same rows;
 that subset has not been scored separately. The reference arm E2-R has no
 held-out evaluation and is not in this bundle.
 
-**E4 and E4 v2.** The contrast is root scope minus rewrite scope on
-root-conditioned HPSv3 at checkpoint 300, one value per training-seed pair.
-Both runs are inconclusive at three pairs, and neither is evidence that the two
-groupings are equivalent. The two runs use different held-out rewrite
-manifests, so their magnitudes are not comparable. The earlier run used a
-rewriter recipe without its instruction and extraction marker, two of its six
-runs ended below the untrained base, and its training inputs were not paired
-across scopes; it is kept as an exploratory result and not replaced.
+**E4 v2 and the earlier E4 run.** The contrast is root scope minus rewrite
+scope on root-conditioned HPSv3 at checkpoint 300, one value per training-seed
+pair. E4 v2 is the result the manuscript reports. It is inconclusive at three
+pairs and is not evidence that the two groupings are equivalent. The earlier
+run used a rewriter recipe without its instruction and extraction marker, two
+of its six runs ended below the untrained base, and its two scopes trained on
+different rewrites. It was also inconclusive. The manuscript cites it in one
+sentence with its interval, and its data stay here so that sentence can be
+regenerated. The two runs use different held-out rewrite manifests, so their
+magnitudes are not comparable.
 
 **E0.** Each parity cell is one check on a smoke run. The gauge ran with a
 tolerance of 10.0, chosen so that it records and never stops a run. No

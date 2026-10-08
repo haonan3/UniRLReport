@@ -719,25 +719,22 @@ Replay tensors, learner inputs, and root-shard round trips are still checked onl
 The outputs of that check remain on experiment storage and are not in the bundle.
 
 \begin{table}[H]
-\caption{E4 grouping-scope contrasts and E4~v2 levels on held-out root prompts. Contrasts are root scope minus rewrite scope within each training-seed pair; intervals are 95\% $t$ intervals over the three pairs. The two experiments use different held-out rewrite manifests, so their magnitudes are not comparable. The earlier run is retained as exploratory.}
+\caption{E4~v2 on held-out root prompts: root-conditioned HPSv3 at checkpoint 300 under each grouping scope, one column per training seed. The last row is the registered contrast, root scope minus rewrite scope within each training-seed pair, with a 95\% $t$ interval over the three pairs.}
 \label{tab:e4-grouping}
 \centering
 \small
 \input{artifacts/reported_results/2026-10-08-e0-e1-e2-e4/e4_table.tex}
 \end{table}
 
-\paragraph{E4 quality comparison: inconclusive in both runs.}
-The first E4b run reports no consistent advantage across three seeds: the differences change sign (Table~\ref{tab:e4-grouping}).
-Its rewrite conditioning was malformed: chat markers remain in many outputs and many rewrites exceed the CLIP token window because the intended extraction configuration was not applied.
-Two of its six runs also ended below the untrained base, and its training inputs were not paired across scopes.
-That configuration is retained as an exploratory result.
-E4~v2 repeats the comparison with the corrected template under an analysis registered before the runs started.
-Its two arms differ in one configuration line and share every training rewrite and random seed, and the frozen rewriter's weights are verified unchanged.
+\paragraph{E4 quality comparison: inconclusive.}
+E4~v2 compares the two grouping scopes with a corrected rewrite template, under an analysis registered before its runs started (Table~\ref{tab:e4-grouping}).
+It supersedes an earlier run of this comparison in which the rewriter ran without its instruction and extraction marker, two of the six runs ended below the untrained base, and the two scopes trained on different rewrites; that run was also inconclusive, with a seed-level 95\% interval of [\EFourEarlierLow{}, \EFourEarlierHigh{}], and its analysis is kept in the bundle.
+The two arms of E4~v2 differ in one configuration line and share every training rewrite and random seed, and the frozen rewriter's weights are verified unchanged.
 All six runs end above the base, at \EFourVTwoEndMin{} to \EFourVTwoEndMax{} against \EFourVTwoBase{} on root-conditioned HPSv3, and none collapses under the registered rule.
 The registered contrast, root scope minus rewrite scope on root-conditioned HPSv3 at checkpoint 300, is \EFourVTwoContrastEleven{}, \EFourVTwoContrastTwentyTwo{}, and \EFourVTwoContrastThirtyThree{} for the three seed pairs, with mean \EFourVTwoMean{} and a seed-level 95\% interval of [\EFourVTwoLow{}, \EFourVTwoHigh{}]: inconclusive at three seed pairs.
 None of the \EFourVTwoIntervals{} seed-level intervals across checkpoints and views excludes zero.
 This does not demonstrate equivalence or establish that the effect is zero: the interval's half-width, \EFourVTwoHalfWidth{}, is comparable to the runs' gains over the base, \EFourVTwoGainMin{} to \EFourVTwoGainMax{}.
-The held-out roots of both runs are drawn from the shipped PickScore test prompts, \EZeroSplitOverlap{} of which also appear in the training split after text normalization; the splits were kept as shipped.
+The held-out roots are drawn from the shipped PickScore test prompts, \EZeroSplitOverlap{} of which also appear in the training split after text normalization; the splits were kept as shipped.
 The supported claim is that the IR expresses both lineage-defined grouping objectives, that both are computed as an ID join specifies, and that both train in a composed run; no quality advantage is established for either.
 
 \paragraph{E5-R remains unmeasured.}

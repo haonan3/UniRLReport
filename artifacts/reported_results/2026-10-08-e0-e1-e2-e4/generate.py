@@ -250,22 +250,18 @@ def render_e4(registered, earlier, archive, macros):
     below = [run for run, points in archive["trajectories"].items() if run != "base" and points["checkpoint-300"][key] < old_base]
     assert len(below) == 2 and len(archive["trajectories"]) == 7
 
-    def contrast_row(label, values, center, lower, upper):
-        cells = [tex(fixed(values[seed], 2, sign=True)) for seed in SEEDS]
-        return " & ".join([label] + cells + [tex(fixed(center, 2, sign=True)), f"[{tex(fixed(lower, 2, sign=True))}, {tex(fixed(upper, 2, sign=True))}]"]) + r" \\"
-
     def level_row(label, scope):
         values = [ends[f"{scope}_s{seed}"] for seed in SEEDS]
         return " & ".join([label] + [fixed(value, 2) for value in values] + [fixed(statistics.fmean(values), 2), "--"]) + r" \\"
 
+    contrast = [tex(fixed(primary["per_seed"][seed], 2, sign=True)) for seed in SEEDS]
+    interval = f"[{tex(fixed(low, 2, sign=True))}, {tex(fixed(high, 2, sign=True))}]"
     table = [HEADER.rstrip(), r"\begin{tabularx}{\textwidth}{@{}Xrrrrr@{}}", r"\toprule",
              r" & Seed 11 & Seed 22 & Seed 33 & Mean & 95\% interval \\", r"\midrule",
-             r"\multicolumn{6}{@{}l}{Root scope minus rewrite scope, root-conditioned HPSv3 at checkpoint 300} \\",
-             contrast_row("E4 v2: corrected template, registered analysis", primary["per_seed"], mean, low, high),
-             contrast_row("E4: earlier run, defective template", old, old_mean, old_low, old_high),
-             r"\midrule",
-             r"\multicolumn{6}{@{}l}{E4 v2 root-conditioned HPSv3 at checkpoint 300 (frozen base: " + fixed(base, 2) + r")} \\",
+             r"Frozen base (no training) & \multicolumn{4}{c}{" + fixed(base, 2) + r"} & -- \\",
              level_row("Root scope", "prompt"), level_row("Rewrite scope", "rewrite"),
+             r"\midrule",
+             " & ".join(["Root scope minus rewrite scope"] + contrast + [tex(fixed(mean, 2, sign=True)), interval]) + r" \\",
              r"\bottomrule", r"\end{tabularx}", ""]
     write(BUNDLE / "e4_table.tex", "\n".join(table))
     macros.update({
@@ -274,6 +270,7 @@ def render_e4(registered, earlier, archive, macros):
         "EFourVTwoBase": fixed(base, 2), "EFourVTwoEndMin": fixed(min(ends.values()), 2), "EFourVTwoEndMax": fixed(max(ends.values()), 2),
         "EFourVTwoGainMin": fixed(min(ends.values()) - base, 1), "EFourVTwoGainMax": fixed(max(ends.values()) - base, 1),
         "EFourVTwoIntervals": str(len(registered["contrasts"])),
+        "EFourEarlierLow": tex(fixed(old_low, 2, sign=True)), "EFourEarlierHigh": tex(fixed(old_high, 2, sign=True)),
     })
     for seed in SEEDS:
         macros["EFourVTwoContrast" + SEED_WORDS[seed]] = tex(fixed(primary["per_seed"][seed], 2, sign=True))
