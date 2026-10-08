@@ -1,0 +1,124 @@
+{
+  "experiment": "E1",
+  "model": "Qwen3-4B-Base",
+  "training_data": "DAPO-Math-17k",
+  "data_sha256": {
+    "train.jsonl": "fcc950774dbb5bf4c249f90bf2e2517676619e798f5a921190cf1391fc5f922c",
+    "aime_eval.jsonl": "4cf61fc89165d54b809ca49c769cce69242684f5ce9b6d9ba39e5ef93f38a2ba"
+  },
+  "source_commit": "2055f2a23353ead1ea3302741ff9378c7e62da6a",
+  "source_repository": "https://github.com/celve/unirl-pub",
+  "source_branch": "LIN-1195/ar-pre-train-evaluation-hangs",
+  "allocation": "4 nodes x 8 NVIDIA H20 96 GB (32 GPUs)",
+  "budget": {
+    "rollouts": 800,
+    "prompts_per_rollout": 64,
+    "samples_per_prompt": 8,
+    "optimizer_updates_per_rollout": 4,
+    "checkpoint_interval": 200
+  },
+  "endpoint": {
+    "primary": {
+      "benchmark": "MATH-500",
+      "prompts": 500,
+      "metric": "avg@4",
+      "temperature": 0.6,
+      "top_p": 0.95,
+      "max_tokens": 16384,
+      "grader": "math_verify"
+    },
+    "secondary": {
+      "benchmarks": [
+        "AIME 2024",
+        "AIME 2025"
+      ],
+      "prompts": 30,
+      "metric": "avg@16",
+      "temperature": 0.6,
+      "top_p": 0.95,
+      "max_tokens": "32768 requested; clipped to the model's 32768-token context minus the prompt"
+    },
+    "seeding": "the text benchmarks are not seeded; the final checkpoints of both seed-11 runs were evaluated twice"
+  },
+  "runs": [
+    {
+      "id": "grpo-s11",
+      "objective": "GRPO",
+      "recipe": "examples/ar/qwen3_grpo_4b_base_dapo_sglang.yaml",
+      "seed": 11,
+      "segments": [
+        "rollouts 1-200",
+        "rollouts 201-800, resumed from checkpoint 200"
+      ],
+      "evaluated_checkpoints": [
+        600,
+        800
+      ],
+      "note": "checkpoints 200 and 400 were lost from shared storage before the endpoint evaluation"
+    },
+    {
+      "id": "grpo-s22",
+      "objective": "GRPO",
+      "recipe": "examples/ar/qwen3_grpo_4b_base_dapo_sglang.yaml",
+      "seed": 22,
+      "segments": [
+        "rollouts 1-800"
+      ],
+      "evaluated_checkpoints": [
+        200,
+        400,
+        600,
+        800
+      ],
+      "note": "ran from an archive of the source commit"
+    },
+    {
+      "id": "grpo-s33",
+      "objective": "GRPO",
+      "recipe": "examples/ar/qwen3_grpo_4b_base_dapo_sglang.yaml",
+      "seed": 33,
+      "segments": [
+        "rollouts 1-800"
+      ],
+      "evaluated_checkpoints": [
+        200,
+        400,
+        600,
+        800
+      ],
+      "note": "ran from an archive of the source commit"
+    },
+    {
+      "id": "drpo-s11",
+      "objective": "DRPO",
+      "recipe": "examples/ar/qwen3_drpo_4b_base_dapo_sglang.yaml",
+      "seed": 11,
+      "overrides": [
+        "rollout.config.engine_kwargs.rl_on_policy_target=null"
+      ],
+      "segments": [
+        "rollouts 1-800"
+      ],
+      "evaluated_checkpoints": [
+        200,
+        400,
+        600,
+        800
+      ],
+      "note": "added after GRPO seed 11 finished; a departure from the prespecified protocol"
+    }
+  ],
+  "drpo_recipe_differences_from_grpo": [
+    "the loss",
+    "advantages are not divided by the group standard deviation",
+    "token aggregation",
+    "old log-probabilities are taken from the rollout engine",
+    "shard balancing"
+  ],
+  "seed_scope": "the seed ID controls data order; generation sampling is not seeded (the rollout engine's random seed is left unset)",
+  "not_included": [
+    "DRPO seed 22 stopped at rollout 369 of 800 when its allocation ended",
+    "DRPO seed 33 has not started"
+  ],
+  "loop_definition": "a completion counts as a loop when one 20-400 character unit taken from its end repeats at least max(3, 1500/len(unit)) times within its last 3000 characters"
+}
