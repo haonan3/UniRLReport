@@ -1,4 +1,7 @@
 model_engine: dp
+# Resolved job used for the complete 500-step run. The epoch ceiling is kept
+# above the step ceiling because one pass over 17,917 prompts at batch size 64
+# contains only 279 global batches; total_training_steps remains the real stop.
 actor_rollout_ref:
   actor:
     optim:
@@ -310,7 +313,7 @@ actor_rollout_ref:
     trace:
       _target_: verl.workers.config.TraceConfig
       project_name: unirl-grpo
-      experiment_name: qwen3-drpo-verl-natural15
+      experiment_name: qwen3-drpo-verl-tp2-natural500-20260930-epochfix500
       backend: null
       token2text: false
       max_samples_per_step_per_worker: null
@@ -810,10 +813,10 @@ distillation:
       temperature: 1.0
 trainer:
   balance_batch: true
-  total_epochs: 1
-  total_training_steps: 15
+  total_epochs: 100
+  total_training_steps: 500
   project_name: unirl-grpo
-  experiment_name: qwen3-drpo-verl-natural15
+  experiment_name: qwen3-drpo-verl-tp2-natural500-20260930-epochfix500
   logger:
   - console
   - wandb
@@ -832,7 +835,7 @@ trainer:
   critic_warmup: 0
   default_hdfs_dir: null
   del_local_ckpt_after_load: false
-  default_local_dir: outputs/qwen3-drpo-verl-natural15
+  default_local_dir: outputs/qwen3-drpo-verl-tp2-natural500-20260930-epochfix500
   max_actor_ckpt_to_keep: null
   max_critic_ckpt_to_keep: null
   ray_wait_register_center_timeout: 300

@@ -1,128 +1,108 @@
 # Qwen3-4B DRPO: UniRL and VERL performance
 
-This bundle reproduces the same Qwen3-4B DRPO recipe in UniRL and VERL. The
-primary result uses naturally varying response lengths with EOS enabled and an
-8,192-token cap. An exact 4,096-token workload is retained as a controlled
-throughput check.
+This bundle reproduces a matched 500-step Qwen3-4B DRPO workload in UniRL and
+VERL. The primary experiment uses naturally varying response lengths, EOS
+enabled, and an 8,192-token response cap.
 
-## Setup
+## Recipe
 
 | Setting | Value |
 |---|---|
-| Hardware | 2 nodes × 8 NVIDIA H20 96GB |
+| Hardware | 2 nodes × 8 NVIDIA H20 96GB per framework |
 | Model | Qwen3-4B-Base |
 | Data | DAPO-Math-17k, 17,917 prompts |
 | Algorithm | DRPO / `spo_adaptive_eps` |
-| Rollout | 64 prompts × 8 samples = 512 responses per step |
-| Sampling | temperature 1.0, top-p 1.0, top-k disabled |
+| Rollout batch | 64 prompts × 8 samples = 512 responses |
+| Sampling | temperature 1.0, top-p 1.0, top-k disabled, EOS enabled |
+| Response cap | 8,192 tokens |
 | Optimizer work | Four updates per rollout, 10,240-token budget per GPU |
-| Natural workload | EOS enabled, 8,192-token cap, steps 2–15 measured |
-| Fixed control | EOS ignored, exactly 4,096 tokens, steps 2–5 measured |
-| Statistics | Step 1 excluded as warm-up; population standard deviation |
+| Measured window | Steps 2–500; step 1 excluded as startup warm-up |
 
-Both frameworks' final runs start from the same base weights and use the same
-prompt order, tokenizer, loss, optimizer, precision, and batch configuration.
-Natural sampling is stochastic, so the table reports response length and
-output-token throughput alongside wall-clock time.
+- [UniRL recipe](unirl_natural_recipe.yaml): eight SGLang TP2 engines, HTTP
+  backend, concurrency 64, Triton prefill, and FlashInfer decode.
+- [VERL recipe](verl_natural_recipe.yaml): eight asynchronous vLLM TP2 engines.
 
-## Recipes
+Both runs start from the same base weights and match prompt order, tokenizer,
+loss, optimizer, precision, rollout batch, and update count. Natural sampling
+is stochastic, so response length and token-normalized throughput are reported
+alongside wall-clock time. UniRL used two nodes in one allocation; VERL used two
+same-site nodes in separate allocations, so very small raw-time differences
+should be read together with the token-normalized rates.
 
-- [UniRL natural-length recipe](unirl_natural_recipe.yaml): eight SGLang TP2
-  engines, HTTP backend, concurrency 64, Triton prefill, and FlashInfer decode.
-- [UniRL TP1 diagnostic recipe](unirl_natural_tp1_recipe.yaml): the initial
-  one-engine-per-GPU configuration used to isolate long-response latency.
-- [VERL natural-length recipe](verl_natural_recipe.yaml): resolved Hydra job
-  with eight asynchronous vLLM TP2 engines.
-- Fixed-workload snapshots: [UniRL](unirl_recipe.yaml) and
-  [VERL](verl_recipe.yaml).
+## Curve and raw data
 
-Replace the `/path/to/...` entries in the VERL snapshots and set the documented
-environment variables in the UniRL snapshots to local model and dataset paths.
+[`natural_long_per_step.csv`](natural_long_per_step.csv) contains 499 measured
+steps for each framework. The plotted values use a 10-step rolling mean.
 
-## Natural-length result
+![500-step natural-length timing and throughput curves](natural_long_curves.png)
 
-The plot is generated directly from
-[`natural_curve.csv`](natural_curve.csv):
-
-![Natural-length timing and response-length curves](natural_curve.png)
-
-Regenerate it with:
+Regenerate the PNG with:
 
 ```bash
-python3 artifacts/reported_results/2026-09-30-qwen3-4b-drpo/plot_natural.py
+python3 artifacts/reported_results/2026-09-30-qwen3-4b-drpo/plot_long_natural.py \
+  artifacts/reported_results/2026-09-30-qwen3-4b-drpo/natural_long_per_step.csv \
+  artifacts/reported_results/2026-09-30-qwen3-4b-drpo/natural_long_curves.png
 ```
 
-| Framework | End-to-end (s) | Generation (s) | Training (s) | Mean response | End-to-end output tok/s | Generation output tok/s |
+Additional tables:
+
+- [phase timing by 100-step band](natural_long_by_phase.csv)
+- [framework comparison by band and overall](natural_long_comparison.csv)
+
+With W&B credentials configured, regenerate all three CSV files with:
+
+```bash
+python3 artifacts/reported_results/2026-09-30-qwen3-4b-drpo/export_long_natural.py \
+  --unirl-run 6jlpkjdr --verl-run xd9cv7e4 \
+  --verl-log artifacts/reported_results/2026-09-30-qwen3-4b-drpo/verl_steps_499_500.txt \
+  --output-dir artifacts/reported_results/2026-09-30-qwen3-4b-drpo \
+  --max-step 500
+```
+
+## Final performance
+
+Mean ± population standard deviation over steps 2–500:
+
+| Framework | E2E s/step | Generation s/step | Training s/step | Mean response | E2E output tok/s | Generation output tok/s |
 |---|---:|---:|---:|---:|---:|---:|
-| UniRL TP1 | 71.692 ± 4.466 | 49.420 ± 1.847 | 18.426 ± 2.524 | 1,075.1 | 7,678 | 11,138 |
-| **UniRL TP2 + FlashInfer** | **56.351 ± 5.582** | **31.883 ± 1.722** | 18.138 ± 2.149 | 1,060.5 | 9,636 | **17,031** |
-| VERL TP2 | 56.617 ± 3.400 | 35.240 ± 2.674 | **18.051 ± 1.450** | 1,084.1 | **9,804** | 15,751 |
+| **UniRL** | **131.279 ± 23.564** | **65.521 ± 11.374** | 60.852 ± 12.381 | 4,339.6 ± 942.1 | **16,925** | **33,911** |
+| VERL | 138.628 ± 24.347 | 79.554 ± 13.221 | **55.679 ± 11.211** | 4,082.3 ± 821.8 | 15,077 | 26,273 |
 
-The optimized UniRL and VERL runs are at end-to-end parity: UniRL is 0.5%
-lower in raw step time while sampling responses that are 2.2% shorter. UniRL's
-generation time is 9.5% lower and its generation output throughput is 8.1%
-higher. Its end-to-end output throughput is 1.7% lower; this includes reward,
-training, and weight synchronization rather than generation alone. Exact inputs
-and relative differences are in
-[`natural_performance.csv`](natural_performance.csv).
+Across the complete run, UniRL is 5.3% faster in raw end-to-end step time while
+sampling responses that are 6.3% longer. Its end-to-end output-token throughput
+is 12.3% higher and generation output-token throughput is 29.1% higher. VERL's
+training phase is faster, but UniRL's generation advantage is larger at this
+workload.
 
-The initial TP1 topology is slow on the natural workload because every step
-waits for the longest response, including traces that reach the 8,192-token
-cap. Moving from sixteen TP1 engines to eight TP2 engines reduces that
-long-tail decode latency. A short steps-2–5 check then found that switching TP2
-decode from Triton to FlashInfer raised generation output throughput from
-11,774 to 14,933 tok/s (+26.8%) and reduced end-to-end time from 62.078 to
-51.975 seconds (-16.3%).
+| Step band | VERL s/step (resp.) | UniRL s/step (resp.) | UniRL raw E2E | UniRL E2E tok/s | UniRL generation tok/s |
+|---|---:|---:|---:|---:|---:|
+| 0–100 | 115.84 (3,240) | 117.03 (3,626) | 1.0% slower | 10.8% higher | 27.2% higher |
+| 100–200 | 153.35 (4,530) | 123.44 (3,976) | 19.5% faster | 9.1% higher | 22.9% higher |
+| 200–300 | 148.25 (4,403) | 132.25 (4,500) | 10.8% faster | 14.6% higher | 32.6% higher |
+| 300–400 | 137.23 (4,092) | 150.45 (5,156) | 9.6% slower | 14.9% higher | 33.4% higher |
+| 400–500 | 138.24 (4,139) | 133.09 (4,433) | 3.7% faster | 11.2% higher | 28.5% higher |
 
-The fourteenth measured UniRL step contains a 10.607-second reward phase and is
-retained. This is why its end-to-end standard deviation is larger than its
-generation or training deviation.
+The raw E2E ordering changes with the sampled length distribution; output-token
+throughput is consistently higher for UniRL in every band.
 
-## Fixed 4,096-token control
+## Provenance
 
-The fixed control makes both systems generate exactly the same number of output
-tokens. Its plot is generated from [`curve.csv`](curve.csv):
-
-![Fixed-length timing comparison](curve.png)
-
-| Framework | End-to-end (s) | Generation (s) | Training (s) |
-|---|---:|---:|---:|
-| **UniRL TP1** | **96.674 ± 3.400** | **38.105 ± 0.827** | **52.836 ± 1.271** |
-| VERL TP2 | 106.292 ± 0.243 | 48.274 ± 0.133 | 54.785 ± 0.278 |
-
-On this fixed workload, UniRL is 9.0% faster end to end. This result is a
-controlled systems-throughput check, not a substitute for the natural-length
-comparison above. Aggregate inputs are in
-[`performance.csv`](performance.csv), and the plot regenerates with
-[`plot.py`](plot.py).
-
-The fourth measured UniRL control step includes a 10.478-second reward phase;
-it is retained in the mean.
-
-## Sources and scope
-
-- Natural UniRL TP2 + FlashInfer W&B run:
-  [`2evxz32k`](https://wandb.ai/leviking98z-zhejiang-university/unirl-grpo/runs/2evxz32k)
-- Natural UniRL TP1 diagnostic W&B run:
-  [`v48s5nb1`](https://wandb.ai/leviking98z-zhejiang-university/unirl-grpo/runs/v48s5nb1)
-- Natural VERL TP2 W&B run:
-  [`3q35u7qp`](https://wandb.ai/leviking98z-zhejiang-university/unirl-grpo/runs/3q35u7qp)
-- UniRL TP2 Triton control W&B run:
-  [`a9p95veq`](https://wandb.ai/leviking98z-zhejiang-university/unirl-grpo/runs/a9p95veq)
-- UniRL TP2 FlashInfer short A/B W&B run:
-  [`fyav21rl`](https://wandb.ai/leviking98z-zhejiang-university/unirl-grpo/runs/fyav21rl)
-- Fixed UniRL and VERL W&B runs:
-  [`qgl8dnkl`](https://wandb.ai/leviking98z-zhejiang-university/unirl-grpo/runs/qgl8dnkl) and
-  [`yvybir9t`](https://wandb.ai/leviking98z-zhejiang-university/unirl-grpo/runs/yvybir9t)
-- UniRL source commit: `095b76979847ed32f565be3c8deedec2016eb0dd`, including
-  the performance recipe from
-  [upstream PR #535](https://github.com/Tencent-Hunyuan/UniRL/pull/535)
+- UniRL W&B run:
+  [`6jlpkjdr`](https://wandb.ai/leviking98z-zhejiang-university/unirl-grpo/runs/6jlpkjdr)
+- VERL W&B run:
+  [`xd9cv7e4`](https://wandb.ai/leviking98z-zhejiang-university/unirl-grpo/runs/xd9cv7e4)
+- UniRL source commit: `6148a5d492bbe7dad32ca761a2de6d16a72bf067`,
+  included in merged [UniRL PR #535](https://github.com/Tencent-Hunyuan/UniRL/pull/535)
 - VERL reference source: `MaxwellJryao/SPO-DPPO@43803a66`; benchmark
   compatibility commit: `b170d4a6`
-- Source JSONL SHA-256:
-  `fcc950774dbb5bf4c249f90bf2e2517676619e798f5a921190cf1391fc5f922c`
-- Converted parquet SHA-256:
-  `d983528460e09ba7e98d589f6f72d920d2661debcdf69bce996492fa23f5a131`
 
-These short runs support an end-to-end systems-performance comparison. They do
-not establish time-to-quality or converged training quality.
+W&B contains UniRL steps 2–500 and VERL steps 2–498. VERL steps 499–500 were
+completed and printed by the trainer but were not flushed to W&B during final
+shutdown; the exporter supplements only those missing rows from the committed
+[`verl_steps_499_500.txt`](verl_steps_499_500.txt) excerpt.
+
+The earlier short natural-length diagnostics and exact 4,096-token control are
+retained in this directory. The fixed control inputs and outputs are
+[`unirl_recipe.yaml`](unirl_recipe.yaml), [`verl_recipe.yaml`](verl_recipe.yaml),
+[`curve.csv`](curve.csv), [`curve.png`](curve.png), and
+[`performance.csv`](performance.csv).

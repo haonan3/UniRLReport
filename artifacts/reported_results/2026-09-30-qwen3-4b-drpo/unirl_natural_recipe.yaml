@@ -24,7 +24,7 @@
 
 num_devices: 16
 batch_size: 64 # prompts_per_rollout
-num_rollouts: 15
+num_rollouts: 500
 weight_sync_interval: 1 # push the full dense weights into SGLang every rollout
 # AIME eval every 10 rollouts + a pre-train baseline (rollout -1) — mirrors the verl
 # run's test_freq=10 + val_before_train=True. The eval_* defaults already match verl
@@ -46,7 +46,7 @@ balance_shards: true
 logging:
   report_to_wandb: true
   project_name: unirl-grpo
-  run_name: qwen3-drpo-unirl-tp2-flashinfer-natural15
+  run_name: qwen3-drpo-unirl-tp2-flashinfer-natural500-20260930-0745-flexfix
   entity: ${oc.env:WANDB_ENTITY,null}
   tags: [drpo, qwen3, 4b-base, dapo, sglang, v2]
 
