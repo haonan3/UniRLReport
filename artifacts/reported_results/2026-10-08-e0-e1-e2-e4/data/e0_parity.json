@@ -1,0 +1,186 @@
+{
+  "experiment": "E0",
+  "quantity": "absolute difference between rollout-engine and train-side replay log-probabilities",
+  "geometry": "smoke runs: 2 samples per prompt for diffusion; 8 GPUs and 256 new tokens for the autoregressive run",
+  "tolerance": "the gauge ran with a tolerance of 10.0, chosen so that it records and never stops a run; no acceptance tolerance has been set",
+  "checks_per_cell": 1,
+  "source_commits": [
+    "8f46555c",
+    "c1a005db",
+    "066634c3",
+    "02f74a74"
+  ],
+  "source_note": "each smoke run started from a clean tree at one of these commits; all are ancestors of a7352497, the head of the public branch",
+  "source_repository": "https://github.com/celve/unirl-pub",
+  "source_branch": "LIN-1170/e0-correctness-gates-and",
+  "runs": [
+    {
+      "id": "parity_smoke",
+      "handler": "none (train-side engine, same process)",
+      "recipe": "sd3_trainside",
+      "topology": "colocated",
+      "family": "diffusion",
+      "checks": [
+        {
+          "context": "before_first_update",
+          "rollout": 1,
+          "absdiff_max": 7.3015689849853516e-06,
+          "absdiff_mean": 1.66396307577088e-06
+        },
+        {
+          "context": "steady_state",
+          "rollout": 2,
+          "absdiff_max": 3.2186508178710938e-06,
+          "absdiff_mean": 1.2914340459246887e-06
+        }
+      ]
+    },
+    {
+      "id": "parity_vllmomni",
+      "handler": "LocalLoraWeightSync",
+      "recipe": "sd3_vllmomni",
+      "topology": "colocated, 8 GPUs",
+      "family": "diffusion",
+      "checks": [
+        {
+          "context": "before_first_update",
+          "rollout": 1,
+          "absdiff_max": 1.0073184967041016e-05,
+          "absdiff_mean": 3.010034646422355e-06
+        },
+        {
+          "context": "after_publication",
+          "rollout": 2,
+          "absdiff_max": 1.0728836059570312e-05,
+          "absdiff_mean": 4.192193500784924e-06
+        }
+      ]
+    },
+    {
+      "id": "TensorWeightSync",
+      "handler": "TensorWeightSync",
+      "recipe": "sd3_vllmomni_full_tensor",
+      "topology": "colocated, 8 GPUs",
+      "family": "diffusion",
+      "checks": [
+        {
+          "context": "before_first_update",
+          "rollout": 1,
+          "absdiff_max": 6.616115570068359e-06,
+          "absdiff_mean": 4.902482032775879e-06
+        },
+        {
+          "context": "after_publication",
+          "rollout": 2,
+          "absdiff_max": 8.463859558105469e-06,
+          "absdiff_mean": 4.261732328814105e-06
+        }
+      ]
+    },
+    {
+      "id": "IPCWeightSync",
+      "handler": "IPCWeightSync",
+      "recipe": "sd3_vllmomni_full_ipc",
+      "topology": "colocated, 8 GPUs",
+      "family": "diffusion",
+      "checks": [
+        {
+          "context": "before_first_update",
+          "rollout": 1,
+          "absdiff_max": 7.838010787963867e-06,
+          "absdiff_mean": 3.794829126491095e-06
+        },
+        {
+          "context": "after_publication",
+          "rollout": 2,
+          "absdiff_max": 1.0073184967041016e-05,
+          "absdiff_mean": 4.351139068603516e-06
+        }
+      ]
+    },
+    {
+      "id": "NCCLWeightSync",
+      "handler": "NCCLWeightSync",
+      "recipe": "sd3_vllmomni_full_nccl_separate",
+      "topology": "separate, 4 + 4 GPUs",
+      "family": "diffusion",
+      "checks": [
+        {
+          "context": "before_first_update",
+          "rollout": 1,
+          "absdiff_max": 5.364418029785156e-06,
+          "absdiff_mean": 3.30309092078096e-06
+        },
+        {
+          "context": "after_publication",
+          "rollout": 2,
+          "absdiff_max": 8.702278137207031e-06,
+          "absdiff_mean": 3.8544337712664856e-06
+        }
+      ]
+    },
+    {
+      "id": "RemoteLoraWeightSync",
+      "handler": "RemoteLoraWeightSync",
+      "recipe": "sd3_vllmomni_lora_separate",
+      "topology": "separate, 4 + 4 GPUs",
+      "family": "diffusion",
+      "checks": [
+        {
+          "context": "before_first_update",
+          "rollout": 1,
+          "absdiff_max": 5.4836273193359375e-06,
+          "absdiff_mean": 2.274910684718634e-06
+        },
+        {
+          "context": "after_publication",
+          "rollout": 2,
+          "absdiff_max": 4.5299530029296875e-06,
+          "absdiff_mean": 2.6226044838040252e-06
+        }
+      ]
+    },
+    {
+      "id": "CheckpointWeightSync",
+      "handler": "CheckpointWeightSync",
+      "recipe": "sd3_vllmomni_full_tensor with the handler overridden",
+      "topology": "colocated, 8 GPUs",
+      "family": "diffusion",
+      "checks": [
+        {
+          "context": "before_first_update",
+          "rollout": 1,
+          "absdiff_max": 7.152557373046875e-06,
+          "absdiff_mean": 4.296501629141858e-06
+        }
+      ]
+    },
+    {
+      "id": "parity_ar_sglang",
+      "handler": "TensorWeightSync",
+      "recipe": "qwen3_grpo_4b_base_dapo_sglang",
+      "topology": "colocated with SGLang, 8 GPUs",
+      "family": "autoregressive",
+      "checks": [
+        {
+          "context": "before_first_update",
+          "rollout": 1,
+          "absdiff_max": 0.4729602336883545,
+          "absdiff_mean": 0.01524559617973864
+        },
+        {
+          "context": "after_publication",
+          "rollout": 2,
+          "absdiff_max": 0.4990267753601074,
+          "absdiff_mean": 0.018774555763229728
+        }
+      ]
+    }
+  ],
+  "split_overlap": {
+    "dataset": "pickscore",
+    "pair": "test|train",
+    "shared_prompts_after_normalization": 32,
+    "shared_problem_ids": 0
+  }
+}
