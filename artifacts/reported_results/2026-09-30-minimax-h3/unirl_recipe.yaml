@@ -1,9 +1,9 @@
 # @package _global_
-# MiniMax-H3 t2va (text -> video + stereo audio) Flow-GRPO — trainside FSDP.
+# MiniMax-H3 t2va (text -> video + stereo audio) Flow-GRPO with trainside FSDP.
 #
 # Reward rises at this canvas, +0.00234/step over two seeds. WARNING: nothing in
 # this reward relates the prompt to the video, and the NFT sibling on it decoded
-# to luma 2/255 while imagebind peaked — check frames before trusting the number.
+# to luma 2/255 while imagebind peaked; check frames before trusting the number.
 # For 768x768, restore height/width and pin `sde_indices: [0, 3, 6, 9]`.
 #
 # Launch (1 node x 8 GPUs):
