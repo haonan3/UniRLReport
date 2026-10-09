@@ -1,0 +1,22 @@
+table,workload,copies_or_size,model_batch,mps_gain_pct,gain_min_pct,gain_max_pct,cases,note
+homogeneous,CLIP,2,1,11.2,,,1,
+homogeneous,CLIP,2,4,20.0,,,1,
+homogeneous,CLIP,2,8,14.8,,,1,
+homogeneous,CLIP,3,1,16.5,,,1,
+homogeneous,CLIP,3,4,24.4,,,1,
+homogeneous,CLIP,3,8,19.2,,,1,
+homogeneous,HPSv2,2,1,17.4,,,1,scorer runs one model input at a time
+homogeneous,HPSv2,3,1,48.4,,,1,scorer runs one model input at a time
+homogeneous,ImageReward,2,1,24.0,,,1,scorer runs one model input at a time
+homogeneous,ImageReward,3,1,40.8,,,1,scorer runs one model input at a time
+homogeneous,HPSv3,2,1,20.6,,,1,
+homogeneous,HPSv3,2,4,11.2,,,1,forward capped at four items
+homogeneous,HPSv3,3,1,22.6,,,1,
+homogeneous,HPSv3,3,4,12.8,,,1,forward capped at four items
+homogeneous,GOT-OCR,2,1,-2.8,,,1,autoregressive at about 1.3 items/s
+homogeneous,GOT-OCR,3,1,-3.2,,,1,autoregressive at about 1.3 items/s
+mixed,three light rewards (CLIP / PickScore / HPSv2 / ImageReward),3,1,24.9,24.4,25.2,4,median over combinations
+mixed,two light rewards,2,1,9.6,-3.0,12.4,6,median over combinations
+mixed,pairs with HPSv3,2,1,4.8,-3.6,8.2,4,median over combinations
+mixed,triples with HPSv3,3,1,6.9,3.1,11.8,6,median over combinations
+mixed,combinations with GOT-OCR,2-3,1,0.0,-2.5,2.4,15,about zero; one outlier at -16.6 excluded from the quoted range by the source

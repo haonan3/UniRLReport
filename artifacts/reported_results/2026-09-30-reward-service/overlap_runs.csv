@@ -1,0 +1,88 @@
+session,cluster,unirl_commit,workload,reward,judge_tp,judge_vllm,arm,overlap_impl,flush_after_rollout,prompts,samples_per_prompt,rows_per_rank,micro_batch_size,micros_per_rank,rollout,steady,generate_s,reward_s,generate_reward_s,stack_generate_s,stack_score_s,train_s,weight_sync_s,gate_result,session_note
+20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,baseline,,0,16,8,16,,,1,0,49.18,25.98,75.16,,,95.24,,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
+20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,baseline,,0,16,8,16,,,2,1,49.12,15.48,64.60,,,94.97,1.69,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
+20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,16,8,16,4,2,1,0,,,59.56,48.83,10.55,91.87,,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
+20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,16,8,16,4,2,2,1,,,59.58,48.78,10.58,95.69,1.60,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
+20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,16,8,16,4,2,1,0,,,58.02,48.78,18.26,93.67,,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
+20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,16,8,16,4,2,2,1,,,58.55,48.83,18.83,95.75,1.61,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
+20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,request_batch_only,,0,16,8,16,,,1,0,48.95,19.58,68.53,,,92.05,,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
+20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,request_batch_only,,0,16,8,16,,,2,1,49.01,20.57,69.58,,,94.46,1.61,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
+20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,baseline,,0,16,8,16,,,1,0,49.32,60.41,109.73,,,93.79,,PASS,
+20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,baseline,,0,16,8,16,,,2,1,49.10,49.41,98.51,,,91.56,2.36,PASS,
+20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,16,8,16,4,2,1,0,,,84.82,48.92,35.53,93.21,,PASS,
+20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,16,8,16,4,2,2,1,,,86.89,48.85,37.74,92.32,2.24,PASS,
+20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,16,8,16,4,2,1,0,,,84.42,48.90,59.68,92.84,,PASS,
+20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,16,8,16,4,2,2,1,,,85.76,48.89,61.03,91.46,2.34,PASS,
+20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,request_batch_only,,0,16,8,16,,,1,0,49.38,62.61,111.99,,,91.86,,PASS,
+20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,request_batch_only,,0,16,8,16,,,2,1,49.17,63.93,113.10,,,92.89,2.39,PASS,
+20260922-175009,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,baseline,,0,32,8,32,,,1,0,98.47,28.13,126.60,,,186.22,,PASS,
+20260922-175009,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,baseline,,0,32,8,32,,,2,1,98.23,27.63,125.86,,,187.26,2.37,PASS,
+20260922-175009,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,32,8,32,8,4,1,0,,,111.50,97.87,13.53,187.02,,PASS,
+20260922-175009,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,32,8,32,8,4,2,1,,,111.57,97.87,13.73,185.21,2.33,PASS,
+20260922-175009,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,1,0,,,107.03,99.32,29.13,190.50,,PASS,
+20260922-175009,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,2,1,,,107.21,98.03,34.97,192.92,2.30,PASS,
+20260922-181520,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,baseline,,0,32,8,32,,,1,0,98.25,81.09,179.34,,,185.96,,PASS,
+20260922-181520,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,baseline,,0,32,8,32,,,2,1,98.02,82.12,180.14,,,188.18,2.35,PASS,
+20260922-181520,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,32,8,32,8,4,1,0,,,145.80,97.79,47.56,184.73,,PASS,
+20260922-181520,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,32,8,32,8,4,2,1,,,144.74,97.71,46.59,182.24,2.35,PASS,
+20260922-181520,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,1,0,,,145.54,97.81,120.16,191.40,,PASS,
+20260922-181520,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,2,1,,,145.03,97.62,120.06,192.64,2.41,PASS,
+20260922-190018,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,1,0,,,107.23,97.85,34.18,195.09,,PASS,
+20260922-190018,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,2,1,,,107.35,97.69,34.58,195.90,2.30,PASS,
+20260922-190018,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,32,8,32,8,4,1,0,,,111.43,98.04,13.33,184.68,,PASS,
+20260922-190018,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,32,8,32,8,4,2,1,,,111.54,97.93,13.89,180.57,3.71,PASS,
+20260923-225836,A,97e83f6,bagel_it2i,editscore_8b,8,0.27.0,baseline,,0,32,8,32,,,1,0,98.54,28.51,127.05,,,186.59,,PASS,event-trace instrumentation enabled
+20260923-225836,A,97e83f6,bagel_it2i,editscore_8b,8,0.27.0,baseline,,0,32,8,32,,,2,1,98.32,28.13,126.45,,,195.71,2.35,PASS,event-trace instrumentation enabled
+20260923-225836,A,97e83f6,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,32,8,32,8,4,1,0,,,111.37,97.86,13.12,188.59,,PASS,event-trace instrumentation enabled
+20260923-225836,A,97e83f6,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,32,8,32,8,4,2,1,,,110.91,97.49,13.18,184.19,2.36,PASS,event-trace instrumentation enabled
+20260923-225836,A,97e83f6,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,1,0,,,107.57,97.61,34.41,193.43,,PASS,event-trace instrumentation enabled
+20260923-225836,A,97e83f6,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,2,1,,,106.59,97.58,35.99,193.71,2.32,PASS,event-trace instrumentation enabled
+20260923-230352,A,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,baseline,,0,32,8,32,,,1,0,98.30,93.64,191.94,,,183.21,,PASS,event-trace instrumentation enabled
+20260923-230352,A,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,baseline,,0,32,8,32,,,2,1,97.92,81.31,179.23,,,183.20,2.39,PASS,event-trace instrumentation enabled
+20260923-230352,A,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,32,8,32,8,4,1,0,,,146.19,97.85,47.80,183.61,,PASS,event-trace instrumentation enabled
+20260923-230352,A,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,32,8,32,8,4,2,1,,,145.00,97.77,46.75,178.49,2.45,PASS,event-trace instrumentation enabled
+20260923-230352,A,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,1,0,,,146.23,97.83,121.01,186.13,,PASS,event-trace instrumentation enabled
+20260923-230352,A,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,2,1,,,145.55,97.63,120.61,186.05,2.33,PASS,event-trace instrumentation enabled
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,overlap,depth1,0,32,8,32,8,4,1,0,,,107.81,98.14,38.55,197.48,,PASS,
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,overlap,depth1,0,32,8,32,8,4,2,1,,,106.62,97.85,33.03,193.48,2.25,PASS,
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,overlap,depth1,0,32,8,32,8,4,3,1,,,106.93,97.71,35.23,191.86,1.58,PASS,
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,serial,,0,32,8,32,8,4,1,0,,,112.29,97.45,14.23,190.66,,PASS,
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,serial,,0,32,8,32,8,4,2,1,,,111.87,97.57,13.90,190.94,2.25,PASS,
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,serial,,0,32,8,32,8,4,3,1,,,111.42,97.30,13.94,192.69,1.58,PASS,
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,overlap,depth1,1,32,8,32,8,4,1,0,,,107.22,97.57,37.78,189.82,,PASS,
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,overlap,depth1,1,32,8,32,8,4,2,1,,,106.61,97.77,35.46,178.03,2.25,PASS,
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,overlap,depth1,1,32,8,32,8,4,3,1,,,106.72,97.83,36.87,179.56,1.54,PASS,
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,serial,,1,32,8,32,8,4,1,0,,,112.04,97.49,14.12,190.23,,PASS,
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,serial,,1,32,8,32,8,4,2,1,,,111.76,97.38,13.88,177.61,2.34,PASS,
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,serial,,1,32,8,32,8,4,3,1,,,111.33,97.35,13.77,177.31,1.53,PASS,
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,baseline,,0,32,8,32,,,1,0,98.38,32.82,131.20,,,181.03,,PASS,
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,baseline,,0,32,8,32,,,2,1,98.25,28.94,127.19,,,181.45,2.35,PASS,
+20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,baseline,,0,32,8,32,,,3,1,98.05,29.74,127.79,,,184.42,1.53,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,0,32,8,32,8,4,1,0,,,53.33,52.58,1.60,63.40,,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,0,32,8,32,8,4,2,1,,,52.31,51.72,1.38,57.46,1.89,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,0,32,8,32,8,4,3,1,,,52.30,51.78,1.33,57.84,1.12,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,serial,,0,32,8,32,8,4,1,0,,,52.93,51.46,1.03,59.59,,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,serial,,0,32,8,32,8,4,2,1,,,52.41,51.29,0.84,58.42,1.86,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,serial,,0,32,8,32,8,4,3,1,,,52.45,51.37,0.85,58.39,1.12,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,1,32,8,32,8,4,1,0,,,52.64,51.98,1.61,58.64,,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,1,32,8,32,8,4,2,1,,,52.33,51.81,1.33,54.03,1.89,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,1,32,8,32,8,4,3,1,,,52.37,51.79,1.34,55.05,1.11,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,baseline,,0,32,8,32,,,1,0,51.69,6.26,57.95,,,59.74,,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,baseline,,0,32,8,32,,,2,1,51.49,4.47,55.96,,,58.13,1.78,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,baseline,,0,32,8,32,,,3,1,51.41,4.56,55.97,,,58.68,1.13,PASS,
+20260928-114630,B,1163848,bagel_it2i,editscore_72b,8,0.27.0,overlap,queued,0,32,8,32,8,4,1,0,,,152.73,97.55,127.34,199.80,,PASS,
+20260928-114630,B,1163848,bagel_it2i,editscore_72b,8,0.27.0,overlap,queued,0,32,8,32,8,4,2,1,,,146.49,97.67,121.49,193.66,2.76,PASS,
+20260928-114630,B,1163848,bagel_it2i,editscore_72b,8,0.27.0,overlap,queued,0,32,8,32,8,4,3,1,,,149.09,97.55,124.35,187.43,1.58,PASS,
+20260928-114630,B,1163848,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,32,8,32,8,4,1,0,,,146.33,97.55,48.10,190.80,,PASS,
+20260928-114630,B,1163848,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,32,8,32,8,4,2,1,,,144.40,97.52,46.38,189.31,2.31,PASS,
+20260928-114630,B,1163848,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,32,8,32,8,4,3,1,,,146.04,97.46,48.16,192.47,1.61,PASS,
+20260928-124606,B,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,1,0,,,144.57,97.64,119.43,186.89,,PASS,
+20260928-124606,B,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,2,1,,,144.33,97.79,119.40,181.91,2.35,PASS,
+20260928-124606,B,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,3,1,,,147.15,97.76,122.27,182.60,1.58,PASS,
+20260928-131525,B,1163848,bagel_it2i,editscore_8b,4,0.29.0,overlap,queued,0,32,8,32,8,4,1,0,,,107.95,97.59,39.07,191.25,,PASS,
+20260928-131525,B,1163848,bagel_it2i,editscore_8b,4,0.29.0,overlap,queued,0,32,8,32,8,4,2,1,,,106.78,97.65,36.87,186.04,2.34,PASS,
+20260928-131525,B,1163848,bagel_it2i,editscore_8b,4,0.29.0,overlap,queued,0,32,8,32,8,4,3,1,,,106.76,97.62,35.36,185.96,1.59,PASS,
+20260930-141053,B,fe57386,bagel_it2i,editscore_8b,4,0.29.0,serial,,0,32,8,32,4,8,1,0,,,113.03,97.65,15.18,184.95,,PASS,final tree: a micro may go below a generation group
+20260930-141053,B,fe57386,bagel_it2i,editscore_8b,4,0.29.0,serial,,0,32,8,32,4,8,2,1,,,112.96,97.83,14.63,180.00,2.31,PASS,final tree: a micro may go below a generation group
+20260930-141053,B,fe57386,bagel_it2i,editscore_8b,4,0.29.0,overlap,queued,0,32,8,32,4,8,1,0,,,105.41,97.80,49.65,184.04,,PASS,final tree: a micro may go below a generation group
+20260930-141053,B,fe57386,bagel_it2i,editscore_8b,4,0.29.0,overlap,queued,0,32,8,32,4,8,2,1,,,104.75,97.86,53.31,179.17,2.29,PASS,final tree: a micro may go below a generation group

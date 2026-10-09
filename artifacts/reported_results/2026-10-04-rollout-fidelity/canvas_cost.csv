@@ -1,0 +1,13 @@
+workload,packing,canvas,image_tokens,group_rows,seconds_per_group,requests_per_group,note
+it2i,one request per sample,512x512,1024,4,9.05,4,
+it2i,one request per sample,768x768,2304,4,17.45,4,
+it2i,one request per sample,1024x1024,4096,4,30.48,4,
+it2i,packed,512x512,1024,4,7.25,1,
+it2i,packed,768x768,2304,4,15.76,1,
+it2i,packed,1024x1024,4096,4,28.83,1,
+it2i,one request per sample,512x512,1024,8,18.04,8,
+it2i,packed,512x512,1024,8,13.96,1,
+it2i,packed,512x512,1024,4,7.23,1,
+t2i,packed,512x512,1024,4,6.50,1,
+t2i,packed,768x768,2304,4,14.55,1,measured on an earlier draft of the same branch; Ray folded the line in the final run
+t2i,packed,1024x1024,4096,4,27.00,1,

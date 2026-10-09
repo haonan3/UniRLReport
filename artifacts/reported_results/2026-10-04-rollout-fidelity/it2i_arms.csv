@@ -1,0 +1,9 @@
+stage,pull_request,commit,schedule,micro_batch_size,rollout,generate_s,reward_phase_s,train_s,reward_mean,first_update_ratio_dev,peak_gib,note
+main,,9e14d00,driver reward phase,,1,49.18,19.02,69.80,2.7981,,,upstream img2img prefill; worker and trainer condition on different sequences
+injection fix,547,cd7a772,driver reward phase,,1,36.78,19.03,67.09,4.6195,,,injected KV contexts restored
+per-group canvas,549,a76976a,reward stack,8,1,36.55,11.64,67.50,4.7688,5.04e-05,40.7,single canvas; unchanged request shape
+sibling packing,550,ffb38c9,reward stack,8,1,28.86,11.75,68.09,4.7370,9.64e-05,42.9,one 8-output request per group
+sibling packing,550,ffb38c9,reward stack,8,2,28.27,11.72,65.17,4.1548,4.64e-05,42.9,one 8-output request per group
+sibling packing,550,61a39af,reward stack,8,1,28.25,12.85,68.69,4.4454,5.44e-05,,rerun on the pull request head
+sibling packing,550,61a39af,reward stack,8,2,28.28,11.76,64.84,3.8454,3.58e-05,,rerun on the pull request head
+sibling packing,550,ffb38c9,reward stack,4,1,29.38,12.03,67.73,4.6512,9.66e-05,,micro-batch cuts the group in half

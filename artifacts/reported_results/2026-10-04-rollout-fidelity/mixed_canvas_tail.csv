@@ -1,0 +1,7 @@
+workload,packing,rollout,slowest_rank_generate_s,mean_rank_generate_s,train_s,peak_gib
+it2i,one request per sample,1,48.52,38.80,93.69,44.4
+it2i,one request per sample,2,61.16,37.50,89.62,44.4
+it2i,packed,1,44.99,35.22,93.02,45.7
+it2i,packed,2,57.87,34.08,89.44,45.7
+t2i,packed,1,54.16,29.51,37.99,47.1
+t2i,packed,2,42.06,36.18,35.18,47.1
