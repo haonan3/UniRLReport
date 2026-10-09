@@ -489,6 +489,9 @@ The tables below are regenerated from those \emph{reported summaries}, not from 
 The underlying per-run repositories were unavailable during this integration, so source identities, complete timing distributions, and all admission gates have not been independently revalidated here.
 We retain that distinction, avoid reconstructed learning curves or uncertainty bars, and list unresolved source discrepancies in \codepath{EXPERIMENT\_RESULTS.md}.
 The settings below describe the prespecified protocol unless explicitly identified as an observed result; matching each setting to a resolved run configuration remains an artifact-release obligation.
+In contrast to the earlier report-derived summaries, the HunyuanImage-3.0 and
+MiniMax-H3 reproduction bundles are generated directly from their per-step
+W\&B histories and resolved training recipes.
 
 \begin{table}[H]
 \caption{Experiment-to-claim map and reported status as of 2026-09-22. P0 rows remain necessary for the primary trajectory-centric claim.}
@@ -602,6 +605,61 @@ Only endpoint summaries are available in this bundle; no intermediate learning c
 E2-R completed three training seeds and reports verified checkpoint exports, but no held-out head-to-head evaluation was performed.
 Export correctness cannot establish quality parity, and evaluation alone would not remove the native flow/CPS estimator mismatch.
 An explicitly labeled native-recipe comparison could provide context; strict reproduction still requires mathematical and effective-work parity.
+
+\paragraph{HunyuanImage-3.0 recipe reproduction.}
+We further evaluate UniRL on HunyuanImage-3.0-Instruct as a
+high-resolution text-to-image workload. The reproduced train-side recipe uses
+one node with eight H20 GPUs, 16 prompts and four samples per prompt, producing
+64 images per rollout at $1024\times1024$ resolution. Sampling uses 16
+inference steps and three SDE steps, and training uses FlowGRPO with PickScore
+reward and seed 42. The exact resolved recipe is archived under
+\codepath{artifacts/reported\_results/2026-09-30-hunyuanimage3/}.
+
+The run recorded 369 of its configured 500 rollouts. Mean training reward
+increased from \textbf{0.762} over the first ten rollouts to \textbf{0.877}
+over the last ten recorded rollouts (Figure~\ref{fig:hi3-reproduction}).
+This result verifies that the HunyuanImage-3.0 recipe executes and learns in
+UniRL. Because the run uses one seed, does not complete its configured budget,
+and has no held-out image-quality evaluation, we treat it as recipe-reproduction
+evidence rather than a comparative quality result.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.94\textwidth]{artifacts/reported_results/2026-09-30-hunyuanimage3/curve.pdf}
+\caption{HunyuanImage-3.0 training reward in UniRL. The faint trace shows the
+reward at every rollout and the bold trace shows its trailing ten-rollout mean.
+The horizontal axis uses UniRL's logical \texttt{rollout/step}, rather than
+W\&B's default \texttt{\_step}.}
+\label{fig:hi3-reproduction}
+\end{figure}
+
+\paragraph{MiniMax-H3 recipe reproduction.}
+We also evaluate UniRL on MiniMax-H3 text-to-video-with-audio generation. Each
+logical step contains eight prompts with 16 samples per prompt, or 128
+trajectories, generated at $256\times384$ resolution with 124 frames and ten
+denoising transitions. Training uses one optimizer update per logical step,
+learning rate $10^{-4}$, ImageBind and CLAP rewards, seed 42, and one node with
+eight H20 GPUs. The resolved configuration is archived under
+\codepath{artifacts/reported\_results/2026-09-30-minimax-h3/}.
+
+The run reaches logical step 204, with a durable checkpoint at step 200. Mean
+reward increases from \textbf{0.194} over the first ten steps to
+\textbf{0.361} over the last ten available steps
+(Figure~\ref{fig:minimax-h3-reproduction}). Because this is a single-seed run
+that does not complete its configured budget and has no held-out video--audio
+quality evaluation, we use it as evidence of executable recipe and model
+coverage rather than as a comparative-quality, systems-performance, or
+time-to-quality result.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.94\textwidth]{artifacts/reported_results/2026-09-30-minimax-h3/curve_unirl.pdf}
+\caption{MiniMax-H3 training reward in UniRL. The faint trace shows the reward
+at every rollout and the bold trace shows its trailing ten-rollout mean. The
+horizontal axis uses UniRL's logical \texttt{rollout/step}, rather than W\&B's
+default \texttt{\_step}.}
+\label{fig:minimax-h3-reproduction}
+\end{figure}
 
 \subsection{RQ2: What is end-to-end system performance?}
 \label{sec:rq2}
@@ -838,7 +896,11 @@ no results.
 The current result audit is in \codepath{EXPERIMENT\_RESULTS.md}.
 The dated bundle \codepath{artifacts/reported\_results/2026-09-22/} stores compact source snapshots, source-level caveats, reported numerical inputs, and generated tables and figures.
 These reproduce the transcription and presentation of the reports, not the original GPU measurements.
-All graphics are committed PDF assets included by relative paths, so Overleaf does not require Python or shell escape to build the manuscript.
+The later bundles \codepath{artifacts/reported\_results/2026-09-30-hunyuanimage3/}
+and \codepath{artifacts/reported\_results/2026-09-30-minimax-h3/} store the
+resolved recipes, direct W\&B history exports, and rendered learning curves.
+All graphics are committed figure assets included by relative paths, so
+Overleaf does not require Python or shell escape to build the manuscript.
 The preliminary RQ3 evidence is regenerated by
 \codepath{experiments/trajectory\_ir/run\_cpu\_evidence.py}; its manifest pins the
 source state, command, environment, workload, warm-up, repetitions, and timer.
