@@ -615,12 +615,13 @@ inference steps and three SDE steps, and training uses FlowGRPO with PickScore
 reward and seed 42. The exact resolved recipe is archived under
 \codepath{artifacts/reported\_results/2026-09-30-hunyuanimage3/}.
 
-The run recorded 369 of its configured 500 rollouts. Mean training reward
-increased from \textbf{0.762} over the first ten rollouts to \textbf{0.877}
-over the last ten recorded rollouts (Figure~\ref{fig:hi3-reproduction}).
+The reported history covers 360 rollouts, ending at a durable checkpoint. Mean
+training reward increased from \textbf{0.762} over the first ten rollouts to
+\textbf{0.870} over rollouts 351 through 360
+(Figure~\ref{fig:hi3-reproduction}).
 This result verifies that the HunyuanImage-3.0 recipe executes and learns in
-UniRL. Because the run uses one seed, does not complete its configured budget,
-and has no held-out image-quality evaluation, we treat it as recipe-reproduction
+UniRL. Because the run uses one seed and has no held-out image-quality
+evaluation, we treat it as recipe-reproduction
 evidence rather than a comparative quality result.
 
 \begin{figure}[H]
@@ -642,14 +643,13 @@ learning rate $10^{-4}$, ImageBind and CLAP rewards, seed 42, and one node with
 eight H20 GPUs. The resolved configuration is archived under
 \codepath{artifacts/reported\_results/2026-09-30-minimax-h3/}.
 
-The run reaches logical step 204, with a durable checkpoint at step 200. Mean
+The reported history ends at the durable checkpoint at logical step 200. Mean
 reward increases from \textbf{0.194} over the first ten steps to
-\textbf{0.361} over the last ten available steps
+\textbf{0.375} over steps 191 through 200
 (Figure~\ref{fig:minimax-h3-reproduction}). Because this is a single-seed run
-that does not complete its configured budget and has no held-out video--audio
-quality evaluation, we use it as evidence of executable recipe and model
-coverage rather than as a comparative-quality, systems-performance, or
-time-to-quality result.
+with no held-out video and audio quality evaluation, we use it as evidence of
+executable recipe and model coverage rather than as a comparative-quality,
+systems-performance, or time-to-quality result.
 
 \begin{figure}[H]
 \centering

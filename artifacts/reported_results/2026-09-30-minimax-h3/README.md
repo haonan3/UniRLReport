@@ -25,11 +25,10 @@ optimizer, LoRA targets, reward functions, and seed.
 
 ![MiniMax-H3 training reward](curve.png)
 
-Both runs learn under the matched recipe. The figure includes all valid W&B
-history: UniRL through logical step 204 and veRL-Omni through step 142. Mean
-reward over each run's first/last 10 available steps was **0.194 / 0.361** for
-UniRL and **0.212 / 0.453** for veRL-Omni. These endpoint windows summarize
-within-run progress; they end at different logical steps.
+Both runs learn under the matched recipe. The manuscript reports UniRL through
+its durable checkpoint at logical step 200. Mean UniRL reward over the first 10
+steps and steps 191 through 200 was **0.194 / 0.375**. The full exported history
+continues through UniRL step 204 and veRL-Omni step 142.
 
 [`curve.csv`](curve.csv) uses each framework's logical step: UniRL
 `rollout/step` and veRL-Omni `training/global_step`. W&B's default `_step` is
@@ -38,18 +37,19 @@ The bold traces are trailing 10-step means; the faint traces are raw rewards.
 
 The last durable checkpoints are UniRL `checkpoint-200` and veRL-Omni
 `global_step_140`. The UniRL job stopped when its cluster allocation retired.
-The veRL-Omni job resumed from step 140, logged steps 141–142 into the same W&B
-run, and then ended after a Ray actor/worker failure during actor update.
+The veRL-Omni job resumed from step 140, logged steps 141 and 142 into the same
+W&B run, and then ended after a Ray actor/worker failure during actor update.
 
 ## Performance
 
 ![MiniMax-H3 end-to-end performance](performance.png)
 
 [`performance.csv`](performance.csv) reports medians and interquartile ranges.
-The long-run comparison uses the same logical steps 2–142, excluding step 1 as
-warm-up. PR403 UniRL measured **1879 s/step**, versus **1567 s/step** for
-veRL-Omni. The cache-only check measured **1551 s/step** over steps 2–4: a
-17.5% reduction from PR403 and within 1.1% of the veRL-Omni long-run median.
+The long-run comparison uses the same logical steps 2 through 142, excluding
+step 1 as warm-up. PR403 UniRL measured **1879 s/step**, versus **1567 s/step**
+for veRL-Omni. The cache-only check measured **1551 s/step** over steps 2
+through 4, a 17.5% reduction from PR403 and within 1.1% of the veRL-Omni
+long-run median.
 
 The PR403 gap is concentrated in rollout generation. Its frozen 32B Qwen3-VL
 conditioner is recomputed for every sibling sample when

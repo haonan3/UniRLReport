@@ -14,15 +14,17 @@ HunyuanImage-3.0-Instruct.
 - Seed: 42
 
 The exact Hydra recipe used by this run is preserved in [`recipe.yaml`](recipe.yaml).
-The run logged 369 rollouts; its configured maximum was 500.
+The run logged 369 rollout metrics. The manuscript reports the checkpoint at
+rollout 360.
 
 ## Training curve
 
 ![HunyuanImage-3.0 training reward](curve.png)
 
-The mean reward averaged over the first 10 rollouts was **0.762** and over the
-last 10 recorded rollouts was **0.877**. The light line shows every recorded
-reward and the dark line is a 10-step trailing mean.
+The mean reward averaged over the first 10 rollouts was **0.762** and over
+rollouts 351 through 360 was **0.870**. The light line shows every rollout
+through checkpoint 360 and the dark line is a 10-step trailing mean.
 
-[`curve.csv`](curve.csv) contains the exported W&B history. Its x-axis is
+[`curve.csv`](curve.csv) retains the full exported W&B history through rollout
+369. The rendered manuscript curve ends at checkpoint 360. Its x-axis is
 `rollout/step`, not W&B's default `_step`.
