@@ -1,6 +1,6 @@
 # UniRL Paper Experiment Runbook
 
-Last updated: 2026-09-23
+Last updated: 2026-10-09
 
 This document turns the paper's evaluation plan into a GPU-cluster execution and
 evidence protocol. It contains **no experimental results**. Values below are either
@@ -57,7 +57,7 @@ Record any residual scheduling nondeterminism without claiming bitwise reproduct
 | E5 | P0 minimum / P2 extensions | IR/transport costs plus a matched UniRL topology pair | Representation and execution cost | RQ3 table/scaling plot |
 | E6 | P1 | Matched sync/async Qwen3 sweep | Bounded staleness has a measurable useful region | RQ4 Pareto plot and table |
 | E7 | P1 | HunyuanImage3 shared-backbone AR recaption -> image diffusion training | One trajectory can carry two replay types and credit through a jointly updated AR/diffusion backbone | RQ1/RQ3 generalization row and appendix trace |
-| E8 | P1 | MiniMax H3 text-to-video post-training, subject to trainable-model access | The trajectory contract extends from image diffusion to temporal video values and replay state | RQ1 video extension and modality-cost appendix |
+| E8 | P1 | MiniMax H3 text-to-video-with-audio (T2AV) post-training on the pinned UniRL MiniMax H3 path | The trajectory contract extends from image diffusion to joint temporal video and audio values and replay state | RQ1 video/audio extension and modality-cost appendix |
 
 E1/E2 establish training validity, E3 establishes comparative full-stack efficiency,
 and E4 directly tests the paper's lineage thesis. The minimum E5 topology/cost slice
@@ -65,7 +65,8 @@ bounds the price of the design and is also required for paper completion. Comple
 primary E0-E5 before adding model families, objectives, E6, or broad scaling points;
 broader E5 backends/scaling and E7/E8 are extensions. E7 and E8 answer different
 questions and neither substitutes for the other: E7 tests a shared AR/diffusion
-backbone, while E8 tests a video diffusion model with temporal outputs and rewards.
+backbone, while E8 tests a joint video-audio diffusion model with temporal outputs
+and rewards.
 At least one full-budget E1/E2 reference must pass mathematical and effective-work
 parity before the paper claims reference-implementation reproduction. Omitting
 both references leaves that author-requested evidence obligation open.
@@ -85,7 +86,7 @@ The current code already emits some—but not all—metrics required by the pape
 | Buffer occupancy, rejected/discarded work, barrier duration | Manager logs exist, but no complete structured per-step series is emitted | **Instrumentation TODO before RQ4.** Add root/prompt counts and time for admission, ready, carry, filter rejection, suspension, finish, quiesce, and publication barrier. |
 | GPU utilization/power | No authoritative internal time series | Collect externally (DCGM or equivalent), synchronized to run timestamps. |
 | External text/image quality | `benchmarks.run` and `BenchmarkSpec` registry | Ready after dataset/reward availability is verified; archive completions/images, scores, and `summary.json`. |
-| External video quality | Video primitives and reward-service video routing exist; VideoAlign/VideoReward has a vendored inference path | **Partial.** GPU-smoke the exact scorer and video serialization path, freeze frame sampling/FPS, and add a held-out evaluator distinct from the optimized training reward before E8. |
+| External video/audio quality | Video primitives and reward-service video routing exist; VideoAlign/VideoReward has a vendored inference path; the MiniMax H3 path trains on `T2AVCompositeScorer` (ImageBind audio-video on a middle frame plus CLAP text-audio) | **Partial.** The T2AV training reward does not score prompt-video alignment. GPU-smoke the exact scorers and video/audio serialization path, freeze frame sampling/FPS and audio sampling, and add held-out prompt-video and audio evaluators distinct from the optimized training reward before E8. |
 
 For phase and async metrics, set `logging.report_to_wandb=true`. On clusters where
 network logging is undesirable, use W&B offline mode and archive the entire offline
@@ -489,7 +490,8 @@ E7 and E8 follow the primary E0--E5 evidence. They strengthen different parts of
 the heterogeneous-model claim and must remain separate experiments. E7 asks whether
 one shared backbone can consume AR and diffusion replay in one lineage-aware update.
 E8 asks whether the diffusion trajectory contract survives the substantially larger
-temporal state, serialization, reward, and evaluation surface of video generation.
+temporal state, serialization, reward, and evaluation surface of joint video and
+audio generation.
 Neither extension is required to validate the primary SD3.5 result, and neither may
 be represented by a configuration file or inference-only demo without the gates below.
 
@@ -557,15 +559,29 @@ the two stage losses is a useful diagnostic if it can be collected without chang
 the update. A valid but non-improving joint row supports execution generality, not a
 claim that joint optimization improves image quality.
 
-### 9.2 MiniMax H3 text-to-video post-training (E8)
+A HunyuanImage3 text-to-image diffusion run without the AR rollout path (for example,
+a trainside FlowGRPO recipe with `sys_type: en_vanilla`) is neither the image-only
+E7b row nor E7 evidence. Report it, if at all, as single-stage diffusion
+generalization under its own name.
 
-MiniMax H3 is not implemented by a checked-in UniRL model bundle or recipe in the
-source audited for this runbook. First pin the exact public/product identity,
-checkpoint or service revision, license, tokenizer/text encoders, scheduler, VAE,
-maximum duration, frame rate, resolution, and available training interface. Do not
-substitute HunyuanImage3, HunyuanVideo, or WAN results for MiniMax H3.
+### 9.2 MiniMax H3 text-to-video-with-audio post-training (E8)
+
+MiniMax H3 generates video with stereo audio from text (T2AV). The UniRL path is
+not in the manuscript's audited commit `f5d7104`; it was introduced in UniRL PR403
+(commit `d8e4aefa`), which adds `MiniMaxH3Bundle`, `MiniMaxH3Conditions`,
+`MiniMaxH3Pipeline`, trainside rollout, and the recipe
+`diffusion/minimax_h3/minimax_h3_t2va_trainside`. Before E8, pin the exact source
+commit (PR403 or its merged successor), archive its diff from the audited paper
+commit, and re-run the applicable E0 gates. Also pin the MiniMax H3 checkpoint
+revision, license, text encoder and hidden layer, scheduler and video/audio shifts,
+video and audio VAEs, frame-count constraint, frame rate, audio sample rate and
+channels, and resolution. Do not substitute HunyuanImage3, HunyuanVideo, or WAN
+results for MiniMax H3.
 
 #### E8-access: determine the admissible claim
+
+The PR403 path loads local weights and trains a LoRA adapter, so the trainable case
+below applies to it. Record the weight revision and license with every run.
 
 - **Trainable weights or an official gradient/update interface:** E8 may proceed to
   rollout/replay integration and multi-seed RL training.
@@ -575,29 +591,41 @@ substitute HunyuanImage3, HunyuanVideo, or WAN results for MiniMax H3.
 - **API without reproducible version, seed, raw video, or complete error accounting:**
   omit the row from quantitative evidence and retain only a stated limitation.
 
-Archive the access contract and model revision before implementing the adapter. A
-local imitation using another video model must carry that model's actual name.
+A local imitation using another video model must carry that model's actual name.
+The training reward's license is part of the access contract: ImageBind is
+CC-BY-NC-SA, so the current T2AV recipe is non-commercial.
 
-#### E8a: video trajectory and replay gate
+#### E8a: video/audio trajectory and replay gate
 
-For a trainable path, add a versioned MiniMax H3 bundle, typed conditions, diffusion
-stage, rollout adapter, and recipe in the UniRL source repository. The first admitted
-smoke must use more than one frame and more than one sample per prompt. Require:
+Run the gate on the pinned UniRL MiniMax H3 path. The first admitted smoke must use
+more than one frame and more than one sample per prompt. Require:
 
 - `Videos` decoded values with exact sample/root IDs plus archived frame count, FPS,
-  duration, resolution, codec/container, and preprocessing metadata;
-- temporal latent/replay tensors with recorded shapes, dtypes, selected SDE indices,
-  sigma schedule, initial-noise identity, and byte counts;
+  duration, resolution, codec/container, and preprocessing metadata, and the paired
+  audio with sample rate, channel count, and duration;
+- temporal video and audio latent/replay tensors with recorded shapes, dtypes,
+  selected SDE indices, sigma schedules for both modalities, initial-noise identity,
+  and byte counts;
 - exact split/concat/select and serialization round trips without dropping temporal
-  order or associating a reward with the wrong video;
-- rollout/replay transition-log-prob agreement, finite gradients, optimizer movement,
-  and post-publication parity for every supported weight-sync path;
-- a video reward smoke that demonstrably consumes multiple frames. First-frame
-  VideoPickScore may be retained as a diagnostic but is not sufficient evidence for
-  temporal video quality;
-- GPU validation of VideoAlign/VideoReward or the selected training reward, including
-  its frame-sampling/FPS policy, missing/error handling, and deterministic scoring
-  tolerance on repeated inputs.
+  order, desynchronizing audio from its video, or associating a reward with the wrong
+  sample;
+- rollout/replay transition-log-prob agreement over the joint video-audio SDE, finite
+  gradients, optimizer movement, and post-publication parity for every supported
+  weight-sync path;
+- a reward smoke that demonstrably consumes multiple frames and the audio track.
+  First-frame or middle-frame image scores may be retained as diagnostics but are not
+  sufficient evidence for temporal video quality;
+- a decoded-output sanity check on every reward smoke (for example, blank-frame or
+  luma-collapse detection and silent-audio detection). The current composite reward
+  can rise while decoded frames collapse toward black, so the reward alone cannot
+  admit a run;
+- GPU validation of the selected training reward and any held-out evaluator,
+  including frame-sampling/FPS and audio-sampling policy, missing/error handling,
+  and deterministic scoring tolerance on repeated inputs.
+
+Exploratory single-seed runs on this path, including matched UniRL/veRL-Omni
+comparisons, are pipeline and systems evidence only. They do not satisfy E8a or
+E8b and must not be reported as E8.
 
 Use an existing stable UniRL video recipe such as WAN 2.2 only as a pipeline control
 for `Videos`, reward routing, artifact serialization, and metric generation. It is
@@ -610,9 +638,11 @@ After E8a and one capacity-only pilot, freeze in the registration manifest:
 
 - prompt dataset and held-out split, MiniMax H3 revision, prompt preprocessing, and
   overlap audit;
-- frames, FPS, duration, resolution, denoising steps, SDE step selection, guidance,
-  samples per prompt, and initial-noise policy;
-- reward model/revision and frame sampler, group-normalization population, replay
+- frames, FPS, duration, resolution, audio sample rate and channels, denoising
+  steps, SDE step selection, video/audio shifts, guidance, samples per prompt, and
+  initial-noise policy;
+- reward models/revisions, component weights, frame and audio samplers,
+  group-normalization population, replay
   anchor, optimizer/update count, LoRA or full-weight target, precision, checkpoint
   cadence, total rollout budget, and allocation;
 - seeds 11/22/33 for the formal row, with identical base and checkpoint evaluation
@@ -621,23 +651,27 @@ After E8a and one capacity-only pilot, freeze in the registration manifest:
 Required rows are the frozen base and at least three trained seeds. A framework or
 model baseline is optional and must not delay the within-model learning-validity
 result. The primary external endpoint must be a frozen prompt-video alignment or
-video-quality evaluator distinct from the optimized reward. Report temporal
-consistency/motion, visual quality, prompt alignment, safety/error rate, and
-within-prompt diversity as separate views; do not collapse them into an unversioned
-single score. Archive every generated video and its prompt/sample/seed/checkpoint
-identity, evaluator output, and failure.
+video-quality evaluator distinct from the optimized reward; because the current
+training reward does not relate the prompt to the video, an improvement in it
+cannot stand in for this endpoint. Report temporal consistency/motion, visual
+quality, prompt alignment, audio quality, text-audio alignment, audio-video
+synchronization, safety/error rate, and within-prompt diversity as separate views;
+do not collapse them into an unversioned single score. Archive every generated
+video with its audio and its prompt/sample/seed/checkpoint identity, evaluator
+output, and failure.
 
 Because video changes the payload scale, also report latent and decoded bytes per
-trajectory, VAE encode/decode time, rollout time, reward-service time, transfer and
-materialization time, peak memory by role, samples/GPU-hour, frames/GPU-hour, and
-failed/retried generations. Normalize any image-versus-video cost discussion by
-explicit pixels, frames, denoising work, and allocated resources; raw iteration-time
+trajectory for each modality, video and audio VAE encode/decode time, rollout time,
+reward-service time, transfer and materialization time, peak memory by role,
+samples/GPU-hour, frames/GPU-hour, and failed/retried generations. Normalize any
+image-versus-video cost discussion by explicit pixels, frames, audio samples,
+denoising work, and allocated resources; raw iteration-time
 ratios across SD3.5 and MiniMax H3 do not isolate modality overhead.
 
 Reward improvement without held-out improvement, or improvement accompanied by
-temporal collapse or diversity loss, is reported as reward overfitting. If E8a passes
-but formal training does not improve, retain the negative result and limit the claim
-to video-path execution. If trainable MiniMax H3 access is unavailable, report the
+temporal collapse, decoded-frame collapse, audio degradation, or diversity loss, is
+reported as reward overfitting. If E8a passes but formal training does not improve,
+retain the negative result and limit the claim to video/audio-path execution. If trainable MiniMax H3 access is unavailable, report the
 inference-only result separately and do not count E8 as diffusion training validity.
 
 ## 10. Failure ownership and paper fill-in checklist
