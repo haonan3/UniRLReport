@@ -103,10 +103,17 @@ The paper develops two coupled design ideas:
   \item A \emph{factorization of semantic roles from physical execution}: rollout remains $\sample\!\rightarrow\!\sample$, while field-aware dispatch, tensor references, placement, weight publication, and residency specify its execution (Section~\ref{sec:execution}). Native-recipe, recipe-matched AR, and internal topology comparisons provide initial performance observations; the paired representation-cost control remains unmeasured.
 \end{itemize}
 
-Version-aware bounded staleness is one realization of the execution contracts (Section~\ref{sec:async}); an incomplete pilot is reported separately, without a controlled operating-region conclusion.
+Asynchronous execution is where the second idea pays off most directly.
+Because rollout, reward, and training are logical roles rather than fixed steps of one loop, the orchestration layer---admission, root-complete grouping, version stamping, lag filtering, and weight publication---can be lifted out of individual trainers.
+UniRL's AR and diffusion trainers therefore share one bounded-staleness manager over the same trajectory IR (Section~\ref{sec:async}), and we exercise it on both workloads.
+For AR, single-seed capacity measurements show lower per-rollout time than the synchronous colocated configuration; the accompanying quality pilot did not pass, so no time-to-quality benefit is claimed (Section~\ref{sec:rq4}).
+For diffusion, denoising and replay compute dominate each iteration and leave little generation idle time for overlap to recover, so asynchrony yields no significant gain.
+\paperTODO{The diffusion asynchronous measurements are not yet in the evidence bundle; add them to Section~\ref{sec:rq4} before release.}
+
 The evidence therefore proceeds from structural correctness, through credible learning and a composed workflow, to measured system cost.
 The experiment IDs and corresponding artifacts are specified in Section~\ref{sec:evaluation}.
 
+% TODO: revise this paragraph once E1's primary endpoint, E4 on recorded rollouts, and E5-R are complete.
 The current evidence comprises an archived CPU regression, reported GPU results for diffusion training, native-recipe systems performance and deployment topology, and a newly regenerated recipe-matched AR systems comparison.
 The diffusion result includes a material diversity regression; the diffusion systems comparison retains estimator and trainable-parameter differences, while the AR comparison contains only one process-level run per framework.
 These observations do not establish a cross-workload or time-to-quality advantage or complete the trajectory-centric claim: real-rollout semantic validation and a paired measurement of representation cost remain necessary.
@@ -136,9 +143,11 @@ A flattened image batch can implement both choices only if it retains or reconst
 This example motivates explicit ancestry, while the image model's replay state motivates typed segments; neither requirement follows from the other.
 
 \paragraph{Role heterogeneity.}
-Generation, reward evaluation, model replay, gradient computation, and policy publication have different dependencies and may use distinct runtime systems.
-Serving engines such as vLLM~\citep{kwon2023vllm} and SGLang~\citep{zheng2024sglang} are optimized for generation, while FSDP~\citep{zhao2023fsdp} or another training backend owns parameters and optimizer state.
-Moving a large policy or trajectory between them is a first-order cost.
+Generation, reward evaluation, replay, gradient computation, and policy publication differ in runtime, parallel layout, and lifecycle, not only in kernels.
+Rollout may run inside the training process or in a dedicated serving engine with its own tensor-parallel layout, such as SGLang~\citep{zheng2024sglang} or the vLLM-based~\citep{kwon2023vllm} vLLM-Omni~\citep{yin2026vllmomni}, while a sharded training backend such as FSDP~\citep{zhao2023fsdp} or VeOmni~\citep{ma2025veomni} owns parameters and optimizer state.
+Reward ranges from an in-process scorer to an environment-isolated scorer process or a remote multi-model service.
+These roles must agree on when each copy of the policy is resident, offloaded, or published, and publishing from a sharded trainer is itself a collective over the whole training mesh.
+Which boundary dominates cost depends on the configuration: in the measured separate-slab deployment, the report attributes most of the slowdown to reward processing rather than weight or trajectory movement (Section~\ref{sec:rq3}).
 
 \paragraph{Topology heterogeneity.}
 A small run may time-share one GPU set between training and rollout; a larger run may separate them; a variable-duration rollout may benefit from asynchronous admission.
@@ -819,6 +828,7 @@ HybridFlow/veRL combines single- and multi-controller execution and introduces h
 OpenRLHF uses Ray, vLLM, and DeepSpeed to schedule the models in an RLHF workflow~\citep{hu2024openrlhf}.
 ROLL emphasizes a single-controller abstraction, parallel workers, sample lifecycle scheduling, and flexible device mapping~\citep{wang2025roll}.
 NeMo-RL provides scalable training and generation backends and multimodal model support~\citep{nemorl2025}.
+Group-relative recipes in these systems typically record one level of sampling structure---responses grouped under their prompt by a per-prompt identifier or by contiguous sample order---whereas UniRL generalizes that group key to multi-level ancestry encoded in sample identifiers.
 UniRL shares their concern for composable orchestration; its intended distinction is the lineage- and modality-aware trajectory boundary across AR, diffusion, and cross-stage generation.
 That distinction must be established by RQ3 rather than a feature table.
 
