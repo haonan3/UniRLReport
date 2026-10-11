@@ -1,0 +1,194 @@
+{
+  "cross_framework_effective_work": {
+    "advantage_divided_by_group_std": {
+      "unirl": true,
+      "verl": true
+    },
+    "clip_high": {
+      "unirl": 0.2,
+      "verl": 0.2
+    },
+    "clip_low": {
+      "unirl": 0.2,
+      "verl": 0.2
+    },
+    "gpu_count": {
+      "unirl": 16,
+      "verl": 16
+    },
+    "learning_rate": {
+      "unirl": 1e-06,
+      "verl": 1e-06
+    },
+    "loss_agg_mode": {
+      "unirl": "seq-mean-token-mean",
+      "verl": "seq-mean-token-mean"
+    },
+    "max_response_tokens": {
+      "unirl": 8192,
+      "verl": 8192
+    },
+    "prompts_per_rollout": {
+      "unirl": 64,
+      "verl": 64
+    },
+    "responses_per_rollout": {
+      "unirl": 512,
+      "verl": 512
+    },
+    "samples_per_prompt": {
+      "unirl": 8,
+      "verl": 8
+    },
+    "sampling_temperature": {
+      "unirl": 1.0,
+      "verl": 1.0
+    },
+    "sampling_top_k_disabled": {
+      "unirl": true,
+      "verl": true
+    },
+    "sampling_top_p": {
+      "unirl": 1.0,
+      "verl": 1.0
+    },
+    "token_budget_per_gpu": {
+      "unirl": 10240,
+      "verl": 10240
+    },
+    "updates_per_rollout": {
+      "unirl": 4,
+      "verl": 4
+    }
+  },
+  "data": {
+    "jsonl_rows": 17917,
+    "jsonl_sha256": "fcc950774dbb5bf4c249f90bf2e2517676619e798f5a921190cf1391fc5f922c",
+    "parquet_sha256": "d983528460e09ba7e98d589f6f72d920d2661debcdf69bce996492fa23f5a131"
+  },
+  "failures": [],
+  "residual_semantic_divergences": [
+    {
+      "effect": "verl advantages are uniformly smaller by sqrt((n-1)/n) = 0.935414 at n=8 samples/prompt; equivalently UniRL's are 1.069045x larger. The factor is constant across groups (it does not depend on the reward distribution), so it acts as a fixed rescaling of the advantage, i.e. an effective learning-rate difference of the same factor, not a change in the ranking or sign of any advantage.",
+      "field": "group std estimator",
+      "neutralizable_by_config": false,
+      "unirl": "population std (torch.std(unbiased=False), unirl/types/advantages.py:finite_mean_std)",
+      "verl": "sample std (torch.std default unbiased=True, core_algos.compute_grpo_outcome_advantage)"
+    },
+    {
+      "effect": "With binary math-verify rewards and n=8 the smallest non-zero group std is 0.330719, so the two epsilons differ by a relative 3.02e-06 of the denominator \u2014 far below the Bessel factor above and below bf16 resolution.",
+      "field": "advantage epsilon",
+      "neutralizable_by_config": false,
+      "unirl": "eps=1e-8 added to std (Part.compute_advantages default)",
+      "verl": "epsilon=1e-6 added to std (compute_grpo_outcome_advantage default)"
+    },
+    {
+      "effect": "Identical outcome for this workload: every prompt is sampled n=8 times, so the n==1 branch is unreachable, and all-correct/all-wrong groups contribute zero advantage on both sides.",
+      "field": "degenerate group handling",
+      "neutralizable_by_config": true,
+      "unirl": "group std 0 -> advantage 0/eps = 0 (centered numerator is exactly 0)",
+      "verl": "n==1 groups forced to mean 0 / std 1; n>1 all-equal groups give 0/epsilon = 0"
+    },
+    {
+      "effect": "Neutralized by configuration: clip_ratio_c=10000.0 puts the -A*c floor out of reach of a 0.2-clipped trust region, so the realized objective matches UniRL's.",
+      "field": "dual-clip (Ye et al. 2019) lower bound",
+      "neutralizable_by_config": true,
+      "unirl": "absent \u2014 _grpo_clip_loss implements only the two-sided PPO max()",
+      "verl": "always applied in compute_policy_loss_vanilla; no disable flag"
+    }
+  ],
+  "sources": {
+    "unirl_resolved": "/root/sync/zwfy/unirl-grpo-repro-01a1209a/recipes/unirl_grpo_resolved.yaml",
+    "verl_resolved": "/root/sync/zwfy/unirl-grpo-repro-01a1209a/recipes/verl_grpo_resolved.yaml"
+  },
+  "status": "pass",
+  "unirl_resolved_assertions": {
+    "adv_normalization_scope": "group",
+    "algorithm._target_": "unirl.algorithms.grpo.GRPO",
+    "algorithm.clip_range": 0.2,
+    "algorithm.clip_range_high": null,
+    "algorithm.clip_schedule": "constant",
+    "algorithm.loss_agg_mode": "seq-mean-token-mean",
+    "algorithm.sampling_temperature": 1.0,
+    "backend.fsdp_cfg.cpu_offload": false,
+    "backend.fsdp_cfg.fsdp_mode": "full",
+    "backend.fsdp_cfg.param_dtype": "bf16",
+    "backend.optimizer_cfg.adam_beta1": 0.9,
+    "backend.optimizer_cfg.adam_beta2": 0.999,
+    "backend.optimizer_cfg.adam_epsilon": 1e-08,
+    "backend.optimizer_cfg.learning_rate": 1e-06,
+    "backend.optimizer_cfg.weight_decay": 0.01,
+    "backend.scheduler_cfg.type": "constant",
+    "backend.scheduler_cfg.warmup_steps": 0,
+    "batch_size": 64,
+    "bundle.config.attn_implementation": "flex_attention",
+    "bundle.config.model_precision": "fp32",
+    "eval_interval": 0,
+    "normalize_adv_by_std": true,
+    "num_devices": 16,
+    "pipeline.autocast_precision": "bf16",
+    "pipeline.enable_thinking": true,
+    "pipeline.logprob_precision": "fp32",
+    "reward.truncated_reward": "keep",
+    "rollout.config.backend": "http",
+    "rollout.config.concurrency": 64,
+    "rollout.config.tp_size": 2,
+    "sampling.max_new_tokens": 8192,
+    "sampling.samples_per_prompt": 8,
+    "sampling.temperature": 1.0,
+    "sampling.top_k": 0,
+    "sampling.top_p": 1.0,
+    "stack.max_grad_norm": 1.0,
+    "stack.micro_planner.token_budget": 10240,
+    "stack.num_updates_per_batch": 4
+  },
+  "verl_resolved_assertions": {
+    "actor_rollout_ref.actor.clip_ratio": 0.2,
+    "actor_rollout_ref.actor.clip_ratio_c": 10000.0,
+    "actor_rollout_ref.actor.clip_ratio_high": 0.2,
+    "actor_rollout_ref.actor.clip_ratio_low": 0.2,
+    "actor_rollout_ref.actor.fsdp_config.optimizer_offload": false,
+    "actor_rollout_ref.actor.fsdp_config.param_offload": false,
+    "actor_rollout_ref.actor.fsdp_config.strategy": "fsdp",
+    "actor_rollout_ref.actor.loss_agg_mode": "seq-mean-token-mean",
+    "actor_rollout_ref.actor.optim.lr": 1e-06,
+    "actor_rollout_ref.actor.policy_loss.loss_mode": "vanilla",
+    "actor_rollout_ref.actor.ppo_epochs": 1,
+    "actor_rollout_ref.actor.ppo_max_token_len_per_gpu": 10240,
+    "actor_rollout_ref.actor.ppo_mini_batch_size": 16,
+    "actor_rollout_ref.actor.ulysses_sequence_parallel_size": 1,
+    "actor_rollout_ref.actor.use_dynamic_bsz": true,
+    "actor_rollout_ref.actor.use_kl_loss": false,
+    "actor_rollout_ref.model.enable_gradient_checkpointing": true,
+    "actor_rollout_ref.model.use_remove_padding": true,
+    "actor_rollout_ref.rollout.calculate_log_probs": true,
+    "actor_rollout_ref.rollout.data_parallel_size": 1,
+    "actor_rollout_ref.rollout.gpu_memory_utilization": 0.4,
+    "actor_rollout_ref.rollout.ignore_eos": false,
+    "actor_rollout_ref.rollout.mode": "async",
+    "actor_rollout_ref.rollout.n": 8,
+    "actor_rollout_ref.rollout.name": "vllm",
+    "actor_rollout_ref.rollout.temperature": 1.0,
+    "actor_rollout_ref.rollout.tensor_model_parallel_size": 2,
+    "actor_rollout_ref.rollout.top_k": -1,
+    "actor_rollout_ref.rollout.top_p": 1.0,
+    "algorithm.adv_estimator": "grpo",
+    "algorithm.norm_adv_by_std_in_grpo": true,
+    "algorithm.rollout_correction.bypass_mode": true,
+    "algorithm.use_kl_in_reward": false,
+    "data.max_prompt_length": 2048,
+    "data.max_response_length": 8192,
+    "data.seed": 42,
+    "data.train_batch_size": 64,
+    "data.truncation": "error",
+    "reward.reward_kwargs.max_resp_len": 8192,
+    "reward.reward_kwargs.overlong_buffer_cfg.enable": false,
+    "reward.reward_manager.name": "dapo",
+    "trainer.balance_batch": true,
+    "trainer.n_gpus_per_node": 8,
+    "trainer.nnodes": 2,
+    "trainer.save_freq": -1,
+    "trainer.test_freq": -1,
+    "trainer.val_before_train": false
+  }
+}

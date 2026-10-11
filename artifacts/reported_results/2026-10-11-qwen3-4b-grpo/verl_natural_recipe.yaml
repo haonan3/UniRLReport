@@ -60,15 +60,15 @@ actor_rollout_ref:
     ppo_micro_batch_size_per_gpu: null
     use_dynamic_bsz: true
     ppo_max_token_len_per_gpu: 10240
-    clip_ratio: 12.5
-    clip_ratio_low: 12.5
-    clip_ratio_high: 12.5
+    clip_ratio: 0.2
+    clip_ratio_low: 0.2
+    clip_ratio_high: 0.2
     tau_pos: 1.0
     tau_neg: 1.05
     freeze_vision_tower: false
     policy_loss:
       _target_: verl.workers.config.PolicyLossConfig
-      loss_mode: spo_adaptive_eps
+      loss_mode: vanilla
       topk_regularization_mode: disabled
       topk_regularization_coef: 0.0
       use_advantage_regularization: true
@@ -81,7 +81,7 @@ actor_rollout_ref:
       pg_kl_direction: forward
       pg_kl_estimator: k1
     clip_ratio_c: 10000.0
-    loss_agg_mode: seq-mean-token-sum-norm
+    loss_agg_mode: seq-mean-token-mean
     loss_scale_factor: null
     entropy_coeff: 0
     calculate_entropy: true
@@ -237,10 +237,10 @@ actor_rollout_ref:
     top_k: -1
     top_p: 1.0
     prompt_length: 2048
-    response_length: 4096
+    response_length: 8192
     dtype: bfloat16
     gpu_memory_utilization: 0.4
-    ignore_eos: true
+    ignore_eos: false
     enforce_eager: false
     cudagraph_capture_sizes: null
     free_cache_engine: true
@@ -310,7 +310,7 @@ actor_rollout_ref:
     trace:
       _target_: verl.workers.config.TraceConfig
       project_name: unirl-grpo
-      experiment_name: qwen3-drpo-verl-fixed4096
+      experiment_name: resolve-only
       backend: null
       token2text: false
       max_samples_per_step_per_worker: null
@@ -345,7 +345,7 @@ actor_rollout_ref:
       enable: false
       port: 9090
       file: /tmp/ray/session_latest/metrics/prometheus/prometheus.yml
-      served_model_name: /path/to/Qwen3-4B-Base
+      served_model_name: /root/.cache/unirl-grpo-repro-01a1209a/models/Qwen3-4B-Base
     quantization: null
     quantization_config_file: null
     mtp:
@@ -374,7 +374,7 @@ actor_rollout_ref:
       quantization_config_path: null
   model:
     _target_: verl.workers.config.HFModelConfig
-    path: /path/to/Qwen3-4B-Base
+    path: /root/.cache/unirl-grpo-repro-01a1209a/models/Qwen3-4B-Base
     hf_config_path: null
     tokenizer_path: null
     use_shm: false
@@ -436,14 +436,14 @@ actor_rollout_ref:
 data:
   tokenizer: null
   use_shm: false
-  train_files: /path/to/dapo-math-17k.parquet
-  val_files: /path/to/dapo-math-17k.parquet
+  train_files: /root/.cache/unirl-grpo-repro-01a1209a/data/train-verl.parquet
+  val_files: /root/.cache/unirl-grpo-repro-01a1209a/data/train-verl.parquet
   train_max_samples: -1
   val_max_samples: -1
   prompt_key: prompt
   reward_fn_key: data_source
   max_prompt_length: 2048
-  max_response_length: 4096
+  max_response_length: 8192
   train_batch_size: 64
   val_batch_size: null
   tool_config_path: null
@@ -538,7 +538,7 @@ critic:
   shuffle: false
   data_loader_seed: 42
   cliprange_value: 0.5
-  loss_agg_mode: seq-mean-token-sum-norm
+  loss_agg_mode: seq-mean-token-mean
   checkpoint:
     _target_: verl.trainer.config.CheckpointConfig
     save_contents:
@@ -731,10 +731,10 @@ reward:
   reward_kwargs:
     overlong_buffer_cfg:
       enable: false
-      len: 4096
+      len: 8192
       penalty_factor: 1.0
       log: false
-    max_resp_len: 4096
+    max_resp_len: 8192
 algorithm:
   rollout_correction:
     rollout_is: null
@@ -748,7 +748,7 @@ algorithm:
   gamma: 1.0
   lam: 0.95
   adv_estimator: grpo
-  norm_adv_by_std_in_grpo: false
+  norm_adv_by_std_in_grpo: true
   use_kl_in_reward: false
   kl_penalty: kl
   kl_ctrl:
@@ -806,14 +806,14 @@ distillation:
       disable_log_stats: true
       skip_tokenizer_init: false
       prompt_length: 2048
-      response_length: 4096
+      response_length: 8192
       temperature: 1.0
 trainer:
   balance_batch: true
-  total_epochs: 1
-  total_training_steps: 5
+  total_epochs: 100
+  total_training_steps: 500
   project_name: unirl-grpo
-  experiment_name: qwen3-drpo-verl-fixed4096
+  experiment_name: resolve-only
   logger:
   - console
   - wandb
@@ -832,7 +832,7 @@ trainer:
   critic_warmup: 0
   default_hdfs_dir: null
   del_local_ckpt_after_load: false
-  default_local_dir: outputs/qwen3-drpo-verl-fixed4096
+  default_local_dir: /root/sync/zwfy/unirl-grpo-repro-01a1209a/checkpoints/verl-grpo/resolve-only
   max_actor_ckpt_to_keep: null
   max_critic_ckpt_to_keep: null
   ray_wait_register_center_timeout: 300

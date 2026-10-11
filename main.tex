@@ -67,7 +67,7 @@ The same trajectory can carry autoregressive and diffusion stages linked by line
 These contracts factor model-specific replay from lineage, movement, placement, and scheduling decisions; they do not assert that the underlying objectives or every engine--topology combination are interchangeable.
 The design is grounded in a source audit of UniRL release v0.2.0 (commit \texttt{fd344ad}); subsequent experiment reports provide initial GPU evidence.
 Three-seed diffusion results show improved held-out automatic scores together with reduced within-prompt diversity, while an eight-GPU native-recipe comparison reports lower iteration time than VeRL-Omni.
-A separate, single-run, recipe-matched 500-step Qwen3-4B DRPO comparison records 12.3\% higher end-to-end output-token throughput for UniRL than veRL while generating 6.3\% longer responses.
+A separate, single-run, recipe-matched 500-step Qwen3-4B GRPO comparison records 8.2\% higher end-to-end output-token throughput for UniRL than veRL while generating 11.0\% longer responses.
 A source-importing CPU harness exercises ten core IR invariants.
 The present evaluation distinguishes legacy report-derived measurements from the newly regenerated AR systems evidence: the primary AR quality endpoint, real-rollout lineage validation, paired representation cost, and a controlled time-to-quality result remain open.
 \end{abstract}
@@ -582,7 +582,7 @@ The operational commands, run-directory schema, and failure-routing rules are fr
 The legacy online experiment report, retrieved on 2026-09-27, states an as-of date of 2026-09-22.
 We combine it with the result manuscript in pull request~2 at commit \texttt{ecce5097}; source snapshots, transcribed data, and a deterministic figure/table generator accompany this repository under \codepath{artifacts/reported\_results/2026-09-22/}.
 The E2 and diffusion E3 tables below are regenerated from those \emph{reported summaries}, not from newly inspected training logs, and the underlying per-run repositories were unavailable during that integration.
-The later E3-AR study was rerun and is archived separately under \codepath{artifacts/reported\_results/2026-09-30-qwen3-4b-drpo/}, including resolved recipes, run identities, post-warmup per-step records, phase and band summaries, and the deterministic exporter and plotting script.
+The later E3-AR study was rerun and is archived separately under \codepath{artifacts/reported\_results/2026-10-11-qwen3-4b-grpo/}, including resolved recipes, the recipe and effective-work audit, run identities, post-warmup per-step records, phase and band summaries, and the deterministic plotting script.
 The HunyuanImage-3.0 and MiniMax-H3 recipe reproductions in Section~\ref{sec:rq1} are likewise generated directly from their per-step W\&B histories and resolved training recipes.
 We retain the distinction between report-derived and directly exported evidence, avoid reconstructed legacy learning curves or unsupported uncertainty bars, and list unresolved source discrepancies in \codepath{EXPERIMENT\_RESULTS.md}.
 The settings below describe the prespecified protocol unless explicitly identified as an observed result; matching each setting to a resolved run configuration remains an artifact-release obligation.
@@ -600,7 +600,7 @@ E0 & P0 gate & Correctness, configuration, and instrumentation checks & Correctn
 E1 & P0 & Qwen3-4B-Base on DAPO-Math & GRPO and DRPO each trained at one seed; primary external endpoint missing \\
 E2 & P0 & SD3.5-Medium diffusion training & Three-seed UniRL scores and diversity reported; reference trained, not evaluated \\
 E3 & P0 & Native UniRL--VeRL-Omni recipes, eight GPUs & Aggregate timings reported; strict semantic parity not established \\
-E3-AR & P0 & Recipe-matched Qwen3-4B DRPO, UniRL--veRL, 16 GPUs per system & 500 steps complete; resolved recipes, per-step measurements, and curves released \\
+E3-AR & P0 & Recipe-matched Qwen3-4B GRPO, UniRL--veRL, 16 GPUs per system & 500 steps complete; resolved recipes, parity audit, per-step measurements, and curves released \\
 E4 & P0 & Root versus rewrite grouping & Synthetic equality checks pass; no consistent three-seed quality advantage \\
 E5 & P0 minimum & Representation cost and deployment topology & Topology measured; paired representation cost not measured \\
 E6 & P1 & Synchronous/asynchronous Qwen3 study & Single-seed pilots only; formal sweep canceled \\
@@ -636,7 +636,7 @@ These seeds and the checkpoint cadence must be supplied as run-time overrides be
 The planned external evaluation covers the frozen base and checkpoints 200/400/600/800 on MATH-500 (500 problems, avg@4) and AIME 2024/2025 (30 problems each, avg@16), using the registry's fixed decoding and \texttt{math\_verify} grader.
 The UniRL run and the selected current reference must align prompts, chat template, verifier, maximum generation length, group size, effective batch, clipping, KL treatment, optimizer updates, and evaluation decoding.
 The public veRL Qwen3 FSDP example is only a scaffold because its stock model variant, data, group size, response budget, and KL/objective settings differ.
-E3-AR uses a pinned adapted launcher that passes the recipe and effective-work audit for the systems comparison; absent frozen-base and checkpoint evaluations under the common external protocol, it does not by itself establish quality reproduction.
+E3-AR uses a pinned adapted launcher whose resolved recipes are archived and checked field by field against fifteen cross-framework effective-work identities in \codepath{artifacts/reported\_results/2026-10-11-qwen3-4b-grpo/recipe\_parity\_audit.json}; two residual estimator-level differences that configuration cannot remove are quantified there. Absent frozen-base and checkpoint evaluations under the common external protocol, it does not by itself establish quality reproduction.
 The final 800-rollout checkpoint is primary. Internal evaluation uses AIME 2024/2025, so an AIME-selected best checkpoint is reported only as validation-selected and cannot establish an untouched AIME test result.
 MATH-500 is the primary external AR endpoint, with a training/evaluation overlap audit required before interpretation; the fixed-budget AIME curves are secondary diagnostics.
 The protocol calls for every seed, final-checkpoint curves, and 95\% confidence intervals; avg@$k$ denotes mean accuracy across $k$ sampled answers, not pass@$k$.
@@ -749,7 +749,7 @@ The horizontal axis uses UniRL's logical \texttt{rollout/step}, rather than W\&B
 \label{sec:rq2}
 
 We report two complementary performance comparisons.
-E3 compares UniRL with VeRL-Omni commit \texttt{01c87ee5} for the E2 SD3.5 shape-matched work unit on one reserved eight-GPU node~\citep{verlomni2026}; E3-AR is a separately rerun, recipe-matched Qwen3-4B DRPO comparison against veRL.
+E3 compares UniRL with VeRL-Omni commit \texttt{01c87ee5} for the E2 SD3.5 shape-matched work unit on one reserved eight-GPU node~\citep{verlomni2026}; E3-AR is a separately rerun, recipe-matched Qwen3-4B GRPO comparison against veRL.
 The planned work unit uses 48 prompts, 16 samples, $384\times384$ output, ten denoising steps, three early-window SDE steps, two optimizer updates, microbatch eight, LoRA 32/64, learning rate/weight decay $10^{-4}$, clip $10^{-5}$, and PickScore.
 The later report identifies different realized LoRA target sets, so matching rank and alpha does not establish matched trainable parameter counts.
 The reported protocol uses three process-level repetitions per configuration, 30 steps each, removes the first five timing observations, and retains at least 20 observations per repetition.
@@ -794,15 +794,15 @@ The source PR body and manuscript disagree on some replicate summaries; the pres
 \end{figure}
 
 \paragraph{Recipe-matched autoregressive comparison.}
-We additionally compare UniRL and veRL on a 500-step Qwen3-4B-Base~\citep{yang2025qwen3} DRPO workload over DAPO-Math-17k~\citep{yu2025dapo}.
+We additionally compare UniRL and veRL on a 500-step Qwen3-4B-Base~\citep{yang2025qwen3} standard GRPO workload over DAPO-Math-17k~\citep{yu2025dapo}, the algorithm the registered RQ1 protocol specifies.
 Each framework uses 16 NVIDIA H20 GPUs across two eight-GPU nodes.
 The matched recipe uses 64 prompts with eight samples per prompt, temperature and top-$p$ 1.0, top-$k$ disabled, natural EOS termination with an 8,192-token response cap, and four optimizer updates per rollout under a 10,240-token per-GPU optimizer budget.
-The two runs align the model, dataset and prompt order, tokenizer, verifier, DRPO objective, optimizer settings, numerical precision, rollout batch, and update count.
+The two runs align the model, dataset and prompt order, tokenizer, verifier, GRPO objective (advantage divided by the group standard deviation, per-sequence token-mean loss, symmetric clip $\epsilon=0.2$), optimizer settings, numerical precision, rollout batch, and update count.
 UniRL uses eight SGLang TP=2 engines, while veRL uses eight asynchronous vLLM TP=2 engines; these serving stacks are part of the compared end-to-end systems.
 We exclude startup step 1 and report steps 2--500.
 
 \begin{table}[H]
-\caption{Recipe-matched Qwen3-4B DRPO performance over steps 2--500. Times and response length are mean $\pm$ step-level population standard deviation over 499 steps. Token rates divide total generated tokens by total measured time. Step-level deviations describe these runs and are not process-level uncertainty estimates.}
+\caption{Recipe-matched Qwen3-4B GRPO performance over steps 2--500. Times and response length are mean $\pm$ step-level population standard deviation over 499 steps. Token rates divide total generated tokens by total measured time. Step-level deviations describe these runs and are not process-level uncertainty estimates.}
 \label{tab:ar-systems}
 \centering
 \scriptsize
@@ -811,27 +811,28 @@ We exclude startup step 1 and report steps 2--500.
 \toprule
 System & E2E (s/step) & Generation (s/step) & Training (s/step) & Response tokens & E2E tok/s & Generation tok/s \\
 \midrule
-UniRL & $\mathbf{131.279 \pm 23.564}$ & $\mathbf{65.521 \pm 11.374}$ & $60.852 \pm 12.381$ & $4{,}339.6 \pm 942.1$ & $\mathbf{16{,}925}$ & $\mathbf{33{,}911}$ \\
-veRL & $138.628 \pm 24.347$ & $79.554 \pm 13.221$ & $\mathbf{55.679 \pm 11.211}$ & $4{,}082.3 \pm 821.8$ & $15{,}077$ & $26{,}273$ \\
+UniRL & $143.519 \pm 28.601$ & $\mathbf{76.059 \pm 15.129}$ & $61.196 \pm 13.458$ & $4{,}197.6 \pm 1{,}005.4$ & $\mathbf{14{,}975}$ & $\mathbf{28{,}257}$ \\
+veRL & $\mathbf{139.894 \pm 30.731}$ & $80.619 \pm 16.308$ & $\mathbf{55.743 \pm 14.577}$ & $3{,}781.8 \pm 1{,}039.1$ & $13{,}841$ & $24{,}018$ \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
 
 \paragraph{AR systems result.}
-UniRL reduces mean raw end-to-end step time by 5.3\% while sampling responses that are 6.3\% longer on average.
-After accounting for this varying work, UniRL provides 12.3\% higher end-to-end output-token throughput and 29.1\% higher generation output-token throughput.
+UniRL's mean raw end-to-end step time is 2.6\% higher than veRL's while it samples responses that are 11.0\% longer on average.
+After accounting for this varying work, UniRL provides 8.2\% higher end-to-end output-token throughput and 17.7\% higher generation output-token throughput.
 The native veRL actor-update timer is lower than the UniRL training timer, whereas UniRL's generation advantage is larger for this workload.
-The raw end-to-end ordering changes across the five 100-step bands as the sampled response-length distribution changes, but UniRL's token-normalized end-to-end and generation throughput are higher in every band.
-We therefore treat token-normalized end-to-end throughput as the primary result rather than claiming a latency advantage at every training point.
+The raw end-to-end ordering reverses near step 300 as the two sampled response-length distributions cross, but UniRL's token-normalized end-to-end and generation throughput are higher in every one of the five 100-step bands.
+We therefore treat token-normalized end-to-end throughput as the primary result rather than claiming a latency advantage at every training point; under this workload UniRL has no raw per-step latency advantage at all.
 Phase values use each framework's native instrumentation and are diagnostic; end-to-end time has the clearest common boundary.
-UniRL's two nodes belonged to one allocation, while the two same-site veRL nodes came from separate allocations, so small raw-time differences should be interpreted together with the token-normalized rates.
+The two frameworks ran concurrently on different physical nodes of the same cluster rather than sequentially on one allocation, so raw step time carries a node-identity confound and must be read together with the token-normalized rates.
+Two estimator-level differences remain that configuration cannot remove: UniRL divides advantages by the population standard deviation and veRL by the sample standard deviation, making veRL's advantages uniformly $\sqrt{7/8}=0.935\times$ smaller at eight samples per prompt, and the two advantage epsilons differ by $10^{-8}$ versus $10^{-6}$; both are quantified against their closed forms in the bundle's audit.
 This experiment contains one process-level run per system and does not establish repeated-run uncertainty or time-to-quality.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{artifacts/reported_results/2026-09-30-qwen3-4b-drpo/figures/natural_long_curves.pdf}
-\caption{Ten-step rolling means for the 500-step natural-length Qwen3-4B DRPO comparison. Step 1 is excluded as startup warm-up. Response lengths evolve during training, causing the raw step-time ordering to change; token-normalized end-to-end throughput remains higher for UniRL throughout the five reported bands.}
+\includegraphics[width=\textwidth]{artifacts/reported_results/2026-10-11-qwen3-4b-grpo/figures/natural_long_curves.pdf}
+\caption{Ten-step rolling means for the 500-step natural-length Qwen3-4B GRPO comparison. Step 1 is excluded as startup warm-up. Response lengths evolve during training and cross near step 300, reversing the raw step-time ordering; token-normalized end-to-end throughput remains higher for UniRL throughout the five reported bands.}
 \label{fig:ar-systems}
 \end{figure}
 
@@ -1022,7 +1023,7 @@ The malformed rewrite pipeline and synthetic-only E4a fixtures further limit the
 Lineage, typed modality values, replay segments, reward, credit, and policy version live in one IR; rollout, reward, training, transport, and publication are logical roles mapped separately to resources.
 This design is most valuable if it passes two empirical tests: credible learning behavior across representative AR and diffusion workloads, and competitive end-to-end execution without weakening semantic parity.
 Those tests are necessary but not sufficient for the paper's trajectory-centric thesis: a real composed run must also demonstrate lineage-defined credit/grouping, and the measured IR/topology costs must bound the price of preserving that structure.
-The current evidence shows diffusion score improvements accompanied by reduced diversity, faster iteration of one native diffusion configuration, a substantial penalty for the measured separate deployment, and 12.3\% higher end-to-end output-token throughput for UniRL in one recipe-matched AR systems run.
+The current evidence shows diffusion score improvements accompanied by reduced diversity, faster iteration of one native diffusion configuration, a substantial penalty for the measured separate deployment, and 8.2\% higher end-to-end output-token throughput for UniRL in one recipe-matched AR systems run.
 That AR result is a workload-specific throughput observation rather than a repeated-run or time-to-quality conclusion.
 The full trajectory-centric claim remains open until real-rollout lineage validation and matched representation-cost measurements complement those observations.
 Bounded staleness remains an exploratory operating-region question, with no demonstrated time-to-quality benefit in the canceled study.
@@ -1040,7 +1041,7 @@ no results.
 The current result audit is in \codepath{EXPERIMENT\_RESULTS.md}.
 The dated bundle \codepath{artifacts/reported\_results/2026-09-22/} stores compact source snapshots, source-level caveats, reported numerical inputs, and generated tables and figures.
 These reproduce the transcription and presentation of the reports, not the original GPU measurements.
-The separately rerun AR systems bundle in \codepath{artifacts/reported\_results/2026-09-30-qwen3-4b-drpo/} pins UniRL commit \texttt{6148a5d}, the veRL reference and compatibility commits, both resolved recipes, W\&B run identities, 499 post-warmup records per framework, phase and band summaries, and the exporter and plotting script.
+The separately rerun AR systems bundle in \codepath{artifacts/reported\_results/2026-10-11-qwen3-4b-grpo/} pins UniRL commit \texttt{6148a5d}, the veRL reference and compatibility commits, both resolved recipes, the recipe and effective-work audit, run identities, 499 post-warmup records per framework, phase and band summaries, and the plotting script.
 Commit \texttt{6148a5d} is on a pre-release branch: it descends from an earlier audit commit but carries four rollout-performance and decoding commits that v0.2.0 does not contain, so E3-AR measures that branch rather than the audited release.
 Its UniRL run is \texttt{6jlpkjdr}; its veRL run is \texttt{xd9cv7e4}, with the final two completed veRL steps supplemented from the committed trainer-log excerpt because they were not flushed to W\&B during shutdown.
 The HunyuanImage-3.0 and MiniMax-H3 bundles in \codepath{artifacts/reported\_results/2026-09-30-hunyuanimage3/} and \codepath{artifacts/reported\_results/2026-09-30-minimax-h3/} store the resolved recipes, W\&B run identities, direct per-step history exports, and rendered learning curves.

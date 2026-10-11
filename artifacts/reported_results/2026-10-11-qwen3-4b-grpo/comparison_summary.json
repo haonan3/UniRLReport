@@ -1,0 +1,68 @@
+[
+  {
+    "step_band": "0-100",
+    "n_steps": 99,
+    "verl_e2e_s_per_step": 90.701587480888,
+    "verl_response_length": 2130.0304016729797,
+    "unirl_e2e_s_per_step": 98.81881774811431,
+    "unirl_response_length": 2533.2664733270203,
+    "unirl_vs_verl_e2e_percent": 8.94938059263486,
+    "unirl_vs_verl_e2e_throughput_percent": 9.16170437954098,
+    "unirl_vs_verl_generation_throughput_percent": 20.39433898192149
+  },
+  {
+    "step_band": "100-200",
+    "n_steps": 100,
+    "verl_e2e_s_per_step": 132.50945735318587,
+    "verl_response_length": 3417.87525390625,
+    "unirl_e2e_s_per_step": 153.1857019677013,
+    "unirl_response_length": 4556.87046875,
+    "unirl_vs_verl_e2e_percent": 15.603599190211547,
+    "unirl_vs_verl_e2e_throughput_percent": 15.329157760142987,
+    "unirl_vs_verl_generation_throughput_percent": 27.722907642923577
+  },
+  {
+    "step_band": "200-300",
+    "n_steps": 100,
+    "verl_e2e_s_per_step": 152.00480014672968,
+    "verl_response_length": 4133.147578125,
+    "unirl_e2e_s_per_step": 168.11360415428877,
+    "unirl_response_length": 4979.17595703125,
+    "unirl_vs_verl_e2e_percent": 10.597562703289176,
+    "unirl_vs_verl_e2e_throughput_percent": 8.925861913907784,
+    "unirl_vs_verl_generation_throughput_percent": 17.254012013277965
+  },
+  {
+    "step_band": "300-400",
+    "n_steps": 100,
+    "verl_e2e_s_per_step": 164.37721419876908,
+    "verl_response_length": 4667.6059765625,
+    "unirl_e2e_s_per_step": 152.21740144245325,
+    "unirl_response_length": 4501.32857421875,
+    "unirl_vs_verl_e2e_percent": -7.397505071239296,
+    "unirl_vs_verl_e2e_throughput_percent": 4.14150279367691,
+    "unirl_vs_verl_generation_throughput_percent": 11.930589948199621
+  },
+  {
+    "step_band": "400-500",
+    "n_steps": 100,
+    "verl_e2e_s_per_step": 159.38690346309915,
+    "verl_response_length": 4543.70310546875,
+    "unirl_e2e_s_per_step": 144.81260836802423,
+    "unirl_response_length": 4400.65078125,
+    "unirl_vs_verl_e2e_percent": -9.143972797268829,
+    "unirl_vs_verl_e2e_throughput_percent": 6.599021255298432,
+    "unirl_vs_verl_generation_throughput_percent": 16.40603076980649
+  },
+  {
+    "step_band": "overall",
+    "n_steps": 499,
+    "verl_e2e_s_per_step": 139.89437810979217,
+    "verl_response_length": 3781.7759542522545,
+    "unirl_e2e_s_per_step": 143.51902715493,
+    "unirl_response_length": 4197.587092153056,
+    "unirl_vs_verl_e2e_percent": 2.590989783944808,
+    "unirl_vs_verl_e2e_throughput_percent": 8.191888054688356,
+    "unirl_vs_verl_generation_throughput_percent": 17.649862380395387
+  }
+]
