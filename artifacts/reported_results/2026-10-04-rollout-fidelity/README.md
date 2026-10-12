@@ -163,9 +163,10 @@ Steady rollout (the second of each arm) of the headline arms:
   not part of any pull request.
 - The scheduling branch is unmerged and its wall-clock sampling and row-cost switch
   are experiment-only patches.
-- Section~5's image-editing numbers were measured on this path **before** #547, so
-  their generation phase carries the engine's own, more expensive source prefix.
-  That study has not been re-run on the corrected path.
+- The reward-service bundle's image-editing runs were taken before #547; the
+  manuscript reports them as estimates for the injected path, using the
+  generation ratio of `it2i_arms.csv` (`../2026-09-30-reward-service/README.md`,
+  "Estimated image-editing rows"; re-run tracked in UniRLReport issue #19).
 
 ## Files
 

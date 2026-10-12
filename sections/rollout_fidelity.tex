@@ -52,7 +52,7 @@ The ratio guard is kept as a second, coarser check, opt-in through a tolerance a
 Restoring the injection changed the rollout twice over.
 Generation of sixteen edits on one rank fell from \RFMainGenerate{}\,s to \RFFixGenerate{}\,s, because the engine's own path encodes the source into four times as many tokens as UniRL's.
 And the judge's verdict on the result moved: the mean EditScore of the first rollout, before any optimizer step and on the same prompts, went from \RFMainReward{} to \RFFixReward{} (Figure~\ref{fig:fidelity-chain}).
-That second number is not a learning result---no update had happened---but a measure of what the engine had been producing.
+That second number is not a learning result---no update had happened---but a measure of what the engine produces under each conditioning.
 
 \subsection{A canvas per group}
 \label{sec:fidelity-canvas}
@@ -118,11 +118,6 @@ The floor that Section~\ref{sec:reward-overlap} describes for this engine is rem
 Table~\ref{tab:fidelity-chain} puts the four changes on one workload: generation per rank falls \RFTotalSaving{}, from \RFMainGenerate{}\,s to \RFPackGenerate{}\,s, and the first rollout's judge score settles between \RFPostFixRewardMin{} and \RFPostFixRewardMax{} instead of \RFMainReward{}.
 The first-update ratio stays within $10^{-4}$ of 1 throughout, and the layout check passes on every replay of every arm, including the ones where a micro-batch cuts a group.
 These are one to four rollouts per arm on a single workload shape: they establish the direction and size of each change on this path, not a distribution.
-
-The consequence for Section~\ref{sec:reward} should be stated plainly.
-Its image-editing measurements were taken on this path before the conditioning was restored, so their generation phase carries the engine's own, more expensive prefix.
-The reward cost in those tables is unaffected---the judge scored the same number of images---so a corrected baseline would spend relatively more of its rollout on reward than Section~\ref{sec:reward} reports, and the overlap it measures would matter more rather than less.
-We have not re-run that study on the corrected path.
 
 \subsection{The long tail that mixed resolution exposes}
 \label{sec:fidelity-tail}

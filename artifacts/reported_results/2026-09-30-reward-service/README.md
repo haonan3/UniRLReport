@@ -7,7 +7,7 @@ different evidence tiers:
 | Part | What it is | Evidence tier |
 |---|---|---|
 | Scorer inventory (`scorers.csv`) | which reward implementations exist and where they run | read from source at UniRL `651490e` (2026-09-30); presence of a code path, not a training result |
-| Generation–reward overlap (`overlap_runs.csv`, `overlap_trace.csv`) | per-rollout phase timings of the micro-batch reward schedule, and per-rank / judge-side event traces of the traced runs | measured by us on H20 nodes; extracted from the run logs |
+| Generation–reward overlap (`overlap_runs.csv`, `overlap_trace.csv`) | per-rollout phase timings of the micro-batch reward schedule, and per-rank / judge-side event traces of the traced runs | measured by us on H20 nodes; extracted from the run logs. The manuscript's image-editing wall-clock is an **estimate** derived from them (`overlap_estimate.csv`, see "Estimated image-editing rows") |
 | MPS sharing (`mps_reported.csv`) | throughput of small scorers sharing one GPU | **transcribed** from the body of the open UniRL pull request #492 (head `8bb4119`, text as of 2026-09-28); not re-measured by us |
 
 Code references: [UniRL #445](https://github.com/Tencent-Hunyuan/UniRL/pull/445)
@@ -38,15 +38,17 @@ Code references: [UniRL #445](https://github.com/Tencent-Hunyuan/UniRL/pull/445)
 ### Result
 
 Recorded rollouts (second rollout of one traced run per panel; rows are the eight
-ranks and the judge):
+ranks and the judge). This figure is not in the manuscript until it is
+re-recorded with the injected conditioning:
 
 ![Recorded rollouts under the three schedules](figures/overlap_timeline.png)
 
-Pooled means:
+Estimated wall-clock for the injected conditioning (the manuscript figure; see
+"Estimated image-editing rows"):
 
 ![Generation and reward wall-clock](figures/overlap_wallclock.png)
 
-Generation plus reward per rollout, seconds (`overlap_summary.csv`):
+Measured generation plus reward per rollout, seconds (`overlap_summary.csv`):
 
 | Reward | Rows/rank | Micros/rank | Schedule | Rollouts / sessions | Mean | Range | Generation | Reward outside generation | vs. baseline |
 |---|---:|---:|---|---:|---:|---|---:|---:|---:|
@@ -148,6 +150,69 @@ The merged role runs this pass once the shard has left the worker
 to Python garbage collection and not to the CUDA cache are described in the
 UniRL reward README; they are not part of this bundle.
 
+### Estimated image-editing rows
+
+The image-editing runs above were taken without the injected source-image
+contexts of UniRL #547 (`../2026-10-04-rollout-fidelity/`), so their generation
+phase is longer than on the path the manuscript describes. Until they are
+re-measured (UniRLReport issue #19), the manuscript reports estimates for the
+injected path, computed by `estimate()` in `generate.py` and written to
+`overlap_estimate.csv`:
+
+- **Generation** is scaled by 0.748, the ratio of the per-rank generation time
+  with and without the injected contexts at the same shape (36.78 s against
+  49.18 s for 16 rows, `../2026-10-04-rollout-fidelity/it2i_arms.csv`), and
+  assumed to scale the same way per micro-batch.
+- **Reward-side times are kept**: the judge scores the same number of 512²
+  pairs in the same request sizes, so service, queueing and the reward time
+  outside generation do not depend on the conditioning.
+- **Whole-shard arms, and micro-batch arms whose judge has headroom**, move by
+  the full generation saving. Headroom means the measured judge work fits in
+  (1 − 1/m)·G′, the span between the first micro-batch's arrival and the end of
+  generation, with m micro-batches per rank and G′ the scaled generation.
+- **Micro-batch arms whose judge is saturated** end at the first micro-batch's
+  arrival plus the judge's work, so they move by 1/m of the saving.
+- Ranges are shifted by the same amount as the mean.
+
+| Judge | Schedule | Measured (s) | G′ (s) | Judge work / window (s) | Saturated | Estimate (s) | vs. whole shard |
+|---|---|---:|---:|---|---|---:|---:|
+| 8B | whole shard | 126.8 | 73.4 | – | – | 102.0 | – |
+| 8B | serial | 111.5 | 73.0 | 38.5 / 54.7 | no | 86.9 | −14.8% |
+| 8B | overlapped | 106.9 | 73.1 | 37.7 / 54.8 | no | 82.3 | −19.4% |
+| 72B | whole shard | 179.7 | 73.3 | – | – | 155.0 | – |
+| 72B | serial | 145.0 | 73.0 | 120.4 / 54.7 | yes | 138.8 | −10.4% |
+| 72B | overlapped | 146.3 | 73.1 | 121.8 / 54.8 | yes | 140.1 | −9.6% |
+
+The 16-row shape is estimated only for the whole-shard and eight-row-request
+arms, which both move by the full saving; the two-micro-batch arms sit near the
+saturation boundary for the 8B judge, so their direction is not robust under
+this model and the manuscript drops them. The PickScore text-to-image rows do
+not use the image-editing conditioning and stay measured. The train phase is
+kept as measured: the trainer's replay builds the same contexts with and
+without #547.
+
+Two consequences carry into the manuscript text. The 8B saving in seconds is
+unchanged and grows relative to a shorter rollout. The 72B saving is about
+0.75·G − 38.7 s and roughly halves; and with a window of about 55 s, one
+replica of that judge is saturated even at the whole-shard request size
+(76.9 s of work), so the serializing server deepens the saturation rather than
+causing it.
+
+Experiments that replace the estimate (details in issue #19), at a UniRL commit
+that contains #547 and the shape above:
+
+1. both judges × {whole shard, serial, overlapped (queued)}, at least three
+   steady-state rollouts per arm;
+2. per-rank and judge-side traces of one run per arm, to refresh
+   `overlap_trace.csv`, the judge-side numbers and the timeline figure;
+3. 16 rows per rank, both judges × {whole shard, 8-row requests without the
+   stack, two micro-batches serial and overlapped};
+4. the 8B-judge train phase with and without the collection pass;
+5. optionally the 32-row schedules for the 8B judge with #550 on top.
+
+When they are in, remove `estimate()` and the daggers, and put the timeline
+figure back into the manuscript.
+
 ### Sessions
 
 `overlap_runs.csv` has one row per arm and rollout. Sessions are keyed by their
@@ -204,14 +269,9 @@ same instrumentation; `fe57386` is the final tree before the squash merge
   (0.15 s of a 108.8 s step), which is a different workload and is not in this
   bundle.
 - These are reward-path measurements. They do not revise E3 or E5-T.
-- **Measured before UniRL #547.** On this path the BAGEL image-editing rollout
-  did not inject its own source-image contexts, so generation carried the
-  serving engine's more expensive prefix: 49.2 s against 36.8 s per rank for
-  16 rows at the same shape. Reward cost is unaffected, so a corrected
-  baseline spends relatively more of its rollout on reward than the tables
-  above show, and the overlap they measure would matter more rather than
-  less. See `../2026-10-04-rollout-fidelity/`. This study has not been re-run
-  on the corrected path.
+- **Measured before UniRL #547.** The manuscript's image-editing rows are
+  estimates for the injected conditioning; see "Estimated image-editing rows"
+  and issue #19 for the re-run.
 
 ## MPS sharing (transcribed)
 
@@ -271,12 +331,16 @@ histories); `offload = yes` marks scorers that can leave the GPU between calls.
 - `extract_overlap_trace.py`: how `overlap_trace.csv` was produced from the
   driver and judge-server logs (same storage as above).
 - `overlap_summary.csv`, `overlap_judge_summary.csv`: aggregates (generated).
+- `overlap_estimate.csv`: the estimated image-editing rows the manuscript
+  uses, with their inputs (generated; reads
+  `../2026-10-04-rollout-fidelity/it2i_arms.csv`).
 - `scorers.csv`, `mps_reported.csv`: hand-maintained inputs described above.
 - `overlap_table.tex`, `scorers_table.tex`, `mps_table.tex`, `macros.tex`:
   generated table bodies and numeric macros used by `sections/reward_service.tex`.
 - `figures/overlap_timeline.pdf` / `.png`, `figures/overlap_wallclock.pdf` /
   `.png`: generated figures; the PDFs are the manuscript assets.
-- `generate.py`: regenerates every generated file from the four input CSVs.
+- `generate.py`: regenerates every generated file from the four input CSVs and
+  the rollout-fidelity bundle's `it2i_arms.csv`.
 
 ```bash
 python3 artifacts/reported_results/2026-09-30-reward-service/generate.py
