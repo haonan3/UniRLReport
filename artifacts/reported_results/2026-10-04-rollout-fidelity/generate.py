@@ -216,6 +216,10 @@ def write_macros(arms: list[dict[str, str]], costs: list[dict[str, str]], longta
         "RFNaiveSteal": f"{lt('t2i', 'pickscore_local', 'steal', 'rollout_score_s', '2', 'rows'):.1f}",
         "RFNaiveGap": f"{lt('t2i', 'pickscore_local', 'balanced', 'rollout_score_s', '2', 'rows') - lt('t2i', 'pickscore_local', 'balanced', 'rollout_score_s'):.0f}",
         "RFStealRecovered": f"{lt('t2i', 'pickscore_local', 'balanced', 'rollout_score_s', '2', 'rows') - lt('t2i', 'pickscore_local', 'steal', 'rollout_score_s', '2', 'rows'):.0f}",
+        "RFStealPixelsEditMax": str(max(
+            int(r["stolen_units"]) for r in longtail
+            if r["workload"] == "it2i" and r["cost_model"] == "pixels" and r["strategy"].startswith("steal")
+        )),
         "RFPackedGroupEight": next(r["seconds_per_group"] for r in costs
                                    if r["workload"] == "it2i" and r["packing"] == "packed" and r["group_rows"] == "8"),
         "RFUnpackedGroupEight": next(r["seconds_per_group"] for r in costs

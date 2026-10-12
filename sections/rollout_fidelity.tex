@@ -116,7 +116,8 @@ The floor that Section~\ref{sec:reward-overlap} describes for this engine is rem
 \end{table}
 
 Table~\ref{tab:fidelity-chain} puts the four changes on one workload: generation per rank falls \RFTotalSaving{}, from \RFMainGenerate{}\,s to \RFPackGenerate{}\,s, and the first rollout's judge score settles between \RFPostFixRewardMin{} and \RFPostFixRewardMax{} instead of \RFMainReward{}.
-The first-update ratio stays within $10^{-4}$ of 1 throughout, and the layout check passes on every replay of every arm, including the ones where a micro-batch cuts a group.
+The first-update ratio stays within $10^{-4}$ of 1 throughout.
+The layout check is always on from \#548 and raises at the first mismatched replay; every arm from the per-group canvas on completed its replays, including the one where a micro-batch cuts a group.
 These are one to four rollouts per arm on a single workload shape: they establish the direction and size of each change on this path, not a distribution.
 
 \subsection{The long tail that mixed resolution exposes}
@@ -124,7 +125,7 @@ These are one to four rollouts per arm on a single workload shape: they establis
 
 Once a rollout can mix canvases, the assignment of rows to ranks stops being neutral.
 Today it is the data-parallel split: prompts in order, equal row counts, no attention to cost.
-On a dataset whose canvases are drawn from a production-like distribution---half small, a fifth at the default, a four-fold span in tokens---the steady text-to-image rollout spent \RFTtoiIdle{} of its rollout window with at least one rank idle, waiting on a rank that had drawn the expensive prompts.
+On a dataset whose canvases are drawn per row from a production-like mix with a four-fold span in tokens, the steady text-to-image rollout spent \RFTtoiIdle{} of its rollout window with at least one rank idle, waiting on a rank that had drawn the expensive prompts.
 
 We measured what a cost-aware assignment recovers.
 A coordinator hands each rank units of work from a queue ordered by an estimated cost, and an idle rank may take the cheapest unit from the busiest rank's queue; rows are restored to their original order by identifier before credit assignment, so the trajectory the trainer sees is unchanged.
@@ -140,7 +141,7 @@ Table~\ref{tab:fidelity-tail} reports the steady rollout of each arm.
 
 Three readings, each from two rollouts of each arm.
 Balancing recovers most of the tail where the cost estimate is good: text-to-image falls from \RFTtoiBase{}\,s to \RFTtoiBalanced{}\,s and idle time from \RFTtoiIdle{} to 2\%, while the mean per-rank generation time is unchanged at about 104\,s, so the work was redistributed rather than reduced.
-Stealing is insurance against a wrong estimate rather than a gain in its own right: with a good cost model it never triggered, and with a deliberately naive one that counts rows and ignores the canvas, which gave back \RFNaiveGap{}\,s of the balancing gain, it recovered \RFStealRecovered{} of them (\RFNaiveBalanced{}\,s to \RFNaiveSteal{}\,s).
+Stealing is insurance against a wrong estimate rather than a gain in its own right: with a good cost model it never triggered in text-to-image and moved at most \RFStealPixelsEditMax{} units per rollout in image editing, and with a deliberately naive one that counts rows and ignores the canvas, which gave back \RFNaiveGap{}\,s of the balancing gain, it recovered \RFStealRecovered{} of them (\RFNaiveBalanced{}\,s to \RFNaiveSteal{}\,s).
 And the two mechanisms compose with the reward schedule of Section~\ref{sec:reward}: against a judge with headroom, overlapping reward alone took the editing rollout from \RFSmallBase{}\,s to \RFSmallOverlap{}\,s, the cost-aware assignment alone to \RFSmallSteal{}\,s, and both together to \RFSmallBoth{}\,s, or \RFSmallBothSaving{}.
 
 Against the saturated 72B judge, cost-aware assignment made rollout plus reward \emph{longer}, with or without overlapping reward: from \RFLargeBase{}\,s to \RFLargeSteal{}\,s with overlap and \RFLargeStealNoOverlap{}\,s without in the steady rollout, and from \RFLargeFirstBase{}\,s to \RFLargeFirstSteal{}\,s and \RFLargeFirstStealNoOverlap{}\,s in the first.
@@ -149,7 +150,7 @@ This is the same mechanism that Section~\ref{sec:reward-results} found behind mi
 Two consequences follow.
 Such a scheduler has to be gated on measured reward headroom rather than enabled by default.
 But the regime that makes it harmful is the one Section~\ref{sec:reward-results} shows this deployment manufactures: one judge replica, and a server that scores one request at a time, which turns the scheduler's small concurrent requests into a queue instead of a batch.
-A reward service with continuous batching across concurrent requests, a disaggregated prefill stage, or more replicas would not put a judge of this size into saturation at this shape, and the gate would rarely close.
+With enough judge capacity the gate would rarely close; Section~\ref{sec:reward-results} finds that at its shape one replica of this judge is saturated even with whole-shard requests, so the capacity has to come from more replicas, with batching across concurrent requests or a disaggregated prefill stage reducing how many.
 The arm belongs in this report as the boundary of the mechanism, not as a configuration to expect.
 A second cost, measured and not yet addressed: in every arm that reassigned rows, the training phase ran \RFTrainSlowSteadyMin--\RFTrainSlowSteadyMax\% slower in the steady rollout and \RFTrainSlowFirstMin--\RFTrainSlowFirstMax\% slower in the first.
 Part of this is the queue path itself: in the text-to-image runs, prompt-order shards routed through the same queue, which reassigns nothing, trained \RFTrainSlowOwnerMin--\RFTrainSlowOwnerMax\% slower.

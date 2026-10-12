@@ -130,16 +130,18 @@ Steady rollout (the second of each arm) of the headline arms:
 
 - Mean per-rank generation is identical across assignments (about 104 s for t2i,
   64 s for it2i), so the work was redistributed, not reduced.
-- Stealing never triggered under a pixel-based cost estimate. Under a deliberately
+- Under a pixel-based cost estimate stealing never triggered in t2i and moved at
+  most 2 units per rollout in it2i (`stolen_units`). Under a deliberately
   naive estimate that counts rows, balancing gave back 25 s of its gain
   (108.6 → 133.9 s) and stealing recovered 18 of them (→ 115.9 s).
 - Against the saturated 72B judge the scheduler lengthens rollout + reward, with or
   without reward overlap: 128.4 → 131.1 s (132.2 s without overlap) in the steady
   rollout, 118.3 → 131.5 s (133.3 s) in the first. Generation is still flattened
   (90.8 → 68.4 s), but ranks that finish together queue at the judge together.
-  That saturation is largely an artifact of the serving path rather than of the
-  judge's size: see `../2026-09-30-reward-service/README.md`. A judge with
-  continuous batching or more replicas would not be in it at this shape.
+  At the reward-service shape one replica of that judge is saturated even with
+  whole-shard requests (`../2026-09-30-reward-service/README.md`, "Estimated
+  image-editing rows"), so leaving the regime takes more replicas; batching
+  across concurrent requests or a split prefill stage reduces how many.
 - In every arm that reassigned rows the train phase ran 1–5% slower in the steady
   rollout and 3–12% in the first. Prompt-order shards routed through the same
   queue (`owner`, t2i only), which reassign nothing, trained 2–3% slower, so part
@@ -161,6 +163,10 @@ Steady rollout (the second of each arm) of the headline arms:
   the CSV keeps both.
 - Per-call canvas seconds come from a timing line added by a local patch that is
   not part of any pull request.
+- There is no per-arm layout-check record. From #548 on the check is always on
+  for vLLM-Omni BAGEL rollouts and raises at the first mismatched replay, so the
+  arms from the per-group canvas on, which completed their train phases, passed
+  it; the `main` and injection-fix arms predate the check.
 - The scheduling branch is unmerged and its wall-clock sampling and row-cost switch
   are experiment-only patches.
 - The reward-service bundle's image-editing runs were taken before #547; the

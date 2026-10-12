@@ -77,6 +77,10 @@ Secondary shape, 16 rows per rank (one steady-state rollout per arm):
 
 What the numbers support:
 
+These are the measured runs, taken before UniRL #547; the manuscript uses the
+estimates of "Estimated image-editing rows" below. What the measured numbers
+support at their own generation length:
+
 - Cutting the shard into micro-batches removes 12% (8B) to 19% (72B) of
   generation plus reward. Generation itself stays at about 98 s; the saving is
   reward time that no longer sits after generation.
@@ -87,9 +91,9 @@ What the numbers support:
   production shape: a 72B judge for a policy with 7B active parameters, one replica, and a server that
   scores one request at a time. Per pair the same judge costs 0.47 s on an
   8-pair request against 0.30 s on a 32-pair one, so serving a rollout as 32
-  small requests is what raises its work from 76.9 s to 120.4 s and removes its
-  headroom. Continuous batching across concurrent requests, a split prefill
-  stage, or more replicas would avoid that.
+  small requests raises its work from 76.9 s to 120.4 s. At the measured
+  generation length that is what removes its headroom; at the estimated one,
+  one replica is saturated even with whole-shard requests (see below).
 - Smaller requests alone are not the mechanism: splitting the whole-shard
   request into 8-row requests without the stack is slower than the baseline on
   both judges.
@@ -144,6 +148,10 @@ phase over steady-state rollouts of the stack arms:
 |---|---:|---:|
 | EditScore 8B remote (`20260928-093100`) | 192.2 s | 178.1 s |
 | PickScore in-process (`20260928-093606`) | 58.0 s | 54.5 s |
+
+The EditScore sleep-cycle figures quoted in the placement subsection (offload
+5.1 s, 47 GB → 1.0 GB idle, wake 0.3 s, scores bit-identical across the cycle)
+are transcribed from the description of UniRL #348, not re-measured here.
 
 The merged role runs this pass once the shard has left the worker
 (`RewardStack.collect_garbage`). The follow-up arms that attribute the effect
@@ -207,7 +215,7 @@ that contains #547 and the shape above:
    `overlap_trace.csv`, the judge-side numbers and the timeline figure;
 3. 16 rows per rank, both judges × {whole shard, 8-row requests without the
    stack, two micro-batches serial and overlapped};
-4. the 8B-judge train phase with and without the collection pass;
+4. optionally, the 8B-judge train phase with and without the collection pass;
 5. optionally the 32-row schedules for the 8B judge with #550 on top.
 
 When they are in, remove `estimate()` and the daggers, and put the timeline
@@ -298,6 +306,10 @@ Points the manuscript relies on, all from the pull request and its review
 thread, none re-measured here:
 
 - scores were identical with and without MPS on the PR's deterministic fixture;
+- clean nsys/ncu profiles (one process per model, no HTTP or Ray) put one CLIP
+  process at about 49% GPU-busy at model batch 1 and 79% at batch 8, and
+  PickScore at about 47% and 71% (the manuscript's "about half of the device's
+  time at batch one");
 - below 100% active threads, float16/bfloat16 matrix products were wrong on the
   tested H20 driver stack, so the runtime rejects half-precision scorers below
   100%;
