@@ -159,9 +159,20 @@ def write_macros(arms: list[dict[str, str]], costs: list[dict[str, str]], longta
         ]
         return float(rows[0][key])
 
+    def train_slowdown(strategies: tuple[str, ...], rollout: str) -> list[float]:
+        base = {(r["workload"], r["reward"]): float(r["train_s"]) for r in longtail
+                if r["strategy"] == "baseline" and r["rollout"] == rollout}
+        return [100.0 * (float(r["train_s"]) / base[(r["workload"], r["reward"])] - 1.0) for r in longtail
+                if r["strategy"] in strategies and r["rollout"] == rollout]
+
+    moved = ("balanced", "steal", "steal+overlap")
+    moved_steady, moved_first = train_slowdown(moved, "2"), train_slowdown(moved, "1")
+    owner = train_slowdown(("owner",), "1") + train_slowdown(("owner",), "2")
+
     macros = {
         "RFMainGenerate": f"{generate['main']:.1f}",
         "RFFixGenerate": f"{generate['injection fix']:.1f}",
+        "RFCanvasGenerate": f"{generate['per-group canvas']:.1f}",
         "RFPackGenerate": f"{generate['sibling packing']:.1f}",
         "RFFixSaving": f"{100.0 * (1.0 - generate['injection fix'] / generate['main']):.0f}\\%",
         "RFPackSaving": f"{100.0 * (1.0 - generate['sibling packing'] / generate['per-group canvas']):.0f}\\%",
@@ -175,6 +186,7 @@ def write_macros(arms: list[dict[str, str]], costs: list[dict[str, str]], longta
         "RFTrainerKv": "2263",
         "RFRatioBuggy": "5.0",
         "RFRatioHealthy": "3.4",
+        "RFRatioHealthyEdit": "5.4",
         "RFTailMin": f"{min(ratios):.2f}",
         "RFTailMax": f"{max(ratios):.2f}",
         "RFSmallBase": f"{lt('it2i', 'editscore_8b', 'baseline', 'rollout_score_s'):.1f}",
@@ -186,6 +198,15 @@ def write_macros(arms: list[dict[str, str]], costs: list[dict[str, str]], longta
         "RFLargeSteal": f"{lt('it2i', 'editscore_72b', 'steal+overlap', 'rollout_score_s'):.1f}",
         "RFLargeFirstBase": f"{lt('it2i', 'editscore_72b', 'baseline', 'rollout_score_s', '1'):.1f}",
         "RFLargeFirstSteal": f"{lt('it2i', 'editscore_72b', 'steal+overlap', 'rollout_score_s', '1'):.1f}",
+        "RFLargeStealNoOverlap": f"{lt('it2i', 'editscore_72b', 'steal', 'rollout_score_s'):.1f}",
+        "RFLargeFirstStealNoOverlap": f"{lt('it2i', 'editscore_72b', 'steal', 'rollout_score_s', '1'):.1f}",
+        "RFSmallFirstStepSteal": f"{lt('it2i', 'editscore_8b', 'steal', 'step_s', '1') - lt('it2i', 'editscore_8b', 'baseline', 'step_s', '1'):.1f}",
+        "RFTrainSlowSteadyMin": f"{min(moved_steady):.0f}",
+        "RFTrainSlowSteadyMax": f"{max(moved_steady):.0f}",
+        "RFTrainSlowFirstMin": f"{min(moved_first):.0f}",
+        "RFTrainSlowFirstMax": f"{max(moved_first):.0f}",
+        "RFTrainSlowOwnerMin": f"{min(owner):.0f}",
+        "RFTrainSlowOwnerMax": f"{max(owner):.0f}",
         "RFLargeTail": f"{lt('it2i', 'editscore_72b', 'baseline', 'slowest_rank_generate_s'):.1f}",
         "RFLargeTailSteal": f"{lt('it2i', 'editscore_72b', 'steal+overlap', 'slowest_rank_generate_s'):.1f}",
         "RFTtoiBase": f"{lt('t2i', 'pickscore_local', 'baseline', 'rollout_score_s'):.1f}",

@@ -137,7 +137,7 @@ Once the judge is busy for the whole rollout, adding judge capacity or making it
 
 \paragraph{How one gets into that regime.}
 The regime is defined by the ratio of reward cost to generation cost, not by the judge's parameter count, and this deployment reaches it in a way a production one need not.
-A 72B judge scoring for a 7B policy is an unusual pairing; one judge replica serves all eight training ranks; and the single-scorer server scores one request at a time, so the small requests that arrive concurrently from different ranks are never merged into one forward.
+A 72B judge scoring for a policy with 7B active parameters is an unusual pairing; one judge replica serves all eight training ranks; and the single-scorer server scores one request at a time, so the small requests that arrive concurrently from different ranks are never merged into one forward.
 The last of these is measurable and is most of the effect.
 On the same judge a 32-pair request costs \RSLargeWholePerPair{}\,s per pair and an eight-pair request \RSLargeMicroPerPair{}\,s, so serving a rollout as 32 small requests raises the judge's total work from \RSLargeWholeWork{}\,s to \RSLargeSerialWork{}\,s --- which is the whole distance between having headroom and having none.
 A judge that batched across concurrent requests, split prefill from decode, or ran more than one replica would not be saturated at this shape.

@@ -23,13 +23,15 @@ UniRL builds that conditioning itself---its own image transforms, its own encode
 Since the engine was migrated to a newer serving version, three helpers in the BAGEL pipeline kept reading a field of the request \emph{batch} after the caller had already unwrapped it to a single request.
 The field was therefore always absent, the source image was never found, the injection never ran, and the engine fell back to its own image-to-image path: a different image transform at a fixed resolution, a sampled rather than an averaged latent, and the source's dimensions as the output canvas.
 
-Nothing in the training loop noticed.
-For a month every image-editing rollout on this path was generated under one conditioning and replayed under another, with a \RFWorkerKv{}-token prefix on the engine against \RFTrainerKv{} on the trainer at the same source size.
-The reason it was invisible is worth stating, because it bears on what a parity check has to measure.
+Nothing in the training loop noticed: every image-editing rollout on this path was generated under one conditioning and replayed under another, with a \RFWorkerKv{}-token prefix on the engine against \RFTrainerKv{} on the trainer at the same source size.
+Why it went unnoticed bears on what a parity check has to measure.
 The natural check is the importance ratio: before the first optimizer step of a rollout, the policy has not moved, so the ratio against its own behavior anchor should be 1 up to numerical noise.
 It was.
-With the mismatch the largest first-update deviation was $\RFRatioBuggy\times10^{-5}$; without it, $\RFRatioHealthy\times10^{-5}$; a healthy text-to-image run sits near $10^{-5}$.
-The ratio is a sum over a trajectory of a model that is, in both cases, a competent image model: conditioning it differently moves the sampled path, not the likelihood the trainer assigns to the path it is handed.
+With the mismatch the largest first-update deviation was $\RFRatioBuggy\times10^{-5}$; without it, $\RFRatioHealthy\times10^{-5}$; a healthy image-editing run reached $\RFRatioHealthyEdit\times10^{-5}$ (Table~\ref{tab:fidelity-layout}), so the mismatched run lay inside the healthy range.
+The cause is how the log-probability of a denoising transition is reduced.
+Both the engine and the trainer average the Gaussian log-density of a transition over every latent element instead of summing it, so a difference in the predicted mean, even one large enough to change what is generated, reaches the ratio divided by the number of latent elements, which is in the tens of thousands at $512\times512$.
+Under this reduction the ratio cannot separate a conditioning mismatch from numerical noise.
+A summed log-probability would not dilute the difference in this way; we have not measured whether the mismatch would then be visible.
 Under the recipes' default anchor, which recomputes the old log-probabilities from the trainer itself, the ratio is identically 1 and could not have seen anything at all.
 
 What does see it is a structural check.
@@ -37,7 +39,7 @@ The engine already hands the driver a hook where the driver's initial noise is s
 A mismatch raises at the first replay, with both sides printed.
 It costs nothing, because replay builds that context anyway, and conditions that carry their own contexts are not checked.
 Table~\ref{tab:fidelity-layout} lists what it catches.
-The ratio guard is kept as a second, coarser check, opt-in through a tolerance and warning rather than raising: it is sensitive to a policy that is not the one that generated the rollout---unsynchronized weights, the wrong adapter---and insensitive to conditioning.
+The ratio guard is kept as a second, coarser check, opt-in through a tolerance and warning rather than raising: it is meant for a policy that is not the one that generated the rollout---unsynchronized weights, the wrong adapter---and, with the averaged log-probability, does not detect a conditioning mismatch.
 
 \begin{table}[H]
 \caption{Probes of the token-layout check. Lengths are tokens of the generation context on the engine and on the trainer. The last column is the largest first-update deviation of the importance ratio from 1 in the same run, which is the check this replaces.}
@@ -51,7 +53,6 @@ Restoring the injection changed the rollout twice over.
 Generation of sixteen edits on one rank fell from \RFMainGenerate{}\,s to \RFFixGenerate{}\,s, because the engine's own path encodes the source into four times as many tokens as UniRL's.
 And the judge's verdict on the result moved: the mean EditScore of the first rollout, before any optimizer step and on the same prompts, went from \RFMainReward{} to \RFFixReward{} (Figure~\ref{fig:fidelity-chain}).
 That second number is not a learning result---no update had happened---but a measure of what the engine had been producing.
-For a month the reward model had been scoring edits made under conditioning the recipe did not intend.
 
 \subsection{A canvas per group}
 \label{sec:fidelity-canvas}
@@ -88,7 +89,7 @@ With two groups per rank drawn from a mixed dataset, the slowest rank of a rollo
 Group-relative credit needs several samples per prompt, and for image editing each of those samples was its own engine request.
 Every request rebuilt the same three contexts from the same source image, encoder passes included.
 Where the guidance scales allow it, the adapter now sends one request per contiguous run of a group's rows, and the engine builds the contexts once and replicates the generation context per sibling.
-Generation of sixteen edits per rank fell from the \RFFixGenerate{}\,s of Section~\ref{sec:fidelity-layout} to \RFPackGenerate{}\,s, about \RFPackSaving{}, for roughly two gibibytes more peak memory per GPU; one group of eight went from \RFUnpackedGroupEight{}\,s to \RFPackedGroupEight{}\,s.
+Generation of sixteen edits per rank fell from \RFCanvasGenerate{}\,s with the per-group canvas alone to \RFPackGenerate{}\,s, about \RFPackSaving{} (Table~\ref{tab:fidelity-chain}), for roughly two gibibytes more peak memory per GPU; one group of eight went from \RFUnpackedGroupEight{}\,s to \RFPackedGroupEight{}\,s.
 Text-to-image already packed and is unchanged.
 
 One consequence reaches back into Section~\ref{sec:reward-overlap}.
@@ -147,15 +148,18 @@ Balancing recovers most of the tail where the cost estimate is good: text-to-ima
 Stealing is insurance against a wrong estimate rather than a gain in its own right: with a good cost model it never triggered, and with a deliberately naive one that counts rows and ignores the canvas, which gave back \RFNaiveGap{}\,s of the balancing gain, it recovered \RFStealRecovered{} of them (\RFNaiveBalanced{}\,s to \RFNaiveSteal{}\,s).
 And the two mechanisms compose with the reward schedule of Section~\ref{sec:reward}: against a judge with headroom, overlapping reward alone took the editing rollout from \RFSmallBase{}\,s to \RFSmallOverlap{}\,s, the cost-aware assignment alone to \RFSmallSteal{}\,s, and both together to \RFSmallBoth{}\,s, or \RFSmallBothSaving{}.
 
-The negative result is the useful one.
-Against the saturated 72B judge, balancing made the step \emph{slower}: \RFLargeBase{}\,s against \RFLargeSteal{}\,s in the steady rollout and \RFLargeFirstBase{}\,s against \RFLargeFirstSteal{}\,s in the first.
+Against the saturated 72B judge, cost-aware assignment made rollout plus reward \emph{longer}, with or without overlapping reward: from \RFLargeBase{}\,s to \RFLargeSteal{}\,s with overlap and \RFLargeStealNoOverlap{}\,s without in the steady rollout, and from \RFLargeFirstBase{}\,s to \RFLargeFirstSteal{}\,s and \RFLargeFirstStealNoOverlap{}\,s in the first.
 It still flattened generation---the slowest rank fell from \RFLargeTail{}\,s to \RFLargeTailSteal{}\,s---but that is exactly the harm: with ranks finishing together they reach the judge together, and the queueing that the uneven baseline had spread out now happens all at once.
 This is the same mechanism that Section~\ref{sec:reward-results} found behind micro-batching's gain, read in reverse.
-Two things follow, and the second matters more.
+Two consequences follow.
 Such a scheduler has to be gated on measured reward headroom rather than enabled by default.
 But the regime that makes it harmful is the one Section~\ref{sec:reward-results} shows this deployment manufactures: one judge replica, and a server that scores one request at a time, which turns the scheduler's small concurrent requests into a queue instead of a batch.
 A reward service with continuous batching across concurrent requests, a disaggregated prefill stage, or more replicas would not put a judge of this size into saturation at this shape, and the gate would rarely close.
 The arm belongs in this report as the boundary of the mechanism, not as a configuration to expect.
-A second cost, measured and not yet addressed: the training phase ran 3--9\% slower, because after the rows are restored to their original order a rank replays rows that another rank generated and their latents cross workers.
-The step is still shorter overall where the scheduler helps, but an assignment that also followed the rows into training would not pay this.
+A second cost, measured and not yet addressed: in every arm that reassigned rows, the training phase ran \RFTrainSlowSteadyMin--\RFTrainSlowSteadyMax\% slower in the steady rollout and \RFTrainSlowFirstMin--\RFTrainSlowFirstMax\% slower in the first.
+Part of this is the queue path itself: in the text-to-image runs, prompt-order shards routed through the same queue, which reassigns nothing, trained \RFTrainSlowOwnerMin--\RFTrainSlowOwnerMax\% slower.
+The rest is consistent with a rank replaying rows that another rank generated, whose latents cross workers once the rows are restored to their original order; we have not separated the two.
+In the steady rollout the whole step is still shorter wherever the assignment shortens rollout plus reward.
+In the first rollout the slower training phase can outweigh that gain: with the 8B judge, cost-aware assignment without overlap made the first step \RFSmallFirstStepSteal{}\,s longer.
+An assignment that also followed the rows into training would avoid the replay cost.
 None of this is proposed yet.

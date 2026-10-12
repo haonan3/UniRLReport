@@ -82,7 +82,7 @@ What the numbers support:
   111.5 → 106.9 s). With the 72B judge it is indistinguishable from the serial
   schedule (146.3 s, range 144.3–149.1, against 145.0 s, range 144.4–146.0);
   see the judge-side view below for why. That arm is a stress test, not a
-  production shape: a 72B judge for a 7B policy, one replica, and a server that
+  production shape: a 72B judge for a policy with 7B active parameters, one replica, and a server that
   scores one request at a time. Per pair the same judge costs 0.47 s on an
   8-pair request against 0.30 s on a 32-pair one, so serving a rollout as 32
   small requests is what raises its work from 76.9 s to 120.4 s and removes its

@@ -72,6 +72,12 @@ the largest first-update deviation of the importance ratio from 1 in the same ru
 The two injected probes are local patches that were not committed. The bug itself
 was found by running the check of #548 on a healthy recipe for the first time.
 
+The ratio misses the mismatch because both the engine and the trainer average a
+transition's Gaussian log-density over every latent element rather than summing
+it, which divides a difference in the predicted mean by tens of thousands of
+elements at 512². The mismatched run (5.0e−5) lies inside the healthy it2i range
+(5.4e−5). Whether a summed log-probability would expose it was not measured.
+
 ### Cost of a canvas
 
 `canvas_cost.csv`, seconds for one group of four siblings on one rank.
@@ -127,14 +133,21 @@ Steady rollout (the second of each arm) of the headline arms:
 - Stealing never triggered under a pixel-based cost estimate. Under a deliberately
   naive estimate that counts rows, balancing gave back 25 s of its gain
   (108.6 → 133.9 s) and stealing recovered 18 of them (→ 115.9 s).
-- Against the saturated 72B judge the scheduler is a **regression**: 128.4 → 131.1 s
-  in the steady rollout, 118.3 → 131.5 s in the first. Generation is still flattened
+- Against the saturated 72B judge the scheduler lengthens rollout + reward, with or
+  without reward overlap: 128.4 → 131.1 s (132.2 s without overlap) in the steady
+  rollout, 118.3 → 131.5 s (133.3 s) in the first. Generation is still flattened
   (90.8 → 68.4 s), but ranks that finish together queue at the judge together.
   That saturation is largely an artifact of the serving path rather than of the
   judge's size: see `../2026-09-30-reward-service/README.md`. A judge with
   continuous batching or more replicas would not be in it at this shape.
-- The train phase ran 3–9% slower in every scheduled arm, because a rank replays
-  rows another rank generated and their latents cross workers.
+- In every arm that reassigned rows the train phase ran 1–5% slower in the steady
+  rollout and 3–12% in the first. Prompt-order shards routed through the same
+  queue (`owner`, t2i only), which reassign nothing, trained 2–3% slower, so part
+  of the cost is the queue path; the rest is consistent with a rank replaying rows
+  another rank generated. The two were not separated.
+- In the steady rollout the whole step is shorter wherever rollout + reward is.
+  In the first rollout the train cost can outweigh it: with the 8B judge,
+  cost-balanced + stealing without overlap made the first step 2.7 s longer.
 
 ## Limits
 
