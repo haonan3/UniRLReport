@@ -532,6 +532,8 @@ The evaluation must report the actual lag histogram, dropped work, and barrier t
 \label{sec:instantiations}
 
 The following paths show which information crosses the common boundary and which computations remain specialized.
+They illustrate the contracts at the design level, as implemented in the audited source, rather than inventory the system's capabilities.
+Section~\ref{sec:evaluation} exercises only the group-relative AR objectives, FlowGRPO, and the frozen-rewrite cross-stage path; the GAE, DiffusionNFT, rewrite-training, and agentic paths described below have stock recipes but no reported training runs.
 
 \subsection{Autoregressive reasoning}
 
@@ -540,7 +542,8 @@ Forking by group size creates generated shells with sibling IDs.
 An AR engine fills packed token segments and decoded text, and a reward role attaches scalar or component rewards.
 Group-normalized credit is computed on the driver before the batch is scattered; token-level generalized advantage estimates are instead computed per trajectory on the training workers, after the critic anchor is frozen.
 The train stack replays the same segment and applies the selected objective.
-Optional token-length balancing permutes individual generated rows of the training layer after credit is attached; it keeps each row's identifier and advantage but abandons sibling contiguity, so no grouping operation may follow it.
+Optional token-length balancing permutes individual generated rows of the training layer before the train stack scatters them, after driver-side group credit but before per-trajectory GAE, which does not depend on row order.
+It keeps each row's identifier and any attached advantage but abandons sibling contiguity, so no grouping operation may follow it; the E3-AR UniRL recipe enables it.
 
 \subsection{Diffusion and flow generation}
 
@@ -557,9 +560,9 @@ The image reward is attached to the leaf; when the rewrite stage trains, parent-
 The primary E4 case freezes that stage and uses ancestry to select the diffusion advantage groups.
 The prompt-enhancement workflow needs this ancestry to survive rollout scheduling and sharding; flattening it into unrelated rows would require rebuilding that correspondence out of band.
 In a tool-interacting path, each trajectory is a single-branch chain: the policy emits an action-like text part, the environment appends an observation part, and the process repeats until termination or suspension.
-The agentic trainer keeps one \sample{} per trajectory, forms a group from repeated copies of the same root rather than forked siblings, computes group advantages over those trajectories, and trains on their flattened generated turns, so lineage there conditions each turn within a trajectory rather than defining groups or shards.
+The agentic trainer keeps one \sample{} per trajectory, forms a group from repeated copies of the same root rather than forked siblings, computes group advantages over those trajectories, and trains on their flattened generated turns, each inheriting its trajectory's advantage, so lineage there conditions each turn within a trajectory rather than defining groups or shards.
 
-E4 checks these groups against an explicit ID-based reference and then studies the two grouping objectives in training.
+E4 checks these groups against an explicit ID-based reference on synthetic fixtures, leaving the recorded-rollout check open, and then studies the two grouping objectives in training.
 
 \section{Evaluation: Reported Results and Remaining Evidence}
 \label{sec:evaluation}
