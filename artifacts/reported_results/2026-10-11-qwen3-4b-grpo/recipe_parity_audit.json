@@ -98,8 +98,8 @@
     }
   ],
   "sources": {
-    "unirl_resolved": "/root/sync/zwfy/unirl-grpo-repro-01a1209a/recipes/unirl_grpo_resolved.yaml",
-    "verl_resolved": "/root/sync/zwfy/unirl-grpo-repro-01a1209a/recipes/verl_grpo_resolved.yaml"
+    "unirl_resolved": "<REPRO_ROOT>/recipes/unirl_grpo_resolved.yaml",
+    "verl_resolved": "<REPRO_ROOT>/recipes/verl_grpo_resolved.yaml"
   },
   "status": "pass",
   "unirl_resolved_assertions": {

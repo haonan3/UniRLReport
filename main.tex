@@ -588,7 +588,7 @@ We retain the distinction between report-derived and directly exported evidence,
 The settings below describe the prespecified protocol unless explicitly identified as an observed result; matching each setting to a resolved run configuration remains an artifact-release obligation.
 
 \begin{table}[H]
-\caption{Experiment-to-claim map and evidence status through 2026-09-30. P0 rows remain necessary for the primary trajectory-centric claim.}
+\caption{Experiment-to-claim map and evidence status through 2026-10-11. P0 rows remain necessary for the primary trajectory-centric claim.}
 \label{tab:experiment-map}
 \centering
 \scriptsize
@@ -636,7 +636,7 @@ These seeds and the checkpoint cadence must be supplied as run-time overrides be
 The planned external evaluation covers the frozen base and checkpoints 200/400/600/800 on MATH-500 (500 problems, avg@4) and AIME 2024/2025 (30 problems each, avg@16), using the registry's fixed decoding and \texttt{math\_verify} grader.
 The UniRL run and the selected current reference must align prompts, chat template, verifier, maximum generation length, group size, effective batch, clipping, KL treatment, optimizer updates, and evaluation decoding.
 The public veRL Qwen3 FSDP example is only a scaffold because its stock model variant, data, group size, response budget, and KL/objective settings differ.
-E3-AR uses a pinned adapted launcher whose resolved recipes are archived and checked field by field against fifteen cross-framework effective-work identities in \codepath{artifacts/reported\_results/2026-10-11-qwen3-4b-grpo/recipe\_parity\_audit.json}; two residual estimator-level differences that configuration cannot remove are quantified there. Absent frozen-base and checkpoint evaluations under the common external protocol, it does not by itself establish quality reproduction.
+E3-AR uses a pinned adapted launcher whose resolved recipes are archived and checked field by field against fifteen cross-framework effective-work identities in \codepath{artifacts/reported\_results/2026-10-11-qwen3-4b-grpo/recipe\_parity\_audit.json}; two residual estimator-level differences that configuration cannot remove are quantified there, and the bundle README lists the recipe items these identities do not cover. Absent frozen-base and checkpoint evaluations under the common external protocol, it does not by itself establish quality reproduction.
 The final 800-rollout checkpoint is primary. Internal evaluation uses AIME 2024/2025, so an AIME-selected best checkpoint is reported only as validation-selected and cannot establish an untouched AIME test result.
 MATH-500 is the primary external AR endpoint, with a training/evaluation overlap audit required before interpretation; the fixed-budget AIME curves are secondary diagnostics.
 The protocol calls for every seed, final-checkpoint curves, and 95\% confidence intervals; avg@$k$ denotes mean accuracy across $k$ sampled answers, not pass@$k$.
@@ -797,12 +797,13 @@ The source PR body and manuscript disagree on some replicate summaries; the pres
 We additionally compare UniRL and veRL on a 500-step Qwen3-4B-Base~\citep{yang2025qwen3} standard GRPO workload over DAPO-Math-17k~\citep{yu2025dapo}, the algorithm the registered RQ1 protocol specifies.
 Each framework uses 16 NVIDIA H20 GPUs across two eight-GPU nodes.
 The matched recipe uses 64 prompts with eight samples per prompt, temperature and top-$p$ 1.0, top-$k$ disabled, natural EOS termination with an 8,192-token response cap, and four optimizer updates per rollout under a 10,240-token per-GPU optimizer budget.
-The two runs align the model, dataset and prompt order, tokenizer, verifier, GRPO objective (advantage divided by the group standard deviation, per-sequence token-mean loss, symmetric clip $\epsilon=0.2$), optimizer settings, numerical precision, rollout batch, and update count.
+The two runs align the model, dataset and seeded prompt shuffle, tokenizer, verifier, GRPO objective (advantage divided by the group standard deviation, per-sequence token-mean loss, symmetric clip $\epsilon=0.2$), rollout log-probabilities as the frozen $\pi_{\text{old}}$ anchor, optimizer settings, fp32 master weights with bf16 compute, rollout batch, and update count.
 UniRL uses eight SGLang TP=2 engines, while veRL uses eight asynchronous vLLM TP=2 engines; these serving stacks are part of the compared end-to-end systems.
+The recipes do not align the training attention kernel (UniRL uses FlexAttention), reward placement (UniRL scores responses in a separate reward stage, whereas veRL's reward manager runs inside rollout), or realized response lengths, which follow each policy's own training trajectory.
 We exclude startup step 1 and report steps 2--500.
 
 \begin{table}[H]
-\caption{Recipe-matched Qwen3-4B GRPO performance over steps 2--500. Times and response length are mean $\pm$ step-level population standard deviation over 499 steps. Token rates divide total generated tokens by total measured time. Step-level deviations describe these runs and are not process-level uncertainty estimates.}
+\caption{Recipe-matched Qwen3-4B GRPO performance over steps 2--500. Recipes are matched; realized response lengths are not. Times and response length are mean $\pm$ step-level population standard deviation over 499 steps. Token rates divide total generated tokens by total measured time. Step-level deviations describe these runs and are not process-level uncertainty estimates.}
 \label{tab:ar-systems}
 \centering
 \scriptsize
@@ -820,6 +821,7 @@ veRL & $\mathbf{139.894 \pm 30.731}$ & $80.619 \pm 16.308$ & $\mathbf{55.743 \pm
 
 \paragraph{AR systems result.}
 UniRL's mean raw end-to-end step time is 2.6\% higher than veRL's while it samples responses that are 11.0\% longer on average.
+The median raw end-to-end step time is 147.7\,s for UniRL and 150.1\,s for veRL, and the 90th percentiles are 172.6\,s and 169.6\,s.
 After accounting for this varying work, UniRL provides 8.2\% higher end-to-end output-token throughput and 17.7\% higher generation output-token throughput.
 The native veRL actor-update timer is lower than the UniRL training timer, whereas UniRL's generation advantage is larger for this workload.
 The raw end-to-end ordering reverses near step 300 as the two sampled response-length distributions cross, but UniRL's token-normalized end-to-end and generation throughput are higher in every one of the five 100-step bands.

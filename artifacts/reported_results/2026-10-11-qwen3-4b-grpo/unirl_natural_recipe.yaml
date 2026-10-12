@@ -19,12 +19,12 @@ logging:
   - dapo
   - sglang
   - v2
-  logging_dir: /root/sync/zwfy/unirl-grpo-repro-01a1209a/wandb
+  logging_dir: <REPRO_ROOT>/wandb
 bundle:
   _target_: unirl.models.qwen3.bundle.Qwen3Bundle.from_config
   config:
     _target_: unirl.models.qwen3.config.Qwen3PipelineConfig
-    pretrained_model_ckpt_path: /root/.cache/unirl-grpo-repro-01a1209a/models/Qwen3-4B-Base
+    pretrained_model_ckpt_path: <CACHE_ROOT>/models/Qwen3-4B-Base
     model_precision: fp32
     use_gradient_checkpointing: true
     attn_implementation: flex_attention
@@ -66,7 +66,7 @@ rollout:
   config:
     _target_: unirl.rollout.engine.sglang.config.SGLangEngineConfig
     backend: http
-    pretrained_model_ckpt_path: /root/.cache/unirl-grpo-repro-01a1209a/models/Qwen3-4B-Base
+    pretrained_model_ckpt_path: <CACHE_ROOT>/models/Qwen3-4B-Base
     tp_size: 2
     concurrency: 64
     samples_pre_expanded: true
@@ -117,8 +117,8 @@ data_source:
   _target_: unirl.data.data_source.MultimodalRLDataSource
   args:
     run:
-      data_path: /root/sync/zwfy/unirl-grpo-repro-01a1209a/data/dapo_math/train.jsonl
-      eval_data_path: /root/sync/zwfy/unirl-grpo-repro-01a1209a/data/dapo_math/aime_eval.jsonl
+      data_path: <REPRO_ROOT>/data/dapo_math/train.jsonl
+      eval_data_path: <REPRO_ROOT>/data/dapo_math/aime_eval.jsonl
       seed: 42
     algorithm:
       prompts_per_rollout: 64

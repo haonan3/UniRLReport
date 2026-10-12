@@ -345,7 +345,7 @@ actor_rollout_ref:
       enable: false
       port: 9090
       file: /tmp/ray/session_latest/metrics/prometheus/prometheus.yml
-      served_model_name: /root/.cache/unirl-grpo-repro-01a1209a/models/Qwen3-4B-Base
+      served_model_name: <CACHE_ROOT>/models/Qwen3-4B-Base
     quantization: null
     quantization_config_file: null
     mtp:
@@ -374,7 +374,7 @@ actor_rollout_ref:
       quantization_config_path: null
   model:
     _target_: verl.workers.config.HFModelConfig
-    path: /root/.cache/unirl-grpo-repro-01a1209a/models/Qwen3-4B-Base
+    path: <CACHE_ROOT>/models/Qwen3-4B-Base
     hf_config_path: null
     tokenizer_path: null
     use_shm: false
@@ -436,8 +436,8 @@ actor_rollout_ref:
 data:
   tokenizer: null
   use_shm: false
-  train_files: /root/.cache/unirl-grpo-repro-01a1209a/data/train-verl.parquet
-  val_files: /root/.cache/unirl-grpo-repro-01a1209a/data/train-verl.parquet
+  train_files: <CACHE_ROOT>/data/train-verl.parquet
+  val_files: <CACHE_ROOT>/data/train-verl.parquet
   train_max_samples: -1
   val_max_samples: -1
   prompt_key: prompt
@@ -832,7 +832,7 @@ trainer:
   critic_warmup: 0
   default_hdfs_dir: null
   del_local_ckpt_after_load: false
-  default_local_dir: /root/sync/zwfy/unirl-grpo-repro-01a1209a/checkpoints/verl-grpo/resolve-only
+  default_local_dir: <REPRO_ROOT>/checkpoints/verl-grpo/resolve-only
   max_actor_ckpt_to_keep: null
   max_critic_ckpt_to_keep: null
   ray_wait_register_center_timeout: 300

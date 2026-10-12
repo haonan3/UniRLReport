@@ -61,6 +61,22 @@ reach with `clip_ratio_c = 10000.0`, and `actor/pg_clipfrac_lower` stayed 0.0 fo
 the whole run; degenerate-group handling is equivalent because every prompt is
 sampled eight times.
 
+### Recipe items outside the fifteen identities
+
+`EXPERIMENT_RUNBOOK.md` §6.2 asks for more than the fifteen identities check.
+The remaining items, and where each stands:
+
+| Item | UniRL | veRL | Status |
+|---|---|---|---|
+| π_old anchor | GRPO default `old_logp_source: rollout` (not overridden) | `rollout_correction.bypass_mode: true`, `calculate_log_probs: true` | Matched: both use rollout-engine log-probs, no recompute pass |
+| Prompt order | `torch.Generator` seeded 42 over `train.jsonl` | `RandomSampler` seeded 42 over `train-verl.parquet` | Same seeded shuffle over the same 17,917 rows; per-step prompt IDs not compared |
+| Chat template | `enable_thinking: true` | tokenizer default (Qwen3 template defaults to thinking enabled) | Expected equal; prompt tokens not compared |
+| Precision | fp32 master, bf16 FSDP params/autocast, fp32 log-probs | fp32 `model_dtype`, bf16 mixed precision | Same class (fp32 master, bf16 compute) |
+| Training attention | `flex_attention` | veRL default FSDP path, `use_remove_padding: true` | Not matched |
+| Reward placement | separate `RewardService` stage, math-verify on CPU (2.27 s/step) | DAPO reward manager inside async rollout (timer ≈ 0) | Not matched; part of each end-to-end system |
+| Weight sync | separate timer (3.08 s/step) | not logged separately; inside the E2E remainder (≈ 3.5 s/step) | Phase timers not comparable |
+| Realized response tokens | 4,197.6 mean, truncation 0.307 | 3,781.8 mean, truncation 0.203 | Not matched; follows each policy's trajectory |
+
 ## Curve and raw data
 
 [`natural_long_per_step.csv`](natural_long_per_step.csv) contains 499 measured
@@ -96,6 +112,11 @@ than veRL's while it samples responses that are 11.0% longer. Its end-to-end
 output-token throughput is 8.2% higher and generation output-token throughput is
 17.7% higher.
 
+| Framework | E2E median / p90 (s) | Generation median / p90 (s) | Training median / p90 (s) |
+|---|---:|---:|---:|
+| UniRL | 147.710 / 172.628 | 76.833 / 93.380 | 64.829 / 74.090 |
+| veRL | 150.050 / 169.634 | 86.107 / 95.464 | 60.399 / 70.393 |
+
 | Step band | veRL s/step (resp.) | UniRL s/step (resp.) | UniRL raw E2E | UniRL E2E tok/s | UniRL generation tok/s |
 |---|---:|---:|---:|---:|---:|
 | 0–100 | 90.70 (2,130) | 98.82 (2,533) | 8.9% slower | 9.2% higher | 20.4% higher |
@@ -113,10 +134,14 @@ in all five bands.
 - **The two frameworks ran on different nodes.** UniRL used
   `node-07e2836f5b849f5761976819` + `node-0862971ee23e3c6dbdabf8b3`; veRL used
   `node-22fc6dcf10baf73a823d2cc6` + `node-36d800314df2a77fbef5e357`. All four are
-  16× H20 in the same cluster, but the two runs executed concurrently on
-  different physical machines, so raw step time carries a node-identity
-  confound and should be read together with the token-normalized rates. The
-  earlier DRPO bundle ran both frameworks on one allocation sequentially.
+  8× H20 nodes in the same cluster, but the two runs executed concurrently on
+  different physical machines. Node identity affects the time denominator of
+  every reported rate, so it applies equally to raw step time and to the
+  token-normalized rates; token normalization corrects for the response-length
+  difference, not for hardware. `EXPERIMENT_RUNBOOK.md` §6.3 asks for systems to
+  run one at a time on the same reserved hosts. The earlier DRPO bundle did not
+  meet that either: UniRL's two nodes came from one allocation and veRL's from
+  two separate allocations.
 - **Response lengths diverged more than in the DRPO run** (11.0% here versus
   6.3% there), so the raw step-time ordering reflects how much text each side
   generated, not only how fast it generated it.
@@ -141,4 +166,12 @@ in all five bands.
 
 UniRL phase timings and response lengths come from W&B; the two metric families
 are logged on different W&B step indices and are joined on the `rollout/step`
-counter. veRL prints every metric per step to its driver log.
+counter. veRL prints every metric per step to its driver log; that log is not
+committed to this bundle, so veRL-side diagnostics quoted above
+(`actor/pg_clipfrac_lower`, `critic/advantages/max`) cannot be rechecked from
+the bundle alone.
+
+The committed UniRL recipe was resolved with `run_name: resolve-only`; the
+measured run is `grpo-unirl-natural500` (`2x4tdjwa`). Cluster-local paths in the
+recipes and audit are replaced with `<REPRO_ROOT>` (shared sync directory) and
+`<CACHE_ROOT>` (node-local model and data cache).

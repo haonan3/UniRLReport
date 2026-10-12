@@ -57,6 +57,7 @@
 | P0 | E1 已有 checkpoint 的 MATH-500 外评 | 两个目标各一个种子、内部 AIME 不等于主要外部端点 | frozen base + 已保存 checkpoint 的统一评测；按原定义报告 avg@4、token budget、模板与 grader；记录截断和重复评测不确定性 |
 | P0 | E4a 的真实 rollout 对照 + E5-R 最小实现 | 它们直接支撑 trajectory IR 的语义与成本，是论文核心缺口 | 同一真实 E4 payload、同一 device/transport/replay 输入，tree 与 flat-ID-join 语义一致；再测结构时间、metadata/driver memory、搬运量及相对模型时间 |
 | P0 | E3 来源和计时口径统一 | 当前重复数据不一致，不能正式估计不确定性 | 固定 run IDs、warmup、计时边界、LoRA targets、总 GPU 数及聚合脚本；决定保留 native 比较还是另跑严格匹配实验 |
+| P0 | E3-AR GRPO 性能复核（#20） | 同一 UniRL commit 下，生成每 token 耗时从 DRPO 到 GRPO 变慢约 19%（veRL 约 6%）；训练阶段每 token 不比 veRL 快；奖励与权重同步串行约多 2.7 s/step；截断率 0.307 对 0.203。两臂并发跑在不同节点、各一次，现有数据分不开系统问题和硬件差异 | 同一组预留机器上顺序重跑两臂；导出每步最长回复与生成尾部时间；固定长度 rollout 微基准分离引擎吞吐；训练阶段按 token profile；提交 veRL driver log |
 | P0/P1 | E4 rewrite 修复与短程健康检查 | chat markers 和 CLIP 截断可能影响质量及 grouping contrast | 新版本提取出正确改写、记录截断比例与 frozen-AR 身份；先短跑健康检查，再决定是否完整重跑 |
 | P1 | E1 补训练种子；记录 DRPO 引入过程 | 单种子不能判断目标优劣或稳定性 | 主要端点可用后，固定配方与预算，补足复制；报告所有种子和失败 |
 | P1 | E2-R 是否承担 reference 主张 | 训练与导出完成不代表质量已比较 | native 对照则明确标签；严格 reproduction 则先数学与工作量对齐，不用仅有外评分数替代 |
