@@ -913,28 +913,33 @@ OpenRLHF uses Ray, vLLM, and DeepSpeed to schedule the models in an RLHF workflo
 ROLL emphasizes a single-controller abstraction, parallel workers, sample lifecycle scheduling, and flexible device mapping~\citep{wang2025roll}.
 NeMo-RL provides scalable training and generation backends and multimodal model support~\citep{nemorl2025}.
 Group-relative recipes in these systems~\citep{sheng2024hybridflow,hu2024openrlhf,wang2025roll,nemorl2025} typically record one level of sampling structure---responses grouped under their prompt by a per-prompt identifier or by contiguous sample order---whereas UniRL generalizes that group key to multi-level ancestry encoded in sample identifiers.
-UniRL shares their concern for composable orchestration; its intended distinction is the lineage- and modality-aware trajectory boundary across AR, diffusion, and cross-stage generation.
-That distinction must be established by RQ3 rather than a feature table.
+UniRL shares their driver-sequenced orchestration and their separation of serving engines from training backends; it changes the unit that crosses role boundaries.
+A prompt-rooted lineage rather than a row is the unit of scheduling and sharding, and each part carries typed replay state for its AR or diffusion stage (Section~\ref{sec:trajectory}), so the same boundary serves AR, diffusion, and cross-stage generation.
+The difference lies in where structure lives, not in what can be computed: a flat-row system can reproduce the same groups by joining on retained parent keys (Section~\ref{sec:problem}).
+RQ3 therefore compares UniRL against such an ID-joined reference rather than against a feature table; the agreement check has so far used synthetic fixtures, and the cost of carrying the structure (E5-R) is unmeasured (Section~\ref{sec:rq3}).
 
 \paragraph{Asynchronous post-training.}
 AReaL fully decouples generation and training and controls staleness to improve language-reasoning throughput~\citep{fu2025areal}.
 Relax uses service-level separation, a TransferQueue data bus, and configurable staleness for omni-modal post-training~\citep{zhang2026relax}.
 slime supports persistent asynchronous rollout generation around a training/rollout/data-buffer loop~\citep{slime2025}.
-These systems make asynchrony an execution design space, not a UniRL novelty claim.
-UniRL implements a version-stamped group and publication-boundary discipline shared by AR and diffusion paths; RQ4 tests whether that realization is useful, without claiming a new asynchronous RL algorithm.
+These systems establish asynchrony as an execution design space, and UniRL's asynchronous path is a conservative point within it: publication remains a barrier, and lag is bounded in optimizer-update units (Section~\ref{sec:async}).
+Its asynchronous bookkeeping lives in the trajectory IR rather than in a side table: every generated part carries its output policy version, the lag filter admits or discards whole root groups so that group-relative baselines stay complete, and one manager serves both the AR and diffusion trainers.
+RQ4 reports only single-seed capacity measurements and a quality-target pilot that did not pass; it supports no throughput or time-to-quality comparison with these systems (Section~\ref{sec:rq4}).
 
 \paragraph{Multimodal and diffusion post-training systems.}
 VeRL-Omni extends veRL toward diffusion, unified, and omni-modality models and integrates vLLM-Omni rollout~\citep{verlomni2026}.
 Relax is explicitly omni-native~\citep{zhang2026relax}.
-Accordingly, ``supporting image, video, or audio'' cannot be the paper's contribution.
-The comparison instead asks how ancestry, typed replay state, and movement compose at the trajectory boundary.
-Because models and algorithms meet only at that boundary, they compose with $M+N$ rather than $M\times N$ integrations (Section~\ref{sec:algorithm-boundary}); E4 exercises one such composition across an AR stage and a diffusion stage.
+Modality coverage therefore does not distinguish UniRL from these systems.
+The distinction is how ancestry, typed replay state, and tensor movement compose at the trajectory boundary: an AR stage and a diffusion stage can belong to one \sample{}, and tensor references move their dense state without changing that structure (Section~\ref{sec:execution}).
+Because models and algorithms meet only at that boundary, they compose with $M+N$ rather than $M\times N$ integrations (Section~\ref{sec:algorithm-boundary}).
+E4 exercises one such composition, a frozen AR rewrite stage feeding a trained diffusion stage; its pending reuse inventory would document which modules are shared, not measure integration effort.
 
 \paragraph{Diffusion RL algorithms.}
 DDPO casts denoising as a multi-step decision process~\citep{black2023ddpo}.
 Flow-GRPO converts flow sampling to an SDE and applies group-relative optimization~\citep{liu2025flowgrpo}; DanceGRPO generalizes related ideas across visual generation tasks~\citep{xue2025dancegrpo}; DiffusionNFT instead optimizes a forward-process objective from reward-ranked generations~\citep{zheng2025diffusionnft}.
-UniRL implements several algorithm families but does not claim their mathematical ideas.
-Its algorithm interface keeps their incompatible replay state explicit while reusing scheduling and training mechanics.
+UniRL implements several of these families as consumers of its algorithm interface and claims none of their objectives.
+What the interface contributes is that their incompatible sufficient statistics stay explicit: FlowGRPO-style objectives replay recorded SDE transitions, DiffusionNFT trains on clean generated samples, and both reuse the same train stack for microbatching and optimizer state (Section~\ref{sec:instantiations}).
+Variants that change only the SDE transition or step schedule, such as DanceGRPO and MixGRPO, are recipes rather than new algorithm classes (Section~\ref{sec:algorithm-boundary}).
 
 \section{Limitations and Open Evidence}
 \label{sec:limitations}
