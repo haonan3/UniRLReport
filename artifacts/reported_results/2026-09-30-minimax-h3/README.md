@@ -5,7 +5,11 @@ UniRL and a configuration-matched veRL-Omni control.
 
 ## Recipes
 
-- UniRL source: [PR403 commit `d8e4aefa`](https://github.com/Tencent-Hunyuan/UniRL/commit/d8e4aefa7a266b229e05a82f7ac17bbac537e639)
+- UniRL source: [PR403 branch commit `d8e4aefa`](https://github.com/Tencent-Hunyuan/UniRL/commit/d8e4aefa7a266b229e05a82f7ac17bbac537e639).
+  This commit is not on UniRL `main`. The squash-merged PR403 recipe
+  ([`94e8f26b`](https://github.com/Tencent-Hunyuan/UniRL/commit/94e8f26b87)) changes the
+  ImageBind mode, master-weight dtype, and FSDP input casting, so these results
+  describe the branch recipe, not the merged one.
 - UniRL run: [`x8b0x8al`](https://wandb.ai/leviking98z-zhejiang-university/unirl-minimax-h3-t2va/runs/x8b0x8al)
 - veRL-Omni run: [`646mvxxs`](https://wandb.ai/leviking98z-zhejiang-university/unirl-minimax-h3-t2va/runs/646mvxxs)
 - Cache-fix check: [`munhe02k`](https://wandb.ai/leviking98z-zhejiang-university/unirl-minimax-h3-t2va/runs/munhe02k)
