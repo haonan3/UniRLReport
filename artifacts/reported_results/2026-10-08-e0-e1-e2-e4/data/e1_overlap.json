@@ -1,0 +1,69 @@
+{
+  "experiment": "E1",
+  "training_prompts": 17917,
+  "method": {
+    "normalization": "lower case; spacing, braces, dollar signs and display delimiters removed; \\left, \\right and thin spaces removed; \\dfrac and \\tfrac read as \\frac; dot commands read as ...; operators, digits and letters kept",
+    "verbatim": "the benchmark problem equals a training problem after normalization",
+    "near_verbatim": "at least 90% of the problem's 30-character substrings occur in one training problem",
+    "template_similar": "50% to 90% of the problem's 30-character substrings occur in one training problem"
+  },
+  "inputs_sha256": {
+    "train.jsonl": "fcc950774dbb5bf4c249f90bf2e2517676619e798f5a921190cf1391fc5f922c",
+    "math500.jsonl": "0baf4950c69ab971f1b45437b965927e5a2a8fda0d2c884c408c9b9c087fca84",
+    "aime2024.jsonl": "4c741c54d72a8f3468e2ab8d973f960ff34917a739d00c6c6d65309f11edb31a",
+    "aime2025.jsonl": "e0f1ae0488960abda7735653031adb8f1a5b17ebe25534766231eb6e406d1d0c"
+  },
+  "benchmark_files": "math500 and aime2024 are the files in Tencent-Hunyuan/UniRL at the evaluation commit; aime2025 is the file the evaluation read from storage",
+  "benchmarks": {
+    "math500": {
+      "problems": 500,
+      "verbatim": [
+        "test/algebra/1282.json",
+        "test/intermediate_algebra/1411.json",
+        "test/intermediate_algebra/1849.json",
+        "test/intermediate_algebra/2146.json",
+        "test/intermediate_algebra/345.json",
+        "test/intermediate_algebra/582.json",
+        "test/intermediate_algebra/90.json",
+        "test/intermediate_algebra/991.json"
+      ],
+      "near_verbatim": [
+        "test/geometry/561.json"
+      ],
+      "template_similar": [
+        "test/algebra/1072.json",
+        "test/algebra/975.json",
+        "test/counting_and_probability/1003.json",
+        "test/counting_and_probability/1060.json",
+        "test/counting_and_probability/430.json",
+        "test/counting_and_probability/803.json",
+        "test/geometry/229.json",
+        "test/geometry/283.json",
+        "test/geometry/65.json",
+        "test/geometry/702.json",
+        "test/geometry/947.json",
+        "test/intermediate_algebra/1063.json",
+        "test/intermediate_algebra/121.json",
+        "test/intermediate_algebra/232.json",
+        "test/intermediate_algebra/279.json",
+        "test/intermediate_algebra/964.json",
+        "test/number_theory/838.json",
+        "test/prealgebra/307.json",
+        "test/precalculus/285.json",
+        "test/precalculus/96.json"
+      ]
+    },
+    "aime2024": {
+      "problems": 30,
+      "verbatim": [],
+      "near_verbatim": [],
+      "template_similar": []
+    },
+    "aime2025": {
+      "problems": 30,
+      "verbatim": [],
+      "near_verbatim": [],
+      "template_similar": []
+    }
+  }
+}

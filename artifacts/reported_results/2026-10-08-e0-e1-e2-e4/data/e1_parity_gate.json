@@ -1,0 +1,266 @@
+{
+  "experiment": "E1",
+  "quantity": "absolute difference between rollout-engine and train-side replay log-probabilities",
+  "geometry": "the E1 GRPO recipe at its formal geometry: 32 GPUs, 64 prompts x 8 samples, at most 8192 new tokens, TensorWeightSync to SGLang",
+  "recorded": "2026-09-10, before the first formal run",
+  "tolerance": {
+    "value": 0.05,
+    "applies_to": "the largest token difference in a rollout",
+    "enforced": false,
+    "outcome": "exceeded on every check; the run continued with a warning",
+    "note": "the experiment record reads the mean difference instead and set no tolerance for it; the formal runs recorded the gauge with no tolerance"
+  },
+  "source_repository": "https://github.com/celve/unirl-pub",
+  "runs": [
+    {
+      "id": "probe-1",
+      "source_commit": "2b4b991892588b1e1a19fe62de8e63a3adc67ea0",
+      "note": "ended in a compile error at its third rollout, after both checks",
+      "checks": [
+        {
+          "context": "before_first_update",
+          "rollout": 1,
+          "absdiff_mean": 0.01104059859062545,
+          "absdiff_max": 0.4409782886505127
+        },
+        {
+          "context": "after_publication",
+          "rollout": 2,
+          "absdiff_mean": 0.01542933274564954,
+          "absdiff_max": 1.1291427612304688
+        }
+      ]
+    },
+    {
+      "id": "probe-2",
+      "source_commit": "662f69450849ad0116ea916eba5c368e2b115193",
+      "note": "four rollouts after the compile fix",
+      "checks": [
+        {
+          "context": "before_first_update",
+          "rollout": 1,
+          "absdiff_mean": 0.009467073541600257,
+          "absdiff_max": 0.6069722175598145
+        },
+        {
+          "context": "after_publication",
+          "rollout": 2,
+          "absdiff_mean": 0.016118838141361874,
+          "absdiff_max": 0.9311294555664062
+        },
+        {
+          "context": "after_publication",
+          "rollout": 3,
+          "absdiff_mean": 0.01070508479865061,
+          "absdiff_max": 0.4766354560852051
+        },
+        {
+          "context": "after_publication",
+          "rollout": 4,
+          "absdiff_mean": 0.009333224827423691,
+          "absdiff_max": 0.3688383102416992
+        }
+      ]
+    },
+    {
+      "id": "probe-3",
+      "source_commit": null,
+      "note": "six rollouts; the experiment record names this series and gives neither its commit nor why it ends there",
+      "checks": [
+        {
+          "context": "before_first_update",
+          "rollout": 1,
+          "absdiff_mean": 0.010678305356931459,
+          "absdiff_max": 0.4172482490539551
+        },
+        {
+          "context": "after_publication",
+          "rollout": 2,
+          "absdiff_mean": 0.01769429352134466,
+          "absdiff_max": 1.15081787109375
+        },
+        {
+          "context": "after_publication",
+          "rollout": 3,
+          "absdiff_mean": 0.009416842978680506,
+          "absdiff_max": 1.1412353515625
+        },
+        {
+          "context": "after_publication",
+          "rollout": 4,
+          "absdiff_mean": 0.012211637066987654,
+          "absdiff_max": 0.36744964122772217
+        },
+        {
+          "context": "after_publication",
+          "rollout": 5,
+          "absdiff_mean": 0.006879783235490322,
+          "absdiff_max": 0.4248616695404053
+        },
+        {
+          "context": "after_publication",
+          "rollout": 6,
+          "absdiff_mean": 0.015566133568063379,
+          "absdiff_max": 0.36801254749298096
+        }
+      ]
+    },
+    {
+      "id": "probe-4",
+      "source_commit": "e943d1679f979e690514fdf338de0774d21ea892",
+      "note": "25 rollouts with the internal evaluation disabled",
+      "checks": [
+        {
+          "context": "before_first_update",
+          "rollout": 1,
+          "absdiff_mean": 0.014347642753273248,
+          "absdiff_max": 0.3182373046875
+        },
+        {
+          "context": "after_publication",
+          "rollout": 2,
+          "absdiff_mean": 0.016362480499083176,
+          "absdiff_max": 1.1814947128295898
+        },
+        {
+          "context": "after_publication",
+          "rollout": 3,
+          "absdiff_mean": 0.013068057014606893,
+          "absdiff_max": 3.4900217056274414
+        },
+        {
+          "context": "after_publication",
+          "rollout": 4,
+          "absdiff_mean": 0.008694291420397349,
+          "absdiff_max": 0.45678091049194336
+        },
+        {
+          "context": "after_publication",
+          "rollout": 5,
+          "absdiff_mean": 0.006962460595079594,
+          "absdiff_max": 0.3792346715927124
+        },
+        {
+          "context": "after_publication",
+          "rollout": 6,
+          "absdiff_mean": 0.014814810082316398,
+          "absdiff_max": 0.66864013671875
+        },
+        {
+          "context": "after_publication",
+          "rollout": 7,
+          "absdiff_mean": 0.010072514181956649,
+          "absdiff_max": 0.49003124237060547
+        },
+        {
+          "context": "after_publication",
+          "rollout": 8,
+          "absdiff_mean": 0.009934242504338423,
+          "absdiff_max": 0.4082907438278198
+        },
+        {
+          "context": "after_publication",
+          "rollout": 9,
+          "absdiff_mean": 0.012179639702662826,
+          "absdiff_max": 0.4994773864746094
+        },
+        {
+          "context": "after_publication",
+          "rollout": 10,
+          "absdiff_mean": 0.008038207927408317,
+          "absdiff_max": 0.5056920051574707
+        },
+        {
+          "context": "after_publication",
+          "rollout": 11,
+          "absdiff_mean": 0.011590888095088302,
+          "absdiff_max": 2.2372231483459473
+        },
+        {
+          "context": "after_publication",
+          "rollout": 12,
+          "absdiff_mean": 0.009912868919359013,
+          "absdiff_max": 0.43315696716308594
+        },
+        {
+          "context": "after_publication",
+          "rollout": 13,
+          "absdiff_mean": 0.01271687070839107,
+          "absdiff_max": 0.4888284206390381
+        },
+        {
+          "context": "after_publication",
+          "rollout": 14,
+          "absdiff_mean": 0.00887293959967792,
+          "absdiff_max": 0.49869346618652344
+        },
+        {
+          "context": "after_publication",
+          "rollout": 15,
+          "absdiff_mean": 0.012347107566893101,
+          "absdiff_max": 0.4621248245239258
+        },
+        {
+          "context": "after_publication",
+          "rollout": 16,
+          "absdiff_mean": 0.005170186121876423,
+          "absdiff_max": 0.5497305393218994
+        },
+        {
+          "context": "after_publication",
+          "rollout": 17,
+          "absdiff_mean": 0.008355958376672457,
+          "absdiff_max": 0.3196582794189453
+        },
+        {
+          "context": "after_publication",
+          "rollout": 18,
+          "absdiff_mean": 0.004824685902955632,
+          "absdiff_max": 0.4513092041015625
+        },
+        {
+          "context": "after_publication",
+          "rollout": 19,
+          "absdiff_mean": 0.006862985880368135,
+          "absdiff_max": 0.602999210357666
+        },
+        {
+          "context": "after_publication",
+          "rollout": 20,
+          "absdiff_mean": 0.013216152490878647,
+          "absdiff_max": 0.47658491134643555
+        },
+        {
+          "context": "after_publication",
+          "rollout": 21,
+          "absdiff_mean": 0.004646242273828158,
+          "absdiff_max": 0.8482533693313599
+        },
+        {
+          "context": "after_publication",
+          "rollout": 22,
+          "absdiff_mean": 0.008553634909912945,
+          "absdiff_max": 0.5856034755706787
+        },
+        {
+          "context": "after_publication",
+          "rollout": 23,
+          "absdiff_mean": 0.004598286022276928,
+          "absdiff_max": 0.46587419509887695
+        },
+        {
+          "context": "after_publication",
+          "rollout": 24,
+          "absdiff_mean": 0.0061996351461857556,
+          "absdiff_max": 0.4873267412185669
+        },
+        {
+          "context": "after_publication",
+          "rollout": 25,
+          "absdiff_mean": 0.006666066590696573,
+          "absdiff_max": 0.4219658374786377
+        }
+      ]
+    }
+  ]
+}

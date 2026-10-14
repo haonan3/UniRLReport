@@ -1,0 +1,206 @@
+{
+  "experiment": "E1",
+  "model": "Qwen3-4B-Base",
+  "training_data": "DAPO-Math-17k",
+  "data_sha256": {
+    "train.jsonl": "fcc950774dbb5bf4c249f90bf2e2517676619e798f5a921190cf1391fc5f922c",
+    "aime_eval.jsonl": "4cf61fc89165d54b809ca49c769cce69242684f5ce9b6d9ba39e5ef93f38a2ba"
+  },
+  "source_commit": "2055f2a23353ead1ea3302741ff9378c7e62da6a",
+  "source_repository": "https://github.com/celve/unirl-pub",
+  "source_branch": "LIN-1195/ar-pre-train-evaluation-hangs",
+  "allocation": "4 nodes x 8 NVIDIA H20 96 GB (32 GPUs)",
+  "budget": {
+    "rollouts": 800,
+    "prompts_per_rollout": 64,
+    "samples_per_prompt": 8,
+    "optimizer_updates_per_rollout": 4,
+    "checkpoint_interval": 200
+  },
+  "endpoint": {
+    "primary": {
+      "benchmark": "MATH-500",
+      "prompts": 500,
+      "metric": "avg@4",
+      "temperature": 0.6,
+      "top_p": 0.95,
+      "max_tokens": 16384,
+      "grader": "math_verify"
+    },
+    "secondary": {
+      "benchmarks": [
+        "AIME 2024",
+        "AIME 2025"
+      ],
+      "prompts": 30,
+      "metric": "avg@16",
+      "temperature": 0.6,
+      "top_p": 0.95,
+      "max_tokens": "32768 requested; clipped to the model's 32768-token context minus the prompt"
+    },
+    "seeding": "the text benchmarks are not seeded; the final checkpoints of GRPO seed 11 and DRPO seed 11 were evaluated twice"
+  },
+  "evaluation": {
+    "code_commit": "69df7c6b37d7231be31b6d49f68aa24cec61b80c",
+    "code_repository": "https://github.com/Tencent-Hunyuan/UniRL",
+    "grader_packages": "math-verify 0.9.0 with latex2sympy2-extended 1.11.0",
+    "weights": "each saved checkpoint exported to bf16 Hugging Face weights and served by SGLang; no hash of an exported model was recorded"
+  },
+  "internal_validation": {
+    "problems": "the 60 AIME 2024 and AIME 2025 problems, the same problems as the secondary endpoint",
+    "samples_per_prompt": 16,
+    "temperature": 1.0,
+    "interval_rollouts": 10,
+    "data_sha256": "4cf61fc89165d54b809ca49c769cce69242684f5ce9b6d9ba39e5ef93f38a2ba",
+    "note": "a validation instrument under the training sampling settings; a checkpoint chosen by it is validation-selected"
+  },
+  "runs": [
+    {
+      "id": "grpo-s11",
+      "objective": "GRPO",
+      "recipe": "examples/ar/qwen3_grpo_4b_base_dapo_sglang.yaml",
+      "seed": 11,
+      "segments": [
+        "rollouts 1-200",
+        "rollouts 201-800, resumed from checkpoint 200"
+      ],
+      "evaluated_checkpoints": [
+        600,
+        800
+      ],
+      "note": "checkpoints 200 and 400 were lost from shared storage before the endpoint evaluation"
+    },
+    {
+      "id": "grpo-s11rerun",
+      "objective": "GRPO",
+      "recipe": "examples/ar/qwen3_grpo_4b_base_dapo_sglang.yaml",
+      "seed": 11,
+      "segments": [
+        "rollouts 1-400 of the formal 800-rollout command, stopped by SIGTERM after checkpoint 400 was saved and exported",
+        "rollouts 401-518, resumed from checkpoint 400 with the same command; the allocation ended at rollout 518, before checkpoint 600, so no later checkpoint exists"
+      ],
+      "evaluated_checkpoints": [
+        200,
+        400
+      ],
+      "note": "run on 2026-10-12 and 2026-10-13 in place of GRPO seed 11's two lost checkpoints, with the same commit, data and data order as the original; generation sampling is unseeded, so it is a separate run: its internal validation is above the original's at every evaluation from rollout 70 to 420 and below it at every evaluation from 430 to 510; the first segment logged rollout 401 after checkpoint 400, which the resumed segment's rollout 401 replaces, and the resumed segment's evaluation labelled rollout 0 re-evaluates the restored rollout-400 weights and is not used; ran from an archive of the source commit"
+    },
+    {
+      "id": "grpo-s22",
+      "objective": "GRPO",
+      "recipe": "examples/ar/qwen3_grpo_4b_base_dapo_sglang.yaml",
+      "seed": 22,
+      "segments": [
+        "rollouts 1-800"
+      ],
+      "evaluated_checkpoints": [
+        200,
+        400,
+        600,
+        800
+      ],
+      "note": "ran from an archive of the source commit"
+    },
+    {
+      "id": "grpo-s33",
+      "objective": "GRPO",
+      "recipe": "examples/ar/qwen3_grpo_4b_base_dapo_sglang.yaml",
+      "seed": 33,
+      "segments": [
+        "rollouts 1-800"
+      ],
+      "evaluated_checkpoints": [
+        200,
+        400,
+        600,
+        800
+      ],
+      "note": "ran from an archive of the source commit"
+    },
+    {
+      "id": "drpo-s11",
+      "objective": "DRPO",
+      "recipe": "examples/ar/qwen3_drpo_4b_base_dapo_sglang.yaml",
+      "seed": 11,
+      "overrides": [
+        "rollout.config.engine_kwargs.rl_on_policy_target=null"
+      ],
+      "segments": [
+        "rollouts 1-800"
+      ],
+      "evaluated_checkpoints": [
+        200,
+        400,
+        600,
+        800
+      ],
+      "note": "the DRPO arm was added after GRPO seed 11 finished; a departure from the prespecified protocol"
+    },
+    {
+      "id": "drpo-s22",
+      "objective": "DRPO",
+      "recipe": "examples/ar/qwen3_drpo_4b_base_dapo_sglang.yaml",
+      "seed": 22,
+      "overrides": [
+        "rollout.config.engine_kwargs.rl_on_policy_target=null"
+      ],
+      "segments": [
+        "rollouts 1-200",
+        "rollouts 201-800, resumed from checkpoint 200 on a new allocation"
+      ],
+      "evaluated_checkpoints": [
+        200,
+        400,
+        600,
+        800
+      ],
+      "note": "the first allocation ended at rollout 369; its rollouts 201-369 are discarded; ran from an archive of the source commit"
+    },
+    {
+      "id": "drpo-s33",
+      "objective": "DRPO",
+      "recipe": "examples/ar/qwen3_drpo_4b_base_dapo_sglang.yaml",
+      "seed": 33,
+      "overrides": [
+        "rollout.config.engine_kwargs.rl_on_policy_target=null"
+      ],
+      "segments": [
+        "rollouts 1-800"
+      ],
+      "evaluated_checkpoints": [
+        200,
+        400,
+        600,
+        800
+      ],
+      "note": "ran from an archive of the source commit"
+    }
+  ],
+  "starts_not_reported": [
+    "GRPO seed 11: three launches ended before the first rollout (a grader that did not return, a port left bound by the previous launch, a stalled pre-training evaluation)",
+    "GRPO seed 22: a first launch was stopped at rollout 19 when the allocation was given to the DRPO arm, and the seed was run again from the start",
+    "DRPO seed 11: a first launch ran 39 rollouts with a gradient of exactly zero; the override rl_on_policy_target=null fixed it, and every DRPO run reported here carries that override",
+    "DRPO seed 22: rollouts 201-369 of the first allocation, discarded as noted on the run"
+  ],
+  "drpo_recipe_differences_from_grpo": [
+    "the loss",
+    "advantages are not divided by the group standard deviation",
+    "token aggregation",
+    "old log-probabilities are taken from the rollout engine",
+    "shard balancing"
+  ],
+  "seed_scope": "the seed ID controls data order; generation sampling is not seeded (the rollout engine's random seed is left unset)",
+  "loop_definition": "a completion counts as a loop when one 20-400 character unit taken from its end repeats at least max(3, 1500/len(unit)) times within its last 3000 characters",
+  "token_limit": {
+    "definition": "an answer is at the limit when its text, tokenized again with the checkpoint's tokenizer, has at least 97% of the benchmark's generation limit (16384 tokens for MATH-500, 32768 for AIME)",
+    "grades": "each answer graded again as the benchmark grades it; the regrade reproduces the per-prompt accuracy of all 81 evaluation files",
+    "derived_from": {
+      "files": {
+        "endpoint-capped-2026-10-11.tsv": "314a934d6eef5822c807b3e9b6cab15c2b1c184b175be273ab9211dca78d3ed4",
+        "endpoint-capped-grpo-s11rerun-2026-10-13.tsv": "4157787432ed06053e130e26902c02d148141a8d998de36f5876ba8089855575"
+      },
+      "computed_by": "the experiment, from the completions",
+      "kept": "counts recovered from its four-decimal rates and checked against the per-prompt scores in this bundle"
+    }
+  }
+}
