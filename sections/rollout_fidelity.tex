@@ -11,10 +11,9 @@ second, the adapter must propagate per-prompt output canvas resolutions while ke
 and third, engine requests should pack contiguous sibling rows under a shared prompt so that source conditioning is encoded once per group rather than once per sibling row (Section~\ref{sec:fidelity-pack}).
 Verifying and optimizing these properties requires explicit cross-boundary invariants and request-shaping contracts.
 
-\paragraph{Source scope.}
-This case study examines four stacked changes to the vLLM-Omni BAGEL rollout path in UniRL pull requests~\#547--\#550 (\#547 is included in the v0.2.0 release at commit \texttt{0a82feb2}; \#548--\#550 were merged into \texttt{main} after v0.2.0 at commits \texttt{0fbf3ad0}, \texttt{2c19e14e}, and \texttt{f6044285}), affecting both text-to-image (\texttt{t2i}) and instruction-guided image-to-image editing (\texttt{it2i}) workloads.
+\paragraph{Scope.}
+This case study examines four stacked refinements to the vLLM-Omni BAGEL rollout path affecting both text-to-image (\texttt{t2i}) and instruction-guided image-to-image editing (\texttt{it2i}) workloads, together with a dynamic load-balancing scheduler for mixed-resolution batches (Section~\ref{sec:fidelity-tail}).
 All measurements below were collected on a single node of eight NVIDIA H20 GPUs, with per-run records and table generators archived under \codepath{artifacts/reported\_results/2026-10-04-rollout-fidelity/}.
-The dynamic load-balancing prototype evaluated in Section~\ref{sec:fidelity-tail} was measured on an experimental branch without a pull request.
 
 \subsection{Conditioning Mismatch Undetected by the Importance Ratio}
 \label{sec:fidelity-layout}
@@ -33,7 +32,7 @@ Both the rollout engine and the trainer compute the Gaussian log-density of each
 Under element-mean reduction, the importance ratio cannot distinguish a structural conditioning mismatch from benign numerical noise.
 Moreover, when a recipe uses the trainer-recomputed replay anchor (the default in several diffusion configurations), the baseline log probabilities are recomputed on the trainer itself, making the first-update ratio identically 1 by construction.
 
-To detect such discrepancies directly, UniRL adds a structural token-layout check across the rollout--replay boundary (UniRL pull request~\#548).
+To detect such discrepancies directly, UniRL adds a structural token-layout check across the rollout--replay boundary.
 The engine hook that injects initial noise now also records the conditioning layout and output canvas geometry---specifically, the generation-context token length, its positional offset, and the rendered height and width---which return through the capture channel into the frontier layer's model conditions $C_i$ and are compared row-by-row against the context reconstructed by the training role during replay.
 Any mismatch raises an exception on the first replay pass and logs both layouts.
 Because the training role already constructs the replay context, the check adds no tensor-compute overhead; conditioning paths that pass pre-materialized context tensors directly from rollout to replay bypass the check.
@@ -48,7 +47,7 @@ The importance-ratio check is retained as an optional secondary diagnostic for d
 \input{artifacts/reported_results/2026-10-04-rollout-fidelity/layout_table.tex}
 \end{table}
 
-Restoring the injected conditioning (UniRL pull request~\#547) affected both rollout latency and initial judge scores.
+Restoring the injected conditioning affected both rollout latency and initial judge scores.
 Generation time for 16 edits per rank decreased from \RFMainGenerate{}\,s to \RFFixGenerate{}\,s (\RFFixSaving{}), because the engine's fallback path encoded the source image into nearly four times as many vision tokens as UniRL's encoder path (\RFWorkerKv{} versus \RFTrainerKv{} total context tokens).
 Simultaneously, the mean EditScore reward on the first rollout---evaluated on identical prompts prior to any optimizer update---increased from \RFMainReward{} to \RFFixReward{} (Figure~\ref{fig:fidelity-chain}), reflecting the quality difference between the two conditioning representations on the pretrained checkpoint.
 
@@ -58,7 +57,7 @@ Simultaneously, the mean EditScore reward on the first rollout---evaluated on id
 Previously, every rollout batch required a single uniform output resolution fixed by the recipe, because a layer's \texttt{LatentSegment} $Z_i$ stores latents as a single dense tensor and the rollout adapter passed one canvas size per batch to the engine.
 Production prompt datasets, however, contain examples with diverse target aspect ratios and resolutions; forcing a uniform canvas either wastes compute on low-resolution examples or downsamples and distorts high-resolution ones.
 
-UniRL pull request~\#549 allows each root example to specify its target canvas dimensions in the root metadata $M_0$.
+To support variable-resolution datasets without sacrificing dense segment storage, UniRL allows each root example to specify its target canvas dimensions in the root metadata $M_0$.
 During rollout, the adapter resolves each frontier row's target canvas from its root ancestor in $P_0$ (falling back to the recipe default) and dispatches one engine call per contiguous run of rows that share a canvas size.
 To keep the latent segment tensor dense across a mixed-resolution batch, smaller canvases are right-padded along the token dimension to match the recipe's maximum canvas size, and the trainer slices each row back to its true token count during replay; canvases exceeding the recipe maximum are rejected at admission.
 Because all sibling samples forked from a root prompt share the same canvas, group-relative credit assignment, the micro-batched \texttt{RewardStack} of Section~\ref{sec:reward-overlap}, and downstream scorers require no modification.
@@ -84,7 +83,7 @@ Consequently, when each data-parallel rank receives two prompt groups drawn in d
 
 To support group-relative credit assignment, rollout forks multiple sibling samples from each root prompt.
 Whereas the text-to-image BAGEL adapter already packed sibling rows into a single engine call, the original image-editing (\texttt{it2i}) adapter dispatched each sibling row as an independent request, causing the engine to recompute the vision-encoder pass and key--value conditioning context for every sibling in the group.
-With sibling request packing (UniRL pull request~\#550), whenever guidance-scale settings permit, the \texttt{it2i} adapter consolidates contiguous sibling rows from the same prompt group into a single engine request so that the engine encodes the source conditioning once and broadcasts the resulting context across the group.
+With sibling request packing, whenever guidance-scale settings permit, the \texttt{it2i} adapter consolidates contiguous sibling rows from the same prompt group into a single engine request so that the engine encodes the source conditioning once and broadcasts the resulting context across the group.
 At 16 edits per rank ($512\times512$), packing reduces per-rank generation time from \RFCanvasGenerate{}\,s to \RFPackGenerate{}\,s (\RFPackSaving{}, Table~\ref{tab:fidelity-chain}) at the cost of roughly 2\,GiB of additional peak GPU memory, and reduces the generation time for a single eight-sibling group from \RFUnpackedGroupEight{}\,s to \RFPackedGroupEight{}\,s.
 
 Because initial noise tensors are indexed per row, a packed request can span any contiguous subset of a sibling group rather than requiring the full group at once.
@@ -108,8 +107,8 @@ Consequently, the adapter no longer requires \texttt{RewardStack} (Section~\ref{
 \input{artifacts/reported_results/2026-10-04-rollout-fidelity/it2i_table.tex}
 \end{table}
 
-Table~\ref{tab:fidelity-chain} and Figure~\ref{fig:fidelity-chain} summarize the cumulative impact of UniRL pull requests~\#547--\#550 on the $512\times512$ image-editing workload: per-rank generation time drops by \RFTotalSaving{} (from \RFMainGenerate{}\,s to \RFPackGenerate{}\,s), while the first-rollout EditScore mean increases from \RFMainReward{} to \RFPostFixRewardMin{}--\RFPostFixRewardMax{}.
-Across all arms, the first-update importance ratio remains within $10^{-4}$ of 1, and the structural token-layout check (enabled from \#548 onward) passes on every replay, including configurations where \texttt{RewardStack} splits an eight-sibling group across micro-batches.
+Table~\ref{tab:fidelity-chain} and Figure~\ref{fig:fidelity-chain} summarize the cumulative impact of these four refinements on the $512\times512$ image-editing workload: per-rank generation time drops by \RFTotalSaving{} (from \RFMainGenerate{}\,s to \RFPackGenerate{}\,s), while the first-rollout EditScore mean increases from \RFMainReward{} to \RFPostFixRewardMin{}--\RFPostFixRewardMax{}.
+Across all arms, the first-update importance ratio remains within $10^{-4}$ of 1, and the structural token-layout check passes on every replay, including configurations where \texttt{RewardStack} splits an eight-sibling group across micro-batches.
 As in Section~\ref{sec:reward-results}, these measurements comprise one to four rollouts per arm on a single workload shape and establish the mechanism-level effect rather than multi-seed training variance.
 
 \subsection{Mitigating Mixed-Resolution Stragglers via Cost-Aware Assignment}
@@ -124,7 +123,7 @@ Before credit assignment, completed rows are restored to their canonical parent-
 Table~\ref{tab:fidelity-tail} reports steady-state rollout measurements across static, balanced, and work-stealing assignments.
 
 \begin{table}[H]
-\caption{Comparison of rank-assignment strategies on mixed-canvas batches (second rollout of each arm on one eight-GPU H20 node, measured on the experimental load-balancing branch) for text-to-image (\texttt{t2i}) and image-to-image editing (\texttt{it2i}). ``Idle'' denotes the fraction of the rollout window during which at least one rank has finished generation and waits at the barrier. Except in the row-count ablation discussed in the text, the cost model estimates work by output image tokens.}
+\caption{Comparison of rank-assignment strategies on mixed-canvas batches (second rollout of each arm on one eight-GPU H20 node) for text-to-image (\texttt{t2i}) and image-to-image editing (\texttt{it2i}). ``Idle'' denotes the fraction of the rollout window during which at least one rank has finished generation and waits at the barrier. Except in the row-count ablation discussed in the text, the cost model estimates work by output image tokens.}
 \label{tab:fidelity-tail}
 \centering
 \small

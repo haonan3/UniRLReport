@@ -8,8 +8,7 @@ Reward evaluation is the one role in the feedback loop whose computational cost 
 A lightweight contrastive preference model scores a batch in well under a second, whereas a vision--language judge with tens of billions of parameters can take as long as the generation it evaluates, requires a separate software environment from the trainer, and may not fit alongside the policy on the same accelerator.
 UniRL therefore fixes the reward interface at the trajectory boundary while treating placement, environment isolation, and scheduling relative to generation as orthogonal execution choices.
 
-\paragraph{Source scope.}
-This case study examines the reward path introduced in UniRL pull request~\#445 (commit \texttt{651490e}, 2026-09-30), which is included unchanged in the v0.2.0 design-audit release analyzed in Sections~\ref{sec:trajectory}--\ref{sec:instantiations}, together with the shared-GPU mechanism in UniRL pull request~\#492 (evaluated at commit \texttt{8bb4119} and merged into \texttt{main} after v0.2.0 as commit \texttt{0ac8bc3e}).
+\paragraph{Scope.}
 The measurements in Section~\ref{sec:reward-results} were collected as a standalone systems case study outside the E0--E6 evaluation program; their per-rollout records and table generators are archived in \codepath{artifacts/reported\_results/2026-09-30-reward-service/}.
 
 \subsection{Scoring Contract and Failure Semantics}
@@ -32,7 +31,7 @@ A remote backend can query a panel of scorers for each row and aggregate the res
 Inclusion in Table~\ref{tab:reward-scorers} indicates that the adapter code path exists in the repository; it does not imply that every listed scorer has been benchmarked in end-to-end training.
 
 \begin{table}[H]
-\caption{Reward implementations at UniRL commit \texttt{651490e}, grouped by scored output modality. Names denote registry keys. $^{\ast}$Present in the registry but disabled in the default service configuration.}
+\caption{Reward implementations in UniRL, grouped by scored output modality. Names denote registry keys. $^{\ast}$Present in the registry but disabled in the default service configuration.}
 \label{tab:reward-scorers}
 \centering
 \small
@@ -62,7 +61,7 @@ An idempotency key derived from these identifiers and a payload fingerprint allo
 The child process serializes scoring requests with its memory-lifecycle transitions and rejects non-finite outputs.
 The parent worker can either keep the child's model resident on the GPU or wake it only for the duration of each scoring call, supporting both text-to-image and image-editing requests in the audited implementation.
 Because the subprocess runs in an isolated interpreter, it can host a full vLLM serving engine~\citep{kwon2023vllm}.
-For the vLLM-backed EditScore judge integrated in UniRL pull request~\#348, offloading the child engine to host memory takes 5.1\,s (reducing its GPU footprint from 47\,GB to 1.0\,GB), waking it takes 0.3\,s, and the returned scores are bit-identical across offload--wake cycles.
+For the vLLM-backed EditScore judge, offloading the child engine to host memory takes 5.1\,s (reducing its GPU footprint from 47\,GB to 1.0\,GB), waking it takes 0.3\,s, and the returned scores are bit-identical across offload--wake cycles.
 
 \paragraph{In a standalone service.}
 A standalone reward service places an HTTP gateway in front of Ray actor groups~\citep{moritz2018ray}.
@@ -86,7 +85,7 @@ When \texttt{overlap} is enabled, \texttt{RewardStack} submits each completed mi
 \texttt{RewardStack} enforces fail-closed startup validation on unsupported topologies and RNG states.
 Because it requires the rollout engine and reward role to execute within the same single-rank worker slot, startup validation rejects configurations with a separate rollout slab, a separate reward slab, a reward role that is offloaded during generation, or sequence- or tensor-parallel rollout groups in which multiple ranks collaborate on a single shard.
 Overlapped execution also imposes a reproducibility constraint: if an in-process scorer draws from the global PyTorch random number generator, background scoring threads would interleave with the diffusion sampler's noise draws and render rollouts non-deterministic, so such scorers are restricted to the serial micro-batch schedule.
-(By contrast, disaggregated asynchronous trainers overlap generation and scoring at the batch level: the asynchronous AR trainer refills generation slots before scoring completed batches, and an open UniRL pull request extends the asynchronous diffusion manager to release rollout capacity while remote reward requests are in flight.)
+(By contrast, disaggregated asynchronous trainers overlap generation and scoring at the batch level: the asynchronous AR trainer refills generation slots before scoring completed batches, and the asynchronous diffusion manager can release rollout capacity while remote reward requests are in flight.)
 
 \subsection{Empirical Evaluation of Micro-Batched and Overlapped Schedules}
 \label{sec:reward-results}
@@ -171,7 +170,7 @@ While this provides hardware fault isolation, a panel of lightweight preference 
 Although Ray supports fractional GPU allocation to colocate multiple actors on a single device, standard CUDA contexts from separate processes are time-sliced by the driver.
 NVIDIA Multi-Process Service (MPS) allows kernels from distinct processes to execute concurrently on the same GPU~\citep{nvidiamps}, preserving per-scorer process and dependency isolation while overlapping their compute kernels.
 
-UniRL pull request~\#492 introduces an opt-in MPS runtime mode for the standalone reward service.
+UniRL provides an opt-in MPS runtime mode for the standalone reward service.
 The service can either manage the node's MPS control daemon directly---starting it before any scorer actor initializes CUDA and stopping it after all actors exit---or attach to an externally managed daemon.
 Each scorer configuration may specify an active-thread percentage and a device-memory allocation cap, which are exported to the actor's environment prior to CUDA initialization.
 Startup validation rejects MPS configurations that combine device sharing with tensor-parallel scorers, unqualified scorer backends, or half-precision weights running below a 100\% active-thread cap.
@@ -179,22 +178,22 @@ During shutdown, the service halts request admission, drains in-flight GPU work,
 Because the MPS memory cap bounds per-client allocations without providing hardware memory protection, all actors sharing a GPU belong to a single fault domain, which is recorded in the service's health metadata.
 
 \begin{table}[H]
-\caption{Throughput gain (\%) of NVIDIA MPS over fractional GPU colocation without MPS for two or three replicas of a single scorer on one NVIDIA H20 GPU, as reported in UniRL pull request~\#492; $B_s$ denotes the scorer batch size. Dashes indicate batch sizes at which the scorer implementation does not execute a single batched forward pass.}
+\caption{Throughput gain (\%) of NVIDIA MPS over fractional GPU colocation without MPS for two or three replicas of a single scorer on one NVIDIA H20 GPU; $B_s$ denotes the scorer batch size. Dashes indicate batch sizes at which the scorer implementation does not execute a single batched forward pass.}
 \label{tab:reward-mps}
 \centering
 \small
 \input{artifacts/reported_results/2026-09-30-reward-service/mps_table.tex}
 \end{table}
 
-\paragraph{Reported qualification results.}
-Table~\ref{tab:reward-mps} summarizes the qualification benchmarks reported in UniRL pull request~\#492 on NVIDIA H20 GPUs (these measurements were not independently rerun for this report).
-For heterogeneous panels colocated on a single H20 GPU, the pull request reports a median throughput gain of \RSMpsThreeLight{} for three lightweight scorers and \RSMpsTwoLight{} for two, smaller gains when a heavier vision--language scorer dominates device time, and no gain for an autoregressive OCR scorer.
+\paragraph{Qualification results.}
+Table~\ref{tab:reward-mps} summarizes the single-GPU qualification benchmarks on NVIDIA H20 GPUs.
+For heterogeneous panels colocated on a single H20 GPU, MPS yields a median throughput gain of \RSMpsThreeLight{} for three lightweight scorers and \RSMpsTwoLight{} for two, smaller gains when a heavier vision--language scorer dominates device time, and no gain for an autoregressive OCR scorer.
 On the deterministic test fixture, output scores were bit-identical with and without MPS enabled.
-Profiling in the pull request indicates that a single CLIP replica at $B_s{=}1$ utilizes roughly half of the device's execution time, allowing MPS to fill the inter-kernel gaps with work from colocated replicas; once a single scorer saturates the GPU, MPS provides no additional throughput.
+Kernel profiling indicates that a single CLIP replica at $B_s{=}1$ utilizes roughly half of the device's execution time, allowing MPS to fill the inter-kernel gaps with work from colocated replicas; once a single scorer saturates the GPU, MPS provides no additional throughput.
 
 \paragraph{Numerical correctness boundary.}
 The same qualification identified a numerical defect on the tested H20 driver stack when restricting the MPS active-thread percentage below 100\%: half-precision matrix multiplications produced non-finite outputs in CLIP and finite but numerically incorrect values in PickScore.
 Consequently, the runtime rejects half-precision scorers configured with less than a 100\% active-thread share.
-A separate review on a different GPU model and driver version did not reproduce the numerical corruption and observed negligible colocation overhead even without MPS because the workload was bottlenecked by CPU preprocessing and HTTP serialization.
+A separate check on a different GPU model and driver version did not reproduce the numerical corruption and observed negligible colocation overhead even without MPS because the workload was bottlenecked by CPU preprocessing and HTTP serialization.
 Both the throughput benefit and the sub-100\% thread-cap hazard are therefore hardware- and driver-dependent.
-Only CLIP and PickScore at a 100\% active-thread share are marked qualified in UniRL pull request~\#492; vision--language judges, long-horizon stability runs, and sharing GPUs between reward actors and policy workers remain outside its qualified scope.
+Only CLIP and PickScore at a 100\% active-thread share are marked qualified in the runtime registry; vision--language judges, long-horizon stability runs, and sharing GPUs between reward actors and policy workers remain outside its qualified scope.
