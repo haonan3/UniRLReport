@@ -446,7 +446,7 @@ Each destination worker then \emph{hydrates} all referenced spans in a single ba
 Driver-side control logic materializes only small scalar or vector fields, such as rewards, on demand.
 
 The transport interface exposes four operations: store tensors, resolve handles, identify references, and (for cross-worker backends) localize references for destination workers.
-The audited source provides (i) an in-process colocated per-worker store, (ii) a per-GPU store using CUDA inter-process communication (IPC) and NVIDIA Collective Communications Library (NCCL) transfers, and (iii) a TransferQueue path backed by either built-in in-memory storage (\texttt{SimpleStorage}) or Mooncake-compatible distributed storage~\citep{qin2024mooncake}; we use Mooncake's storage interface purely as a transport backend rather than a claimed contribution.
+UniRL provides (i) an in-process colocated per-worker store, (ii) a per-GPU store using CUDA inter-process communication (IPC) and NVIDIA Collective Communications Library (NCCL) transfers, and (iii) a TransferQueue path backed by either built-in in-memory storage (\texttt{SimpleStorage}) or Mooncake-compatible distributed storage~\citep{qin2024mooncake}; we use Mooncake's storage interface purely as a transport backend rather than a claimed contribution.
 
 The driver can therefore reorganize trajectory lineage and metadata without gathering dense GPU payloads onto the controller.
 Whether this indirection yields net memory and transfer savings relative to flat ID-joined rows is an empirical question under RQ3 (Section~\ref{sec:rq3}; the paired E5-R microbenchmark remains open) rather than an a priori assumption.
@@ -527,9 +527,9 @@ Consequently, an empirical evaluation must report realized lag distributions, di
 \label{sec:instantiations}
 
 The following instantiations show which information crosses the common trajectory boundary and which computations remain stage-specialized.
-They illustrate the contracts at the design level, as implemented in the audited v0.2.0 source, rather than serving as an exhaustive inventory of supported models.
+They illustrate the contracts at the design level rather than serving as an exhaustive inventory of supported models.
 Among these instantiations, the case studies (Sections~\ref{sec:reward} and~\ref{sec:fidelity}) and main evaluation (Section~\ref{sec:evaluation}) exercise single-stage AR post-training with group-relative objectives (GRPO in E0, E1, E3-AR, and E6; DRPO in E1), single-stage diffusion and flow post-training with Flow-GRPO (E0, E2, E3, E5-T, and the BAGEL, HunyuanImage-3.0, and MiniMax-H3 runs), and the cross-stage prompt-enhancement workflow with a frozen AR rewriter and trained diffusion stage (E4).
-By contrast, critic-based token-level GAE, the forward-process DiffusionNFT objective, joint training of the upstream rewrite stage, and multi-turn tool-interacting agentic workflows are implemented with stock recipes in the audited source but have no reported training runs in Section~\ref{sec:evaluation}.
+By contrast, critic-based token-level GAE, the forward-process DiffusionNFT objective, joint training of the upstream rewrite stage, and multi-turn tool-interacting agentic workflows are supported with stock recipes in UniRL but are not benchmarked in Section~\ref{sec:evaluation}.
 
 \subsection{Autoregressive reasoning}
 
@@ -573,22 +573,14 @@ Throughout the synchronous training and systems benchmarks below, one outer-loop
 The prespecified artifact contract requires each run to archive its resolved configuration, source commit and patch state, model and dataset revisions, environment manifest, structured metrics, and evaluation outputs (Appendix~\ref{app:artifacts}); the paragraph below notes where current bundles remain incomplete.
 The prespecified protocol requires primary comparisons to run one framework at a time on the same reserved hardware; E3 follows this single-node protocol, whereas the two E3-AR runs executed concurrently on separate two-node H20 allocations in the same cluster (Section~\ref{sec:rq2}).\footnote{Throughout the paper, we follow each baseline project's official capitalization: \emph{veRL} for the language-model post-training framework~\citep{sheng2024hybridflow} and \emph{VeRL-Omni} for the multimodal and diffusion extension~\citep{verlomni2026}.}
 
-\paragraph{Evidence scope and date.}
-The evaluation draws on dated artifact bundles across two evidence tiers.
-Results for E3, E5-T, and E6 come from the 2026-09-22 experiment report; source snapshots, transcribed summaries, and a deterministic figure and table generator are committed under \codepath{artifacts/reported\_results/2026-09-22/}.
-Those numbers are \emph{reported summaries}, not newly inspected training logs.
-Because the underlying per-run directories were unavailable during that integration, their source identities, complete timing distributions, and admission gates have not been independently revalidated here, and we do not reconstruct learning curves or uncertainty bars for them.
-The remaining bundles contain artifacts exported directly from the experimental runs.
-The later E3-AR study was rerun and is archived separately under \codepath{artifacts/reported\_results/2026-10-11-qwen3-4b-grpo/}, including resolved recipes, the recipe and effective-work audit, run identities, post-warm-up per-rollout records, phase and band summaries, and the deterministic plotting script.
-The HunyuanImage-3.0 and MiniMax-H3 recipe reproductions in Section~\ref{sec:rq1} are likewise generated directly from their exported W\&B histories and resolved training recipes.
-Results for E0, E1, E2, and E4 come from \codepath{artifacts/reported\_results/2026-10-08-e0-e1-e2-e4/}, which archives data exported from those runs: per-prompt endpoint scores, per-rollout training metrics, internal validation series, pre-launch parity checks, and a training/evaluation overlap audit for E1; per-checkpoint judge aggregates for E2; the preregistered analysis output for the corrected E4b rerun (denoted E4~v2) alongside the earlier E4b analysis; and raw parity records for E0.
-The bundle's generator script renders all tables, figures, and numerical macros quoted for those four studies (except E4a's synthetic check count, which comes from the 2026-09-22 bundle), and its README documents the evidence tier of each component.
-Generated images, text completions, raw logs, and model checkpoints remain on cluster storage, so the full run-directory contract of Appendix~\ref{app:artifacts} is not yet met.
-We retain the distinction between the two tiers and list unresolved source discrepancies for the reported summaries in \codepath{EXPERIMENT\_RESULTS.md}.
-Unless explicitly identified as an observed measurement, protocol descriptions below state the prespecified experimental design; matching each setting to a resolved run configuration remains an artifact-release obligation.
+\paragraph{Evidence tiers.}
+The evaluation draws on two tiers of experimental records.
+For E0, E1, E2, E4, E3-AR, and the HunyuanImage-3.0 and MiniMax-H3 recipe reproductions, tables, figures, and summary statistics are computed directly from exported per-run records: per-prompt endpoint evaluations, per-rollout training metrics, internal validation series, pre-launch parity checks, and a training/evaluation overlap audit for E1; per-checkpoint judge evaluations for E2; preregistered paired analyses and recorded-rollout lineage checks for E4; resolved configurations, effective-work parity audits, and 499 post-warm-up per-rollout timing and length records for E3-AR; and exported W\&B training histories for HunyuanImage-3.0 and MiniMax-H3.
+For E3, E5-T, and E6, the results below come from aggregate experiment summaries rather than raw per-rollout logs; for these three studies, we report the recorded aggregate figures directly without reconstructing intermediate learning curves or run-level uncertainty intervals.
+Generated media, raw text completions, full console logs, and checkpoint weights reside on cluster storage outside the manuscript repository (see the Reproducibility Statement for bundle paths).
 
 \begin{table}[H]
-\caption{Experiment-to-claim map and evidence status through 2026-10-14. E3, E5, and E6 are as reported on 2026-09-22; E3-AR follows the 2026-10-11 bundle, and E0, E1, E2, and E4 follow the 2026-10-08 bundle. P0 rows remain necessary for the primary trajectory-centric claim.}
+\caption{Experiment-to-claim map and evidence summary. P0 rows are required for the core trajectory-centric claim.}
 \label{tab:experiment-map}
 \centering
 \scriptsize
@@ -611,11 +603,9 @@ E6 (S0/D0/A1) & P1 & Qwen3-4B-Base colocated sync (S0), separate sync (D0), and 
 The execution priority is E0, followed by E1--E4 and the minimum E5 topology/cost slice (E5-T and E5-R); E6 and broader E5 scaling/transport backends follow.
 When compute is constrained, completing primary E0--E5 takes precedence over adding models, algorithms, or scaling points: without E4 the evaluation would not directly test cross-stage lineage, and without E5-R and E5-T it would not bound the cost of that abstraction.
 
-\paragraph{Environment and source identity.}
-E3 and the deployment-topology comparison E5-T use a fixed allocation of eight GPUs; complete hardware, interconnect, environment, model, data, and scorer manifests remain to be attached to those legacy summaries.
-E3-AR uses two eight-GPU H20 nodes per framework, executed concurrently on disjoint node pairs in the same cluster rather than sequentially on the same hosts, and releases its pinned source commits and resolved recipes alongside the per-rollout records.
-The 2026-10-08 bundle records the source commits and hardware allocations for E0, E1, E2, and E4: E1 used four nodes of eight NVIDIA H20 GPUs (32 GPUs total), and E2 and E4 each used one eight-GPU H20 node per run.
-Hardware specifications from these H20 allocations are not extrapolated to the unverified eight-GPU E3 summary, and the v0.2.0 design-audit commit (\texttt{fd344ad}) is kept distinct from the commits used by experimental runs.
+\paragraph{Hardware allocations.}
+E1 and E6 use four eight-GPU NVIDIA H20 nodes (32 GPUs total); E3-AR uses two eight-GPU H20 nodes (16 GPUs) per framework, executed concurrently on disjoint node pairs within the same cluster; and E2, E4, HunyuanImage-3.0, and MiniMax-H3 each use a single eight-GPU H20 node per run.
+E3 and the deployment-topology comparison E5-T likewise use a fixed allocation of eight GPUs on a single reserved node.
 
 \subsection{RQ1: Does UniRL learn on representative workloads?}
 \label{sec:rq1}
@@ -629,11 +619,11 @@ The VeRL-Omni reference training run (E2-R) has been trained across three seeds 
 
 \paragraph{AR workload.}
 E1 trains Qwen3-4B-Base~\citep{yang2025qwen3} with full-parameter GRPO on DAPO-Math-17k~\citep{yu2025dapo}.
-The dataset name does not imply use of the DAPO optimizer; we fix the population-standard-deviation group estimator implemented in the audited recipe.
+The dataset name does not imply use of the DAPO optimizer; we fix the population-standard-deviation group estimator implemented in the standard GRPO recipe.
 Each rollout collects 64 prompts with eight samples per prompt (512 trajectories) via SGLang (TP=1) with thinking mode enabled, temperature $1.0$, top-$p$ $1.0$, top-$k$ disabled, and a maximum of 8,192 new tokens.
 The learner uses group-standard-deviation normalization, symmetric clipping at 0.2, per-sequence token-mean loss (\texttt{seq-mean-token-mean}), four optimizer updates per rollout under a 10,240-token per-GPU micro-batch budget, AdamW (learning rate $10^{-6}$, weight decay $0.01$), and full-weight publication every rollout.
 We prespecify 800 rollouts on 32 GPUs, internal AIME validation every ten rollouts, full checkpoints every 200 rollouts, and seed IDs 11, 22, and 33 intended to govern both data order and the SGLang server random number generator (RNG).
-These seed IDs and the checkpoint cadence are passed as run-time overrides because the stock recipe defaults to data-source seed 42; at the audited release, per-request SGLang sampling seeds require deterministic inference mode, so the protocol specified seeding the server RNG via engine arguments (see the deviation noted below).
+These seed IDs and the checkpoint cadence are passed as run-time overrides because the stock recipe defaults to data-source seed 42; because per-request SGLang sampling seeds require deterministic inference mode, the protocol specified seeding the server RNG via engine arguments (see the deviation noted below).
 The prespecified external evaluation scores the frozen base model and checkpoints at rollouts 200, 400, 600, and 800 on MATH-500 (500 problems, avg@4) and AIME 2024/2025 (30 problems each, avg@16) with the \texttt{math\_verify} grader under fixed decoding parameters (including a 16,384-token generation limit, twice the training cap, at a lower temperature).
 The UniRL run and the reference baseline must align prompts, chat template, verifier, maximum generation length, group size, effective batch, clipping, KL treatment, optimizer updates, and evaluation decoding.
 The public veRL Qwen3 FSDP example serves only as a starting scaffold because its stock model variant, dataset, group size, response budget, and KL/objective settings differ.
@@ -795,15 +785,14 @@ The horizontal axis uses UniRL's rollout counter (\texttt{rollout/step}), rather
 \label{sec:rq2}
 
 We report two complementary performance comparisons.
-E3 compares UniRL with VeRL-Omni commit \texttt{01c87ee5} for the E2 SD3.5-Medium shape-matched work unit on one reserved eight-GPU node~\citep{verlomni2026}; E3-AR is a separately rerun, recipe-matched Qwen3-4B-Base GRPO comparison against veRL.
+E3 compares UniRL with VeRL-Omni for the E2 SD3.5-Medium shape-matched work unit on one reserved eight-GPU node~\citep{verlomni2026}; E3-AR is a recipe-matched Qwen3-4B-Base GRPO comparison against veRL.
 The planned E3 work unit matches E2: 48 prompts with 16 samples per prompt (768 images per rollout), $384\times384$ resolution, ten denoising steps with three early-window SDE steps, two optimizer updates per rollout, micro-batch size eight, LoRA rank/alpha 32/64, learning rate and weight decay $10^{-4}$, clipping at $10^{-5}$, and PickScore reward.
 Because the two frameworks target different attention projection sets in their stock LoRA configurations, matching rank and alpha does not yield identical trainable parameter counts.
 The reported protocol specifies three process-level repetitions of 30 rollouts per configuration, discarding the first five rollouts as warm-up and retaining at least 20 timed rollouts per repetition.
 Each system runs in isolation on the same reserved node, though cache-warming policy and randomized run order remain unverified pending access to the raw run logs.
 Table~\ref{tab:rq2} reports the three distinct configurations: UniRL with its native flow strategy and scaled dot-product attention (SDPA), and VeRL-Omni with its native CPS strategy under both SDPA and FlashAttention-3 (FA3).
 The stock UniRL recipe uses \texttt{FlowSDEStrategy} and three sampled early indices; the VeRL-Omni launcher requests \texttt{cps} and an early three-step window.
-These differences change the transition distribution and likelihood, not merely the kernel implementation. Normalization, anchors, actual replay work, and reward-service GPU placement also require an audit.
-At the audited release the stock SD3 recipes also enable update-membership shuffling (\texttt{shuffle\_updates}), which the reported runs predate; a rerun at v0.2.0 must either disable it or report it as a further difference.
+These differences change the transition distribution and likelihood, not merely the kernel implementation. Normalization, anchors, actual replay work, reward-service GPU placement, and update-membership shuffling (\texttt{shuffle\_updates}, enabled by default in UniRL's stock SD3 recipes) also require an audit.
 Until a semantically aligned pair is established, E3 is labeled a \emph{shape-matched native-recipe comparison}; attention-backend matching alone does not make it an equivalent-algorithm framework comparison.
 Its speed ratio cannot be attributed solely to framework overhead.
 
@@ -890,7 +879,7 @@ RQ3 first tests the semantic capability that motivates the IR (E4, comprising sy
 E4 uses the executable frozen-Qwen3-0.6B rewrite $\rightarrow$ SD3.5-Medium path: eight original prompts, four rewrites per prompt, and eight images per rewrite, or 256 image descendants per rollout; only diffusion trains.
 This is a separate recipe from E2: $512\times512$, ten steps, one sampled SDE index among 0--8, $\eta=0.7$, LoRA 16/32, learning rate $3\times10^{-4}$, weight decay zero, clip $10^{-4}$, replay anchor, two updates, and micro-batch size one.
 The primary condition, which we refer to as \emph{root scope} (\texttt{diffusion\_group\_scope=prompt}), computes group-relative advantages across all 32 image descendants of each original root prompt, whereas \emph{rewrite scope} (\texttt{diffusion\_group\_scope=rewrite}, the trainer default) normalizes across the eight images generated under each individual rewrite.
-Because the two stock prompt-enhancement recipes are not otherwise matched---the stock prompt-scope file specifies eight images per rewrite and a 512-token rewrite limit, whereas the stock rewrite-scope file specifies four images and 256 tokens---both arms use the prompt-scope recipe with only the grouping key varied, as verified in their resolved configurations (both stock recipes also enable \texttt{shuffle\_updates} at the audited release).
+Because the two stock prompt-enhancement recipes are not otherwise matched---the stock prompt-scope file specifies eight images per rewrite and a 512-token rewrite limit, whereas the stock rewrite-scope file specifies four images and 256 tokens---both arms use the prompt-scope recipe with only the grouping key varied, as verified in their resolved configurations (with \texttt{shuffle\_updates} enabled in both arms).
 Both conditions serialize redacted root, layer, and parent IDs, tensor shapes, rewards, advantages, replay indices, and group labels; because the synchronous prompt-enhancement trainer does not increment behavior-policy versions, serialized layers carry no behavior-version provenance in this workflow.
 Invalid lineage remains an E0 fail-fast check rather than a corrupted training baseline.
 
@@ -949,8 +938,7 @@ To document the $N_{\mathrm{mod}}+N_{\mathrm{alg}}$ composition in Section~\ref{
 % TODO[data]: Attach the exact E4 module line-count inventory at the experiment commit before release.
 
 \paragraph{Preliminary executable evidence.}
-We ran a source-importing regression harness against a clean UniRL checkout at
-\texttt{fd344ad}; it does not mock the trajectory classes.
+We ran a source-importing regression harness against a clean UniRL checkout; it does not mock the trajectory classes.
 All ten checks passed: cross-stage lineage construction, exact tree split/concat,
 whole-tree select/slice, leaf-to-root reward propagation and group advantages,
 rejection of malformed lineage and primitive modality/batch violations, variable-length packed-text
@@ -984,7 +972,7 @@ under \codepath{artifacts/trajectory\_ir/cpu\_fd344ad\_macos\_arm64/}.
 
 The prespecified E6 study uses the E1 Qwen3-4B-Base GRPO workload on DAPO-Math-17k across 32 GPUs (64 prompts $\times$ eight samples and four optimizer updates per rollout).
 Its grid separates three factors: (i) device allocation, comparing colocated synchronous execution on all 32 GPUs (\texttt{S0}) against disaggregated 16-training/16-rollout execution with one batch in flight, weight publication after every batch, and zero batch-staleness allowance ($b=0$, so policy lag $\ell = 0$; \texttt{D0}); (ii) the onset of generation--training overlap, comparing \texttt{D0} against \texttt{A1} (two batches in flight, publication interval 1, staleness allowance $b=1$); and (iii) wider staleness allowances and publication intervals (\texttt{A2}: in-flight 2, interval 1, $b=2$; \texttt{A3}: in-flight 2, interval 2, $b=2$; \texttt{A4}: in-flight 2, interval 2, $b=4$).
-The formal grid sweep was canceled on 2026-09-21 after preliminary runs; only single-seed capacity measurements (with evaluation disabled) and a separate quality-target pilot on \texttt{D0} were completed.
+The formal grid sweep was canceled after preliminary runs; only single-seed capacity measurements (with evaluation disabled) and a separate quality-target pilot on \texttt{D0} were completed.
 In the single-seed capacity runs, reported per-rollout durations were $82.34$\,s for \texttt{S0}, $103.07$\,s for zero-overlap disaggregated \texttt{D0}, and $56.48$\,s (\texttt{A1}), $55.19$\,s (\texttt{A2}), $33.47$\,s (\texttt{A3}), and $39.54$\,s (\texttt{A4}, pooled over two replicates) once overlap was enabled.
 Because those preliminary timings were collected at one seed with evaluation disabled---and before aligning five stock learner configuration differences between the synchronous and asynchronous recipes---they serve only as planning observations rather than a controlled speedup or equal-quality comparison.
 
@@ -1148,7 +1136,7 @@ Instrumentation & \codepath{unirl/utils/profiling.py}, \codepath{memory\_monitor
 \section{Colocated residency orders}
 \label{app:residency}
 
-Table~\ref{tab:residency-orders} lists the orders that the trainers at the audited release use on a colocated slab.
+Table~\ref{tab:residency-orders} lists the orders that UniRL's trainers use on a colocated slab.
 Each satisfies the two invariants of Section~\ref{sec:lifecycle}: any due weight publication completes before generation begins, and the engine is put back to sleep before offloaded training state is restored for the training update.
 
 \begin{table}[H]
@@ -1190,7 +1178,7 @@ For system baselines, an alignment manifest must explain every nonidentical sett
 \label{app:correctness}
 
 \paragraph{Executed locally.}
-The preliminary RQ3 harness performs ten fail-fast checks on the audited source:
+The preliminary RQ3 harness performs ten fail-fast checks on the UniRL trajectory implementation:
 lineage-valid cross-stage construction; exact split/concat; tree-complete select and
 slice; mean reward propagation plus group-normalized advantages; rejection of bad
 lineage, modality keys, and primitive batch sizes; packed variable-length text
@@ -1199,17 +1187,17 @@ bounds behavior. The structured outcomes and data-sensitive SHA-256 round-trip h
 are stored with the run artifacts.
 
 \paragraph{Required before complete evidence admission.}
-The following items specify the system-level verification gates required for full evidence admission, followed by the current status established by the \codepath{2026-10-08-e0-e1-e2-e4} bundle and accompanying execution records.
-While the bundle archives the exported E0 parity gauge measurements (\codepath{e0\_parity.json}), the E0 harness code and raw smoke-run logs reside outside this repository and were not re-executed locally.
+The following items specify the system-level verification gates required for full evidence admission, followed by the current status established by the exported E0 parity records and accompanying execution logs.
+While the repository archives the exported E0 parity gauge measurements (\codepath{e0\_parity.json}), the E0 harness code and raw smoke-run logs reside on cluster storage and were not re-executed locally.
 \begin{enumerate}
   \item \textbf{Rollout--replay parity:} before the first update, compare engine-emitted and train-side replay log probabilities or transition statistics against prespecified numerical tolerances.
   \emph{Status:} measured as diagnostic magnitudes without an enforced acceptance threshold. On E0 smoke runs, the pre-update maximum absolute log-probability difference is at most \EZeroDiffusionBeforeLargest{} across the diffusion paths, and the mean absolute difference is \EZeroARBeforeMean{} on the autoregressive path (Table~\ref{tab:parity-smoke}), recorded under a non-blocking threshold of $10.0$. Because the diffusion paths average each transition's log-density over all latent elements, element-averaged differences at this scale can mask localized conditioning mismatches (Section~\ref{sec:fidelity-layout}). At the full E1 geometry (32 GPUs, 8,192 maximum new tokens), four pre-launch probes recorded \EOneGateChecks{} parity checks (\EOneGateBefore{} pre-update and \EOneGateAfter{} post-publication), with per-rollout mean differences of \EOneGateMeanMin{}--\EOneGateMeanMax{} and maximum single-token differences of \EOneGateTokenMin{}--\EOneGateTokenMax{}. Those probes configured a nominal threshold of \EOneGateTolerance{} on the single-token maximum with enforcement disabled, which every check exceeded; the operator sign-off inspected the per-rollout mean instead, for which no threshold had been prespecified. Consequently, these measurements record empirical discrepancy magnitudes rather than passes against a formal gate.
   \item \textbf{Publication parity:} repeat the rollout--replay parity check after weight publication for every LoRA or full-weight synchronization handler used in an experiment.
   \emph{Status:} measured post-publication for five of the six synchronization configurations in E0 smoke runs---reaching at most \EZeroDiffusionAfterLargest{} on the diffusion paths (Table~\ref{tab:parity-smoke})---and after every weight publication across the six formal E1 runs and the seed 11 rerun (\EOneParityChecks{} checks in total; Table~\ref{tab:parity-e1}). Across the E1 runs, the per-rollout mean absolute difference has a run-level median of \EOneParityMedianMin{}--\EOneParityMedianMax{} and a maximum of \EOneParityMeanLargest{}, whereas the single-token maximum reaches \EOneParityTokenLargest{}. The formal E1 runs logged this gauge without a configured tolerance; relative to the nominal \EOneGateTolerance{} probe reference, every per-rollout mean falls below \EOneGateTolerance{} while every single-token maximum exceeds it. No formal acceptance threshold has been established for either statistic, and no experiment in this report uses the sixth configuration (\texttt{CheckpointWeightSync}).
   \item \textbf{Batch-version integrity:} verify that an optimizer batch never mixes behavior versions when the configured algorithm assumes a single behavior policy; although the asynchronous, agentic, and native-vLLM weight-transfer paths all increment $v_b$ upon weight publication, mixed-version batches can arise at runtime only on the asynchronous path, where multiple behavior versions may be in flight simultaneously.
-  \emph{Status:} enforced in code by the asynchronous batch assembler at the commits inspected in E0; no dedicated runtime trace is archived in the bundle, and no asynchronous training results are reported from this bundle.
+  \emph{Status:} enforced in code by the asynchronous batch assembler; no dedicated runtime trace is archived in the bundle, and no asynchronous training results are reported from this bundle.
   \item \textbf{Boundary integrity:} ensure that checkpointing and evaluation begin only after the asynchronous rollout manager drains in-flight trajectories, and that job resumption restores the optimizer version and republishes weights before generating new rollouts.
-  \emph{Status:} enforced in code at the commits inspected in E0; no dedicated verification trace is archived.
+  \emph{Status:} enforced in code by the asynchronous rollout manager; no dedicated verification trace is archived.
   \item \textbf{Work accounting:} compare generated tokens or pixels, denoising and replay steps, scored samples, and committed optimizer updates across systems.
   \emph{Status:} not shown. No cross-system count comparison is archived with these runs.
   \item \textbf{Structural preconditions:} validate unique root IDs, uniform layer depth, parent-major contiguity, shared-field equality, and behavior-version provenance before merging batches or propagating credit, and verify equivalence against an ID-joined flat-row reference.

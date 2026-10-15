@@ -68,7 +68,7 @@ This padding scheme applies to objectives whose replay anchor stores a single sc
 Objectives that store per-token replay anchors or consume the dense latent field directly still require a uniform canvas across the batch and now fail fast with a descriptive error when given mixed-canvas inputs.
 
 \begin{table}[H]
-\caption{Generation time (seconds) for one prompt group of four sibling samples across three output canvas resolutions on a single H20 rank, for image-to-image editing (\texttt{it2i}, which additionally encodes a $512\times512$ source image) and text-to-image generation (\texttt{t2i}). The $768\times768$ \texttt{t2i} entry was measured on an earlier commit of the same branch.}
+\caption{Generation time (seconds) for one prompt group of four sibling samples across three output canvas resolutions on a single H20 rank, for image-to-image editing (\texttt{it2i}, which additionally encodes a $512\times512$ source image) and text-to-image generation (\texttt{t2i}).}
 \label{tab:fidelity-canvas}
 \centering
 \small

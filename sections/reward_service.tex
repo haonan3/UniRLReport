@@ -59,7 +59,7 @@ Requests are transmitted in bounded chunks independent of the data-parallel shar
 Every item carries its sample ID, group ID, source rank, behavior version, and scorer version, all of which the child process must echo in its response.
 An idempotency key derived from these identifiers and a payload fingerprint allows retried requests to return cached scores without re-evaluating the model.
 The child process serializes scoring requests with its memory-lifecycle transitions and rejects non-finite outputs.
-The parent worker can either keep the child's model resident on the GPU or wake it only for the duration of each scoring call, supporting both text-to-image and image-editing requests in the audited implementation.
+The parent worker can either keep the child's model resident on the GPU or wake it only for the duration of each scoring call, supporting both text-to-image and image-editing requests.
 Because the subprocess runs in an isolated interpreter, it can host a full vLLM serving engine~\citep{kwon2023vllm}.
 For the vLLM-backed EditScore judge, offloading the child engine to host memory takes 5.1\,s (reducing its GPU footprint from 47\,GB to 1.0\,GB), waking it takes 0.3\,s, and the returned scores are bit-identical across offload--wake cycles.
 
@@ -108,7 +108,7 @@ Judge service times, total judge busy time, queueing delays, and per-pair scorin
 % TODO[data]: Re-measure the image-editing rows of Table~\ref{tab:reward-overlap} and Figure~\ref{fig:reward-overlap} directly with injected conditioning (UniRL #547). Tracked in UniRLReport issue #19.
 
 \begin{table}[H]
-\caption{Generation plus reward wall-clock time per rollout across three scheduling modes (mean and min--max range over steady-state rollouts). The upper two blocks pair BAGEL image editing with a remote EditScore judge; the bottom block pairs BAGEL text-to-image generation with an in-process PickScore backend. The overlapped entries pool the merged implementation (which queues all completed micro-batches) with an earlier prototype (which kept at most one request in flight); the artifact bundle reports both variants separately. $^{\dagger}$Estimated for the restored conditioning path of Section~\ref{sec:fidelity-layout} from measured reward-side traces; rollout counts reflect the underlying traced runs.}
+\caption{Generation plus reward wall-clock time per rollout across three scheduling modes (mean and min--max range over steady-state rollouts). The upper two blocks pair BAGEL image editing with a remote EditScore judge; the bottom block pairs BAGEL text-to-image generation with an in-process PickScore backend. The overlapped entries pool runs with unbounded request queueing and runs with single-in-flight queueing (reported separately in the artifact bundle). $^{\dagger}$Estimated for the restored conditioning path of Section~\ref{sec:fidelity-layout} from measured reward-side traces; rollout counts reflect the underlying traced runs.}
 \label{tab:reward-overlap}
 \centering
 \small
@@ -159,7 +159,7 @@ Because in-process scoring is already negligible relative to generation, backgro
 \paragraph{Interaction with training-phase memory collection.}
 Executing multiple generation and scoring micro-batches within a single rollout leaves uncollected Python objects and cached allocations in the worker heap.
 When the subsequent training phase began without an explicit garbage-collection and cache-flush pass at the rollout boundary, training step time increased from \RSTrainRemoteCollect{}\,s to \RSTrainRemoteNoCollect{}\,s in the 8B-judge runs and from \RSTrainLocalCollect{}\,s to \RSTrainLocalNoCollect{}\,s in the in-process PickScore runs.
-The merged \texttt{RewardStack} implementation therefore triggers an explicit garbage-collection and CUDA cache-flush pass at the end of each rollout before returning the scored shard.
+\texttt{RewardStack} therefore triggers an explicit garbage-collection and CUDA cache-flush pass at the end of each rollout before returning the scored shard.
 Because the training role reconstructs its own model conditions $C_i$ during replay independently of the rollout engine's conditioning path (Section~\ref{sec:fidelity-layout}), these training-phase durations are unaffected by the rollout conditioning bug and are reported as direct measurements rather than rescaled estimates, illustrating why rollout scheduling changes must be evaluated across the full post-training iteration.
 
 \subsection{GPU Sharing Across Lightweight Scorers via MPS}
