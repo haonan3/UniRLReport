@@ -9,7 +9,7 @@ A lightweight contrastive preference model scores a batch in well under a second
 UniRL therefore fixes the reward interface at the trajectory boundary while treating placement, environment isolation, and scheduling relative to generation as orthogonal execution choices.
 
 \paragraph{Source scope.}
-This case study examines UniRL commit \texttt{651490e} (2026-09-30), which postdates the v0.2.0 design-audit commit analyzed in Sections~\ref{sec:trajectory}--\ref{sec:instantiations}, together with the shared-GPU mechanism proposed in UniRL pull request~\#492 (commit \texttt{8bb4119}).
+This case study examines the reward path introduced in UniRL pull request~\#445 (commit \texttt{651490e}, 2026-09-30), which is included unchanged in the v0.2.0 design-audit release analyzed in Sections~\ref{sec:trajectory}--\ref{sec:instantiations}, together with the shared-GPU mechanism in UniRL pull request~\#492 (evaluated at commit \texttt{8bb4119} and merged into \texttt{main} after v0.2.0 as commit \texttt{0ac8bc3e}).
 The measurements in Section~\ref{sec:reward-results} were collected as a standalone systems case study outside the E0--E6 evaluation program; their per-rollout records and table generators are archived in \codepath{artifacts/reported\_results/2026-09-30-reward-service/}.
 
 \subsection{Scoring Contract and Failure Semantics}

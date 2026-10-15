@@ -12,9 +12,9 @@ and third, engine requests should pack contiguous sibling rows under a shared pr
 Verifying and optimizing these properties requires explicit cross-boundary invariants and request-shaping contracts.
 
 \paragraph{Source scope.}
-This case study examines four stacked changes to the vLLM-Omni BAGEL rollout path proposed in UniRL pull requests~\#547--\#550 (open at the time of writing), affecting both text-to-image (\texttt{t2i}) and instruction-guided image-to-image editing (\texttt{it2i}) workloads.
+This case study examines four stacked changes to the vLLM-Omni BAGEL rollout path in UniRL pull requests~\#547--\#550 (\#547 is included in the v0.2.0 release at commit \texttt{0a82feb2}; \#548--\#550 were merged into \texttt{main} after v0.2.0 at commits \texttt{0fbf3ad0}, \texttt{2c19e14e}, and \texttt{f6044285}), affecting both text-to-image (\texttt{t2i}) and instruction-guided image-to-image editing (\texttt{it2i}) workloads.
 All measurements below were collected on a single node of eight NVIDIA H20 GPUs, with per-run records and table generators archived under \codepath{artifacts/reported\_results/2026-10-04-rollout-fidelity/}.
-The dynamic load-balancing prototype evaluated in Section~\ref{sec:fidelity-tail} was measured on an experimental branch without an open pull request.
+The dynamic load-balancing prototype evaluated in Section~\ref{sec:fidelity-tail} was measured on an experimental branch without a pull request.
 
 \subsection{Conditioning Mismatch Undetected by the Importance Ratio}
 \label{sec:fidelity-layout}
