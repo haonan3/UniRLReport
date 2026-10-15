@@ -61,7 +61,7 @@ Across Heterogeneous Generative Models}
 
 \begin{abstract}
 Reinforcement-learning for generative models follows a common semantic loop---generate, score, assign credit, and update---yet existing systems fragment across autoregressive, diffusion, and multi-stage multimodal workflows, as well as across colocated, disaggregated, and asynchronous execution topologies.
-We present UniRL, a trajectory-centric system that places a lineage-preserving, modality-aware intermediate representation (IR) at the boundary between post-training semantics and distributed execution.
+We present UniRL, a trajectory-centric system that places a lineage-preserving, modality-aware intermediate representation (IR) at the boundary between RL semantics and distributed execution.
 Each trajectory is represented as a prompt-rooted tree of typed layers, where each generated layer records its decoded primitives, conditioning inputs, stage-specific replay segment, rewards, advantages, and behavior-policy version.
 Three logical roles operate on this representation---rollout engines populate generation layers, reward and credit operators evaluate and fold feedback along tree ancestry, and training backends replay stage-specific objectives---while explicit runtime contracts govern device placement, tensor transport, weight publication, and memory residency.
 These interfaces decouple model-specific replay from lineage tracking, data movement, and scheduling, without forcing heterogeneous objectives or engine--topology pairs into a monolithic trainer.
