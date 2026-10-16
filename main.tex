@@ -76,14 +76,14 @@ Finally, we separate artifact-verified results from report-derived summaries and
 \section{Introduction}
 \label{sec:introduction}
 
-Online post-training is a feedback program: it expands inputs into sampled trajectories, evaluates those trajectories, turns feedback into a learning signal, and applies one or more optimizer updates.
+Reinforcement-learning is a feedback-driven training process: it expands inputs into sampled trajectories, evaluates rollout samples and turns feedback into a learning signal.
 At this level of abstraction, autoregressive (AR) text generation, diffusion denoising, and multi-stage multimodal pipelines look nearly identical, yet their underlying data paths and state requirements diverge sharply.
-An AR update may need packed token IDs, masks, rollout log probabilities, and per-token critic value estimates; a diffusion update may need a sparse set of latent states, a noise schedule, and transition statistics; a composed workflow must retain which image descended from which rewritten prompt; and an asynchronous run must additionally track which behavior version generated each trajectory layer.
+An AR update may need packed token IDs, masks, rollout log probabilities, and per-token critic value estimates; a diffusion update may need a sparse set of latent states, noise schedules, and transition statistics; a composed workflow must retain which diffusion latent descended from which rewritten prompt; and an asynchronous run must additionally track which behavior version generated each trajectory.
 
-Existing systems have made major progress on scalable LLM post-training and flexible device mapping~\citep{sheng2024hybridflow,hu2024openrlhf,wang2025roll,nemorl2025}.
+Existing RL systems have made major progress on scalable LLM post-training and flexible device mapping~\citep{sheng2024hybridflow,hu2024openrlhf,wang2025roll,nemorl2025}.
 Fully or partially asynchronous systems further address rollout tail latency and accelerator idle time~\citep{fu2025areal,zhang2026relax,slime2025}.
-Post-training is now expanding from single-stage text generation to iterative diffusion denoising and multi-stage multimodal pipelines~\citep{black2023ddpo,liu2025flowgrpo,xue2025dancegrpo,zheng2025diffusionnft,verlomni2026}.
-In multi-stage and multimodal workflows, consecutive generation stages differ in modality, replay state, and branching factor while sharing tree ancestry for conditioning and credit assignment, making flat, LLM-specific tensor dictionaries insufficient.
+Multi-modal RL today is expanding from single-stage text to vision generation to iterative diffusion denoising and multi-stage multimodal pipelines~\citep{black2023ddpo,liu2025flowgrpo,xue2025dancegrpo,zheng2025diffusionnft,verlomni2026}.
+In multi-stage and multimodal workflows, consecutive generation stages differ in modality, replay methods, and branching factor while sharing tree ancestry for conditioning and credit assignment, making flat, LLM-specific tensor dictionaries insufficient.
 The central systems question is how to preserve shared trajectory structure---lineage, conditioning, credit, and policy provenance---across heterogeneous model states and distributed execution topologies:
 
 \begin{quote}
