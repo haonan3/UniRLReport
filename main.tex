@@ -87,10 +87,10 @@ In multi-stage and multimodal workflows, consecutive generation stages differ in
 This tension raises a central systems question:
 
 \begin{quote}
-\emph{Can a single RL programming model span heterogeneous generative model families and execution topologies while preserving the trajectory structure required for lineage grouping, model replay, credit assignment, tensor transport, and behavior-version control?}
+\emph{Can a single RL programming model span heterogeneous model families and execution topologies while preserving the trajectory structure required for lineage grouping, model replay, credit assignment, tensor transport, and behavior-version control?}
 \end{quote}
 
-Our answer in UniRL is to introduce a \emph{trajectory intermediate representation (IR)} that captures multi-stage lineage, modality-specific state, and policy provenance across stages with differing batch sizes, and to expose physical execution choices as explicit contracts around that IR.
+Our answer is UniRL. We introduce a \emph{trajectory intermediate representation (IR)} that captures multi-stage lineage, modality-specific state, and policy provenance across stages. GPU execution choices turn to explicit contracts around that IR.
 Rather than treating an individual row or a flat LLM-specific tensor dictionary as the unit of scheduling and sharding, the IR organizes each batch as a forest of prompt-rooted trees whose width expands whenever a stage branches.
 Within each tree layer, typed containers separate decoded modality primitives, model-facing conditions, and stage-specific replay segments.
 Distributed methods declare how each structured field scatters, concatenates, packs, or remains shared, and dense tensors can be replaced by row-addressable references without changing the trajectory structure.
