@@ -106,8 +106,7 @@ The paper develops three coupled design ideas:
 \end{itemize}
 
 Asynchronous execution is where the third idea pays off most directly.
-Because rollout, reward, and training are logical roles rather than fixed steps of one loop, the orchestration layer---admission, root-complete grouping, version stamping, lag filtering, and weight publication---can be lifted out of individual trainers.
-\system's AR and diffusion trainers therefore share one bounded-staleness manager over the same trajectory IR in code (Section~\ref{sec:async}).
+Because rollout, reward, and training are decoupled roles operating on the same \sample{} IR, asynchronous scheduling does not need to be reimplemented per modality: \system's AR and diffusion trainers share a single driver-side \texttt{RolloutManager} that dispatches in-flight requests in the background, collects completed per-prompt sample groups, tracks each sample's policy version to drop overly stale rollouts, and drains in-flight work before synchronizing updated weights (Section~\ref{sec:async}).
 Empirically, our exploratory bounded-staleness study exercises only the Qwen3-4B-Base AR workload: single-seed planning runs with evaluation disabled record lower per-rollout time once generation--training overlap is enabled, but the zero-lag disaggregated quality-target pilot degraded between rollouts 150 and 300 and the formal sweep was canceled, so no asynchronous time-to-quality or diffusion-asynchrony result is claimed (Section~\ref{sec:rq4}).
 
 % TODO: revise this paragraph once E5-R is complete.
