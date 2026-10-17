@@ -105,9 +105,9 @@ The paper develops three coupled design ideas:
   \item A \emph{factorization of semantic roles from physical execution}: the trainer expresses rollout, reward scoring, credit assignment, and policy updates as logical role calls over the same \sample{} IR, while placement scopes, field-aware dispatch, \texttt{TensorRef} transport, weight publication, and memory residency map those roles onto colocated, separate-slab, or asynchronous execution without changing role or algorithm code (Section~\ref{sec:execution}), complemented by case studies on reward-serving isolation and overlap and on rollout-engine conditioning fidelity (Sections~\ref{sec:reward} and~\ref{sec:fidelity}). Pre-launch and in-run parity checks across five weight-publication paths, together with native-recipe diffusion, recipe-matched AR, and deployment-topology benchmarks, evaluate these boundaries; paired IR representation overhead remains unmeasured.
 \end{itemize}
 
-Asynchronous execution is where the third idea pays off most directly.
+Asynchronous training is where the third idea pays off most directly.
 Because rollout, reward, and training are decoupled roles operating on the same \sample{} IR, asynchronous scheduling does not need to be reimplemented per modality: \system's AR and diffusion trainers share a single driver-side \texttt{RolloutManager} that dispatches in-flight requests in the background, collects completed per-prompt sample groups, tracks each sample's policy version to drop overly stale rollouts, and drains in-flight work before synchronizing updated weights (Section~\ref{sec:async}).
-Empirically, our exploratory bounded-staleness study exercises only the Qwen3-4B-Base AR workload: single-seed planning runs with evaluation disabled record lower per-rollout time once generation--training overlap is enabled, but the zero-lag disaggregated quality-target pilot degraded between rollouts 150 and 300 and the formal sweep was canceled, so no asynchronous time-to-quality or diffusion-asynchrony result is claimed (Section~\ref{sec:rq4}).
+Empirically, our exploratory asynchronous training study exercises only the Qwen3-4B-Base AR workload: single-seed planning runs with evaluation disabled record lower per-rollout time once generation--training overlap is enabled, but the zero-lag disaggregated quality-target pilot degraded between rollouts 150 and 300 and the formal sweep was canceled, so no asynchronous time-to-quality or diffusion-asynchrony result is claimed (Section~\ref{sec:rq4}).
 
 % TODO: revise this paragraph once E5-R is complete.
 Section~\ref{sec:evaluation} organizes our evaluation from structural correctness to end-to-end learning, composed workflows, and system cost, pairing each experiment with its scope boundaries:
@@ -149,7 +149,7 @@ These roles must agree on when each copy of the policy is resident, offloaded, o
 Which boundary dominates cost depends on the configuration: in the measured separate-slab deployment, much of the slowdown arises from reward processing (Section~\ref{sec:rq3}).
 
 \paragraph{Topology heterogeneity.}
-A small-scale run may colocate and time-share training and rollout on a single GPU allocation; a larger deployment may disaggregate them onto separate GPU slabs; and workloads with variable generation lengths may overlap rollout and training via bounded-staleness asynchronous admission.
+A small-scale run may colocate and time-share training and rollout on a single GPU allocation; a larger deployment may disaggregate them onto separate GPU slabs; and workloads with variable generation lengths may overlap rollout and training via asynchronous execution.
 Each choice changes memory pressure, transfer paths, synchronization frequency, and allowable policy lag.
 
 These observations produce four requirements (Table~\ref{tab:requirements}).
@@ -411,7 +411,7 @@ Figure~\ref{fig:architecture} separates the logical roles of the feedback progra
 
 \node[topo,below=7mm of dispatch,xshift=-22mm] (coloc) {Colocated / time-shared memory};
 \node[topo,right=8mm of coloc] (separate) {Separate GPU slabs};
-\node[topo,right=8mm of separate] (async) {Bounded-staleness async};
+\node[topo,right=8mm of separate] (async) {Asynchronous training};
 \draw[-{Latex[length=2mm]},draw=gray!70] (place.south) -- (coloc.north);
 \draw[-{Latex[length=2mm]},draw=gray!70] (dispatch.south) -- (separate.north);
 \draw[-{Latex[length=2mm]},draw=gray!70] (lifecycle.south) -- (async.north);
@@ -498,7 +498,7 @@ Disaggregated synchronous AR execution (\texttt{D0} in Section~\ref{sec:rq4}) is
 In all cases, changing topology alters device ownership, residency scheduling, and weight publication without altering the trajectory IR boundary: the same \sample{} object flows from rollout through reward and credit assignment to the training stack.
 This invariance enables controlled deployment comparisons that hold the model, prompt stream, group size, reward function, generation and replay step or token budgets, and optimizer updates per rollout fixed while varying the slab layout, alongside the resulting changes in per-role DP width, residency handoff, and publication path (Section~\ref{sec:rq3}).
 
-\subsection{Bounded-staleness execution}
+\subsection{Asynchronous training}
 \label{sec:async}
 
 Asynchrony changes correctness conditions, not just control flow.
@@ -967,7 +967,7 @@ GPU transport and end-to-end ablations. The manifest, 100 per-cell raw trials,
 structured check outcomes, generated table rows, and SHA-256 checksums are archived
 under \codepath{artifacts/trajectory\_ir/cpu\_fd344ad\_macos\_arm64/}.
 
-\subsection{RQ4: Exploratory bounded-staleness observations}
+\subsection{RQ4: Exploratory asynchronous training observations}
 \label{sec:rq4}
 
 The prespecified E6 study uses the E1 Qwen3-4B-Base GRPO workload on DAPO-Math-17k across 32 GPUs (64 prompts $\times$ eight samples and four optimizer updates per rollout).
