@@ -113,7 +113,7 @@ Section~\ref{sec:evaluation} organizes our experiments from structural correctne
 \emph{(iii) Composed workflow and IR cost:} a three-seed prompt-rewrite-to-image study (E4) evaluates lineage-defined grouping scopes against an ID-joined reference, and a paired GPU microbenchmark (E5-R) measures the representation and transport overhead of \sample{} and \texttt{TensorRef}.
 \emph{(iv) Systems benchmarks:} an eight-GPU native diffusion benchmark (E3), a deployment-topology comparison (E5-T), a recipe-matched 16-GPU AR comparison (E3-AR), and an asynchronous cross-slab overlap study across 32-GPU AR and eight-GPU diffusion deployments (E6) evaluate runtime throughput and overlap.
 
-\section{Problem: Preserve Semantics While Changing Execution}
+\section{Problem: Preserving Semantics Across Changing Execution}
 \label{sec:problem}
 
 Let an online post-training iteration consume a batch of initial root inputs $X_0$ (such as text prompts or multimodal contexts), generate a trajectory batch $\mathcal{T}$ under behavior policy $\pi_v$, evaluate rewards $R$ via reward operator $\mathcal{R}$, compute credit $A$ via credit-assignment operator $\mathcal{G}$, and update policy parameters $\theta$ via update operator $U_\theta$:
