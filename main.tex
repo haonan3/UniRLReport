@@ -138,7 +138,6 @@ Generation, reward evaluation, replay, gradient computation, and weight publicat
 Rollout may run inside the training process or in a dedicated serving engine such as SGLang~\citep{zheng2024sglang}, vLLM~\citep{kwon2023vllm}, or vLLM-Omni~\citep{yin2026vllmomni}, while a sharded training backend such as FSDP~\citep{zhao2023fsdp} or VeOmni~\citep{ma2025veomni} owns parameters and optimizer state.
 Reward ranges from an in-process scorer to an environment-isolated scorer process or a remote multi-model service.
 These roles must agree on when each copy of the policy is resident, offloaded, or published, and publishing from a sharded trainer is itself a collective over the whole training mesh.
-Which boundary dominates cost depends on the configuration: in the measured separate-slab deployment, much of the slowdown arises from reward processing (Section~\ref{sec:rq3}).
 
 \paragraph{Topology heterogeneity.}
 A small-scale run may colocate and time-share training and rollout on a single GPU allocation; a larger deployment may disaggregate them onto separate GPU slabs; and workloads with variable generation lengths may overlap rollout and training via asynchronous execution.
