@@ -146,18 +146,18 @@ Each choice changes memory pressure, transfer paths, synchronization frequency, 
 Table~\ref{tab:requirements} summarizes the four resulting design requirements and the corresponding \system mechanisms.
 
 \begin{table}[H]
-\caption{Design requirements and the corresponding UniRL mechanism. The right column states what must be evaluated; it is not a result.}
+\caption{Design requirements, corresponding \system mechanisms, and evaluation criteria.}
 \label{tab:requirements}
 \centering
 \small
-\begin{tabularx}{\textwidth}{@{}L{0.17\textwidth}Y Y@{}}
+\begin{tabularx}{\textwidth}{@{}L{0.18\textwidth}Y Y@{}}
 \toprule
-Requirement & Mechanism & Evidence required \\
+Requirement & \system mechanism & Evaluation criteria \\
 \midrule
-Preserve lineage & ID-encoded ancestry validated at construction; split, select, concat, data-parallel sharding, and reward propagation over complete root groups & Trace invariants across AR, diffusion, and cross-stage runs against an ID-joined reference \\
-Preserve replay inputs & Typed primitives and conditions; packed AR and sparse latent replay segments; $\sigma$-schedule echo checks on external diffusion engines & Rollout--replay consistency on exercised model paths \\
-Change execution safely & Logical roles, placement scopes, field-aware dispatch, tensor references, weight publication and residency lifecycle, and startup rejection of unvalidated combinations & Replay parity after each publication path; matched-work topology and transport ablations \\
-Control policy age & Per-layer behavior versions, complete-group admission, lag filters, quiescent publication, mixed-version rejection, and hard boundaries & Lag distributions, throughput, and time-to-quality \\
+Preserve lineage & Hierarchical row IDs encoding parent ancestry; sharding, merging, and credit assignment over complete root-prompt subtrees & Exact agreement on group memberships, advantages, and reassembled tensors against an explicit ID-joined reference \\
+Preserve replay inputs & Separate layer fields for decoded outputs, encoded model conditions, and stage replay segments (packed AR tokens or sparse diffusion latents and noise schedules) & Rollout--replay log-probability consistency across AR and diffusion stages \\
+Change execution safely & Logical roles decoupled from GPU placement; handle-based worker-to-worker tensor transport (\texttt{TensorRef}); explicit weight synchronization and memory residency lifecycles & Weight-publication parity and matched-work comparisons across colocated and separate-GPU topologies \\
+Control policy staleness & Per-layer behavior-policy versioning; bounded-staleness filtering over completed prompt groups; draining in-flight rollouts before weight synchronization & Policy-lag distributions and step-time overlap under asynchronous execution \\
 \bottomrule
 \end{tabularx}
 \end{table}
