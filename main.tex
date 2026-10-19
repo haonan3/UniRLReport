@@ -116,7 +116,7 @@ Section~\ref{sec:evaluation} organizes our experiments from structural correctne
 \section{Problem: Preserving Semantics Across Changing Execution}
 \label{sec:problem}
 
-Let an online post-training iteration consume a batch of initial root inputs $X_0$ (such as text prompts or multimodal contexts), generate a trajectory batch $\mathcal{T}$ under behavior policy $\pi_v$, evaluate rewards $R$ via reward operator $\mathcal{R}$, compute credit $A$ via credit-assignment operator $\mathcal{G}$, and update policy parameters $\theta$ via update operator $U_\theta$:
+We can formulate an online RL post-training iteration as a four-stage pipeline that consumes a batch of initial root inputs $X_0$ (such as text prompts or multimodal contexts), generates a trajectory batch $\mathcal{T}$ under behavior policy $\pi_v$, evaluates rewards $R$ via reward operator $\mathcal{R}$, computes credit $A$ via credit-assignment operator $\mathcal{G}$, and updates policy parameters $\theta$ via update operator $U_\theta$:
 \begin{equation}
 X_0 \xrightarrow{\pi_v} \mathcal{T}
   \xrightarrow{\mathcal{R}} (\mathcal{T},R)
@@ -127,7 +127,7 @@ X_0 \xrightarrow{\pi_v} \mathcal{T}
 The compact notation hides three forms of heterogeneity.
 
 \paragraph{Trajectory heterogeneity.}
-The sufficient statistics required for a policy update depend on the generative process.
+The trajectory state and data format required for a policy update depend on the generative process.
 For AR policies, a replay segment typically stores variable-length packed token sequences, attention and loss masks, rollout log probabilities, and per-token critic value estimates or returns.
 For stochastic differential equation (SDE) diffusion or flow policies, a replay segment instead stores latent snapshots at selected denoising steps, a shared noise schedule, the indices of sampled transitions, and rollout transition statistics (such as step log probabilities or transition means).
 Multi-stage pipelines and multi-turn agentic workflows further introduce branching lineage and interleaved environment observations.
