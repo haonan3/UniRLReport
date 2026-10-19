@@ -1,0 +1,52 @@
+{
+  "elapsed_s": 66.76,
+  "experiment": "E5-R + E4a",
+  "gpu_count": 8,
+  "gpu_model": "NVIDIA H20",
+  "host": "TENCENT64.site",
+  "interconnect": "NV18 (18-link NVLink across all 8 H20 GPUs)",
+  "pod_index": 1,
+  "pod_ip": "28.4.63.32",
+  "protocol": {
+    "ar_branch": 4,
+    "backends": [
+      "colocate_store",
+      "gpu_store"
+    ],
+    "diffusion_branch": 8,
+    "e4v2_actual_step_s": 29.2,
+    "leaves_per_root": 32,
+    "num_shards": 8,
+    "payload_modes": [
+      "e4_exact",
+      "1",
+      "16",
+      "64"
+    ],
+    "placements": [
+      "same_gpu",
+      "cross_gpu"
+    ],
+    "reference_e4_step_s": 64.2,
+    "repetitions": 100,
+    "representations": [
+      "tree",
+      "flat_id_join"
+    ],
+    "roots": [
+      8,
+      32,
+      128
+    ],
+    "warmup": 10
+  },
+  "run_id": "2026-10-15-e5r-transport",
+  "schema_version": 1,
+  "software": {
+    "cuda": "13.0",
+    "python": "3.12.11",
+    "torch": "2.13.0+cu130"
+  },
+  "timestamp_utc": "2026-10-14T14:33:49.885023+00:00",
+  "unirl_commit": "fd344ad6036a0ba7be9900a9d0cf78ebf59fa738"
+}

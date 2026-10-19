@@ -1,0 +1,697 @@
+{
+  "conditions_exact_match": true,
+  "experiment": "E4_v2_recorded_rollout_and_sample_tree_check",
+  "max_abs_shuffled_f64_join_vs_f64_join_overall": 0.0,
+  "max_abs_vs_f32_join_overall": 0.0,
+  "max_abs_vs_f64_join_overall": 7.102468333464174e-06,
+  "pass": true,
+  "replay_tensors_exact_match": true,
+  "rollout0_seed_pairing": {
+    "11": {
+      "rollout0_advantages_prompt_equal": true,
+      "rollout0_advantages_rewrite_equal": true,
+      "rollout0_ar_texts_equal": true,
+      "rollout0_rewards_equal": true,
+      "rollout0_sample_ids_equal": true
+    },
+    "22": {
+      "rollout0_advantages_prompt_equal": true,
+      "rollout0_advantages_rewrite_equal": true,
+      "rollout0_ar_texts_equal": true,
+      "rollout0_rewards_equal": true,
+      "rollout0_sample_ids_equal": true
+    },
+    "33": {
+      "rollout0_advantages_prompt_equal": true,
+      "rollout0_advantages_rewrite_equal": true,
+      "rollout0_ar_texts_equal": true,
+      "rollout0_rewards_equal": true,
+      "rollout0_sample_ids_equal": true
+    }
+  },
+  "rollouts": [
+    {
+      "file": "logs/prompt_s11/local/capture/rollout0000.pt",
+      "file_sha256": "e96d08be7d9d20bff4d94a78adccdd0d01794f018a6e7b0d43c5609d72792ccb",
+      "n": 256,
+      "prompt": {
+        "group_sizes": [
+          32
+        ],
+        "groups": 8,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 8.643895030021667,
+        "max_abs_sum_per_root": 8.098909165710211e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 2.605130428490199e-06,
+        "pass": true
+      },
+      "rewrite": {
+        "group_sizes": [
+          8
+        ],
+        "groups": 32,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 3.216788172721863e-05,
+        "max_abs_sum_per_root": 3.5451026633381844e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 4.07266767399328e-06,
+        "pass": true
+      },
+      "rollout": 0,
+      "run": "prompt_s11",
+      "sample_tree_roundtrip": {
+        "conditions_embeds_sha256": "dae0bf88661bf697dda52dcbfe20ee2eaa0aea58d390df18226f079303ac5d49",
+        "conditions_exact_match": true,
+        "latents_sha256": "e3d4e8b453aa9edd646623d1177f856248e8b5950c46b86c19c933facf517680",
+        "log_probs_sha256": "a74c6feccbde6ed0af68b2671dc9653b4b6edc53afd40ce357c2b4fa630acb20",
+        "next_latents_sha256": "8cbac424e1cae44bb1e2b3a738c66202391af800e1ff249fb93f857fd5d497ac",
+        "part_batch_sizes": [
+          8,
+          32,
+          256
+        ],
+        "replay_tensors_exact_match": true,
+        "root_shards": 8,
+        "shard_part_batch_sizes": [
+          1,
+          4,
+          32
+        ],
+        "unirl_compute_advantages_matches_recorded_prompt": true,
+        "unirl_compute_advantages_matches_recorded_rewrite": true
+      },
+      "seed": 11,
+      "trained_equals_its_scope": true,
+      "trained_scope": "prompt"
+    },
+    {
+      "file": "logs/prompt_s11/local/capture/rollout0001.pt",
+      "file_sha256": "c3cd2fc57b9bf328b842c3c29b2a2bb560cde76b621f018234342e2d03a9964c",
+      "n": 256,
+      "prompt": {
+        "group_sizes": [
+          32
+        ],
+        "groups": 8,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 10.76082158088684,
+        "max_abs_sum_per_root": 5.47054223716259e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 1.8683718150391826e-06,
+        "pass": true
+      },
+      "rewrite": {
+        "group_sizes": [
+          8
+        ],
+        "groups": 32,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 5.642324686050415e-05,
+        "max_abs_sum_per_root": 5.682092159986496e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 7.102468333464174e-06,
+        "pass": true
+      },
+      "rollout": 1,
+      "run": "prompt_s11",
+      "sample_tree_roundtrip": {
+        "conditions_embeds_sha256": "480d53b2bc9098424bff2256b601bfd432edc095893c0999546468f05fce4c97",
+        "conditions_exact_match": true,
+        "latents_sha256": "f1978472d8818bad982c407cb09bb9aa8690c1173afdfcf0a0adb9da347a93a3",
+        "log_probs_sha256": "ebcf7c759e6416c20c6fedbffa2f8bfa00a500bda8b75f6310f21809c3a308f7",
+        "next_latents_sha256": "f0aa0d87b902f3045d130f173cc9859035e11c27890438ed3fe49d94f0e213c4",
+        "part_batch_sizes": [
+          8,
+          32,
+          256
+        ],
+        "replay_tensors_exact_match": true,
+        "root_shards": 8,
+        "shard_part_batch_sizes": [
+          1,
+          4,
+          32
+        ],
+        "unirl_compute_advantages_matches_recorded_prompt": true,
+        "unirl_compute_advantages_matches_recorded_rewrite": true
+      },
+      "seed": 11,
+      "trained_equals_its_scope": true,
+      "trained_scope": "prompt"
+    },
+    {
+      "file": "logs/prompt_s22/local/capture/rollout0000.pt",
+      "file_sha256": "5edfe57696ae7ca22e962e57c0e6ffa5abc67ddd07c47b9f3af0e98db2d2fadf",
+      "n": 256,
+      "prompt": {
+        "group_sizes": [
+          32
+        ],
+        "groups": 8,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 7.209179192781448,
+        "max_abs_sum_per_root": 5.9023499488830566e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 1.915818121478452e-06,
+        "pass": true
+      },
+      "rewrite": {
+        "group_sizes": [
+          8
+        ],
+        "groups": 32,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 4.789233207702637e-05,
+        "max_abs_sum_per_root": 5.963444709777832e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 6.005206873105351e-06,
+        "pass": true
+      },
+      "rollout": 0,
+      "run": "prompt_s22",
+      "sample_tree_roundtrip": {
+        "conditions_embeds_sha256": "1674d6b83cd6506af7d45435220baa5258ce38b6993bebaf5c3da29960a6786e",
+        "conditions_exact_match": true,
+        "latents_sha256": "5fcd3a7f96a57d4a6a3e55c8802bdbed040844863f1e8cf1cd850a7771b6cead",
+        "log_probs_sha256": "16e68652f4afea7f3cd7b7f6d819fd13ea7cd06c14a61a6436f091bd47dcb6de",
+        "next_latents_sha256": "8ad33c9986cfbf8cee5b1ce41db10987b53a2831a8bfb1fb6c6616ddc07b7ad9",
+        "part_batch_sizes": [
+          8,
+          32,
+          256
+        ],
+        "replay_tensors_exact_match": true,
+        "root_shards": 8,
+        "shard_part_batch_sizes": [
+          1,
+          4,
+          32
+        ],
+        "unirl_compute_advantages_matches_recorded_prompt": true,
+        "unirl_compute_advantages_matches_recorded_rewrite": true
+      },
+      "seed": 22,
+      "trained_equals_its_scope": true,
+      "trained_scope": "prompt"
+    },
+    {
+      "file": "logs/prompt_s22/local/capture/rollout0001.pt",
+      "file_sha256": "2e8e03bbd143445ad112dd34d280d08d20c2617df97a2fb8fb348077d6cb1718",
+      "n": 256,
+      "prompt": {
+        "group_sizes": [
+          32
+        ],
+        "groups": 8,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 10.557861328125,
+        "max_abs_sum_per_root": 8.526444435119629e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 2.884971498362532e-06,
+        "pass": true
+      },
+      "rewrite": {
+        "group_sizes": [
+          8
+        ],
+        "groups": 32,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 3.933720290660858e-05,
+        "max_abs_sum_per_root": 6.73886388540268e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 4.948385580183512e-06,
+        "pass": true
+      },
+      "rollout": 1,
+      "run": "prompt_s22",
+      "sample_tree_roundtrip": {
+        "conditions_embeds_sha256": "7fd4a80e051c2cf0fe2228348ce53996e8bd2a2bf81e95ac60ea662ad0f13411",
+        "conditions_exact_match": true,
+        "latents_sha256": "66f53a4e37fda04a61b4d9847bc44a944a35e557a170b02ad53a9260452bd961",
+        "log_probs_sha256": "4fb4399a97099618078663954d093e642474956a1d65b0019e6d1fdb98a54700",
+        "next_latents_sha256": "b3ff2dce02fe1652e0ef4aea8dc36d0beaf860ccbd60176692bb48accb536448",
+        "part_batch_sizes": [
+          8,
+          32,
+          256
+        ],
+        "replay_tensors_exact_match": true,
+        "root_shards": 8,
+        "shard_part_batch_sizes": [
+          1,
+          4,
+          32
+        ],
+        "unirl_compute_advantages_matches_recorded_prompt": true,
+        "unirl_compute_advantages_matches_recorded_rewrite": true
+      },
+      "seed": 22,
+      "trained_equals_its_scope": true,
+      "trained_scope": "prompt"
+    },
+    {
+      "file": "logs/prompt_s33/local/capture/rollout0000.pt",
+      "file_sha256": "b929f3f02902427fb53b8471fa93ad245f5c7e034c41f11d04e8fdc79a741060",
+      "n": 256,
+      "prompt": {
+        "group_sizes": [
+          32
+        ],
+        "groups": 8,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 7.189122498035431,
+        "max_abs_sum_per_root": 6.289966404438019e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 2.1703147821128255e-06,
+        "pass": true
+      },
+      "rewrite": {
+        "group_sizes": [
+          8
+        ],
+        "groups": 32,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 3.8214027881622314e-05,
+        "max_abs_sum_per_root": 5.9351325035095215e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 4.873004700201022e-06,
+        "pass": true
+      },
+      "rollout": 0,
+      "run": "prompt_s33",
+      "sample_tree_roundtrip": {
+        "conditions_embeds_sha256": "f9a17e71c3fee832d492c6318316b6bacc8a4cec9fe7fab00735cfca15a9ecec",
+        "conditions_exact_match": true,
+        "latents_sha256": "b230b66d4208ed5cae4d389b2a25404e8f226a8b0940c10e592a90930bf421ba",
+        "log_probs_sha256": "50cdacf60a7d055e89e98075f7d7e0c9833585efb425d92a260f7e064bb18e78",
+        "next_latents_sha256": "66ad7accc351e127529f393d9e3d502f2a37e6bb72169d0047502996289be513",
+        "part_batch_sizes": [
+          8,
+          32,
+          256
+        ],
+        "replay_tensors_exact_match": true,
+        "root_shards": 8,
+        "shard_part_batch_sizes": [
+          1,
+          4,
+          32
+        ],
+        "unirl_compute_advantages_matches_recorded_prompt": true,
+        "unirl_compute_advantages_matches_recorded_rewrite": true
+      },
+      "seed": 33,
+      "trained_equals_its_scope": true,
+      "trained_scope": "prompt"
+    },
+    {
+      "file": "logs/prompt_s33/local/capture/rollout0001.pt",
+      "file_sha256": "532977e8db8c26bd2a7ed874bd690b7be8199007be147c3606cc296a81bbe10f",
+      "n": 256,
+      "prompt": {
+        "group_sizes": [
+          32
+        ],
+        "groups": 8,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 8.693556785583496,
+        "max_abs_sum_per_root": 5.1247887313365936e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 1.6876780701835514e-06,
+        "pass": true
+      },
+      "rewrite": {
+        "group_sizes": [
+          8
+        ],
+        "groups": 32,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 2.5704503059387207e-05,
+        "max_abs_sum_per_root": 2.8721988201141357e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 3.2738290705047746e-06,
+        "pass": true
+      },
+      "rollout": 1,
+      "run": "prompt_s33",
+      "sample_tree_roundtrip": {
+        "conditions_embeds_sha256": "3b5448a17a2944b6d3b3feaf4dc3319044ad6fe10d885910cf24075cdb26fd5d",
+        "conditions_exact_match": true,
+        "latents_sha256": "c8878855398ff6fa2b362c36c91d88e49df798e789073e70a4187067c1fe1dce",
+        "log_probs_sha256": "ca2f8dffacd3bf697d65923137a4f9a2719f1582e9f69fadcb36e1e6c841a8e0",
+        "next_latents_sha256": "c49e56bcf71efed6f9d43548c0b26bf667ffbb19cf8bd3d6ca3638cfdc50881a",
+        "part_batch_sizes": [
+          8,
+          32,
+          256
+        ],
+        "replay_tensors_exact_match": true,
+        "root_shards": 8,
+        "shard_part_batch_sizes": [
+          1,
+          4,
+          32
+        ],
+        "unirl_compute_advantages_matches_recorded_prompt": true,
+        "unirl_compute_advantages_matches_recorded_rewrite": true
+      },
+      "seed": 33,
+      "trained_equals_its_scope": true,
+      "trained_scope": "prompt"
+    },
+    {
+      "file": "logs/rewrite_s11/local/capture/rollout0000.pt",
+      "file_sha256": "f454a3b1322bfc1aeba3d3a77cc8a868f31536182c10d80e2314e5c14e87c59c",
+      "n": 256,
+      "prompt": {
+        "group_sizes": [
+          32
+        ],
+        "groups": 8,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 8.643895030021667,
+        "max_abs_sum_per_root": 8.098909165710211e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 2.605130428490199e-06,
+        "pass": true
+      },
+      "rewrite": {
+        "group_sizes": [
+          8
+        ],
+        "groups": 32,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 3.216788172721863e-05,
+        "max_abs_sum_per_root": 3.5451026633381844e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 4.07266767399328e-06,
+        "pass": true
+      },
+      "rollout": 0,
+      "run": "rewrite_s11",
+      "sample_tree_roundtrip": {
+        "conditions_embeds_sha256": "fcf804e45206e0b9e545aa625a296160e9fa292a46b6a020d49f193209abc7c5",
+        "conditions_exact_match": true,
+        "latents_sha256": "9f0c1ba5757ee8d0beea1fd238cab55a84ec96aeb0692c3f5ab4334a9bf165b2",
+        "log_probs_sha256": "99aa723ea6310f6fe866d7757af90af2f5b0cdce20a5c98390290a7faef187e7",
+        "next_latents_sha256": "5ff93334359101c90be7fd278392fc8cf70cc240ba732a813fbf1c698a6308d6",
+        "part_batch_sizes": [
+          8,
+          32,
+          256
+        ],
+        "replay_tensors_exact_match": true,
+        "root_shards": 8,
+        "shard_part_batch_sizes": [
+          1,
+          4,
+          32
+        ],
+        "unirl_compute_advantages_matches_recorded_prompt": true,
+        "unirl_compute_advantages_matches_recorded_rewrite": true
+      },
+      "seed": 11,
+      "trained_equals_its_scope": true,
+      "trained_scope": "rewrite"
+    },
+    {
+      "file": "logs/rewrite_s11/local/capture/rollout0001.pt",
+      "file_sha256": "359e2eda36bdd50d62b4b759c4049991aa254e63646b3db826863d07a5cd14e5",
+      "n": 256,
+      "prompt": {
+        "group_sizes": [
+          32
+        ],
+        "groups": 8,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 10.760723203420639,
+        "max_abs_sum_per_root": 3.693997859954834e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 1.2401267011075134e-06,
+        "pass": true
+      },
+      "rewrite": {
+        "group_sizes": [
+          8
+        ],
+        "groups": 32,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 2.9355287551879883e-05,
+        "max_abs_sum_per_root": 4.4747255742549896e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 3.8244810716125954e-06,
+        "pass": true
+      },
+      "rollout": 1,
+      "run": "rewrite_s11",
+      "sample_tree_roundtrip": {
+        "conditions_embeds_sha256": "8ce7b79a948bd3f08e513c8f8a3397bf3b5546b88d0f36af0e06306088644d37",
+        "conditions_exact_match": true,
+        "latents_sha256": "44b869410d97211c70d4e228cb7a112c394219e4a57caa1729dd58ca43e4131b",
+        "log_probs_sha256": "5b33f39942d78b60f3388e879d21269e3bcf5f40ac717de59d6c9d32b5141b2b",
+        "next_latents_sha256": "6ff32f38e26b8b7ad931b21efb8f92fefa48292f9ea2469b8a68ae77091c1bcc",
+        "part_batch_sizes": [
+          8,
+          32,
+          256
+        ],
+        "replay_tensors_exact_match": true,
+        "root_shards": 8,
+        "shard_part_batch_sizes": [
+          1,
+          4,
+          32
+        ],
+        "unirl_compute_advantages_matches_recorded_prompt": true,
+        "unirl_compute_advantages_matches_recorded_rewrite": true
+      },
+      "seed": 11,
+      "trained_equals_its_scope": true,
+      "trained_scope": "rewrite"
+    },
+    {
+      "file": "logs/rewrite_s22/local/capture/rollout0000.pt",
+      "file_sha256": "500f3bff2f5abf48193ee456347f947aaaa4230c7b2faa9534376fea9cee35c1",
+      "n": 256,
+      "prompt": {
+        "group_sizes": [
+          32
+        ],
+        "groups": 8,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 7.209179192781448,
+        "max_abs_sum_per_root": 5.9023499488830566e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 1.915818121478452e-06,
+        "pass": true
+      },
+      "rewrite": {
+        "group_sizes": [
+          8
+        ],
+        "groups": 32,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 4.789233207702637e-05,
+        "max_abs_sum_per_root": 5.963444709777832e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 6.005206873105351e-06,
+        "pass": true
+      },
+      "rollout": 0,
+      "run": "rewrite_s22",
+      "sample_tree_roundtrip": {
+        "conditions_embeds_sha256": "e688067f158a26292d9c5f034e64e801132880708d844a20915695f0d8ee2b5b",
+        "conditions_exact_match": true,
+        "latents_sha256": "3a3f778f318eac6d86994843854343e648ebc9e5fb00370539f9e69e96b47ff0",
+        "log_probs_sha256": "fe714f44f96f9f8e9f9dcb8f5f64a9bc28480155680da642fdb34a947e291e95",
+        "next_latents_sha256": "732c93a8ef42d0db6a267759f63030c4208b070c7f60020fff4a8f020405643d",
+        "part_batch_sizes": [
+          8,
+          32,
+          256
+        ],
+        "replay_tensors_exact_match": true,
+        "root_shards": 8,
+        "shard_part_batch_sizes": [
+          1,
+          4,
+          32
+        ],
+        "unirl_compute_advantages_matches_recorded_prompt": true,
+        "unirl_compute_advantages_matches_recorded_rewrite": true
+      },
+      "seed": 22,
+      "trained_equals_its_scope": true,
+      "trained_scope": "rewrite"
+    },
+    {
+      "file": "logs/rewrite_s22/local/capture/rollout0001.pt",
+      "file_sha256": "5af6a183746c1bdde489e55d8ceb1558858b0d382f774a531b84f0d399d505a3",
+      "n": 256,
+      "prompt": {
+        "group_sizes": [
+          32
+        ],
+        "groups": 8,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 10.581086099147797,
+        "max_abs_sum_per_root": 4.004873335361481e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 1.3099170095287604e-06,
+        "pass": true
+      },
+      "rewrite": {
+        "group_sizes": [
+          8
+        ],
+        "groups": 32,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 2.4586915969848633e-05,
+        "max_abs_sum_per_root": 2.5570159777998924e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 3.1443125112495807e-06,
+        "pass": true
+      },
+      "rollout": 1,
+      "run": "rewrite_s22",
+      "sample_tree_roundtrip": {
+        "conditions_embeds_sha256": "0c677b5b6fa4eabf0305443f7cfa45ab763706c9bdd5d5f306bcf3c5f67a1fff",
+        "conditions_exact_match": true,
+        "latents_sha256": "9192b65067ef78c156ae9db8096c395e2502805fe9060880accfc52f62adc4c5",
+        "log_probs_sha256": "7c80c6a9527339f65bda9af27e0c7abdc4f784110a29d3ca410fdcd231ccf047",
+        "next_latents_sha256": "1761238b1c8175c9c857f5eb06654cbef018e1391277535ea4d1ae7796a02ab8",
+        "part_batch_sizes": [
+          8,
+          32,
+          256
+        ],
+        "replay_tensors_exact_match": true,
+        "root_shards": 8,
+        "shard_part_batch_sizes": [
+          1,
+          4,
+          32
+        ],
+        "unirl_compute_advantages_matches_recorded_prompt": true,
+        "unirl_compute_advantages_matches_recorded_rewrite": true
+      },
+      "seed": 22,
+      "trained_equals_its_scope": true,
+      "trained_scope": "rewrite"
+    },
+    {
+      "file": "logs/rewrite_s33/local/capture/rollout0000.pt",
+      "file_sha256": "49d883feb754db323984f0efdae6c0c5476efc0d9efa1eacf506f6d20eecc363",
+      "n": 256,
+      "prompt": {
+        "group_sizes": [
+          32
+        ],
+        "groups": 8,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 7.189122498035431,
+        "max_abs_sum_per_root": 6.289966404438019e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 2.1703147821128255e-06,
+        "pass": true
+      },
+      "rewrite": {
+        "group_sizes": [
+          8
+        ],
+        "groups": 32,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 3.8214027881622314e-05,
+        "max_abs_sum_per_root": 5.9351325035095215e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 4.873004700201022e-06,
+        "pass": true
+      },
+      "rollout": 0,
+      "run": "rewrite_s33",
+      "sample_tree_roundtrip": {
+        "conditions_embeds_sha256": "bd5d865b071d6d0eadd5854b5b709429a53d1f16a0202b0cce94891187d4093c",
+        "conditions_exact_match": true,
+        "latents_sha256": "4dbfd14811de070aafb652a12af1c11418a6e159efaf554e60482a6192ede5ad",
+        "log_probs_sha256": "d2624d88b4dead03d6f728c88ea28737e60165c9096d73a425a0be71faf8f88e",
+        "next_latents_sha256": "ae63fb499d77b533b234d0ead8391742743290e8f9e7aac5e432f90efe2a4e1f",
+        "part_batch_sizes": [
+          8,
+          32,
+          256
+        ],
+        "replay_tensors_exact_match": true,
+        "root_shards": 8,
+        "shard_part_batch_sizes": [
+          1,
+          4,
+          32
+        ],
+        "unirl_compute_advantages_matches_recorded_prompt": true,
+        "unirl_compute_advantages_matches_recorded_rewrite": true
+      },
+      "seed": 33,
+      "trained_equals_its_scope": true,
+      "trained_scope": "rewrite"
+    },
+    {
+      "file": "logs/rewrite_s33/local/capture/rollout0001.pt",
+      "file_sha256": "93606cdc3a744f012d43f249b7e9edb6351ff4be56d602cbb9a9600e178df4c0",
+      "n": 256,
+      "prompt": {
+        "group_sizes": [
+          32
+        ],
+        "groups": 8,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 8.743205472826958,
+        "max_abs_sum_per_root": 9.417161345481873e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 3.007445767533312e-06,
+        "pass": true
+      },
+      "rewrite": {
+        "group_sizes": [
+          8
+        ],
+        "groups": 32,
+        "max_abs_shuffled_f64_join_vs_f64_join": 0.0,
+        "max_abs_sum_per_rewrite": 3.1635165214538574e-05,
+        "max_abs_sum_per_root": 6.198883056640625e-05,
+        "max_abs_vs_f32_join": 0.0,
+        "max_abs_vs_f64_join": 4.061348211958915e-06,
+        "pass": true
+      },
+      "rollout": 1,
+      "run": "rewrite_s33",
+      "sample_tree_roundtrip": {
+        "conditions_embeds_sha256": "5c93b5ee1ed6a418b43845657980851789918aa7879b6d95db0f000e93051b31",
+        "conditions_exact_match": true,
+        "latents_sha256": "1a22e27e98f5b7a79a9b7f369d6c945740e0f181e1a047fc2cc403f6ee846ac4",
+        "log_probs_sha256": "6f69da807b0e6f8c602c02759e18a6cb913e063658f5c2404290677e3cf8b610",
+        "next_latents_sha256": "3175efd48c4d434cdffb1a1119527a7163e54ed74afac10f3c1cecc2d6d9d55a",
+        "part_batch_sizes": [
+          8,
+          32,
+          256
+        ],
+        "replay_tensors_exact_match": true,
+        "root_shards": 8,
+        "shard_part_batch_sizes": [
+          1,
+          4,
+          32
+        ],
+        "unirl_compute_advantages_matches_recorded_prompt": true,
+        "unirl_compute_advantages_matches_recorded_rewrite": true
+      },
+      "seed": 33,
+      "trained_equals_its_scope": true,
+      "trained_scope": "rewrite"
+    }
+  ],
+  "schema_version": 1,
+  "total_rollout_files_checked": 12,
+  "unirl_commit": "73e9b696880b9610856d114e362467bbe0f03c6c"
+}

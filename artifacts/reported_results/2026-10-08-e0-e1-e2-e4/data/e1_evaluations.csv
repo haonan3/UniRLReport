@@ -80,3 +80,9 @@ grpo-s33-200,GRPO,33,200,1,aime25,30,16,30,0,480,76
 grpo-s33-400,GRPO,33,400,1,aime25,30,16,30,0,480,117
 grpo-s33-600,GRPO,33,600,1,aime25,30,16,30,0,480,159
 grpo-s33-800,GRPO,33,800,1,aime25,30,16,30,0,480,273
+grpo-s11rerun-600,GRPO,11rerun,600,1,math500,500,4,500,0,2000,263
+grpo-s11rerun-800,GRPO,11rerun,800,1,math500,500,4,500,0,2000,424
+grpo-s11rerun-600,GRPO,11rerun,600,1,aime24,30,16,30,0,480,113
+grpo-s11rerun-800,GRPO,11rerun,800,1,aime24,30,16,30,0,480,121
+grpo-s11rerun-600,GRPO,11rerun,600,1,aime25,30,16,30,0,480,109
+grpo-s11rerun-800,GRPO,11rerun,800,1,aime25,30,16,30,0,480,165

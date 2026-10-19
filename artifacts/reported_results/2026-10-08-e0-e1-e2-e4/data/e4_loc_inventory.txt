@@ -1,0 +1,113 @@
+# E4 Module Line-Count Inventory (wc -l)
+# Target patterns: unirl/types/sample.py unirl/types/primitives.py unirl/types/segments/*.py unirl/distributed/tensor/*.py unirl/rollout/manager/*.py unirl/trainer/pe.py unirl/models/pe/*.py
+
+=== Commit 73e9b696 (73e9b696880b9610856d114e362467bbe0f03c6c) ===
+   743 unirl/types/sample.py
+   298 unirl/types/primitives.py
+    22 unirl/types/segments/__init__.py
+    39 unirl/types/segments/base.py
+    84 unirl/types/segments/latent.py
+    39 unirl/types/segments/text.py
+    51 unirl/distributed/tensor/__init__.py
+   774 unirl/distributed/tensor/batch.py
+    59 unirl/distributed/tensor/factory.py
+   119 unirl/distributed/tensor/grad_context.py
+   137 unirl/distributed/tensor/pytree.py
+   290 unirl/distributed/tensor/ref.py
+   284 unirl/distributed/tensor/transport.py
+   132 unirl/distributed/tensor/worker_local.py
+    12 unirl/rollout/manager/__init__.py
+   145 unirl/rollout/manager/buffers.py
+   279 unirl/rollout/manager/dispatch.py
+    52 unirl/rollout/manager/filters.py
+   253 unirl/rollout/manager/rollout.py
+   408 unirl/trainer/pe.py
+    12 unirl/models/pe/__init__.py
+    22 unirl/models/pe/bundle.py
+    65 unirl/models/pe/instruction.py
+   176 unirl/models/pe/pipeline.py
+  4495 total
+
+=== Commit fd344ad (fd344ad6036a0ba7be9900a9d0cf78ebf59fa738) ===
+   761 unirl/types/sample.py
+   298 unirl/types/primitives.py
+    22 unirl/types/segments/__init__.py
+    39 unirl/types/segments/base.py
+    84 unirl/types/segments/latent.py
+    39 unirl/types/segments/text.py
+    51 unirl/distributed/tensor/__init__.py
+   718 unirl/distributed/tensor/batch.py
+    59 unirl/distributed/tensor/factory.py
+   119 unirl/distributed/tensor/grad_context.py
+   137 unirl/distributed/tensor/pytree.py
+   276 unirl/distributed/tensor/ref.py
+   284 unirl/distributed/tensor/transport.py
+   132 unirl/distributed/tensor/worker_local.py
+    12 unirl/rollout/manager/__init__.py
+   145 unirl/rollout/manager/buffers.py
+   279 unirl/rollout/manager/dispatch.py
+    52 unirl/rollout/manager/filters.py
+   253 unirl/rollout/manager/rollout.py
+   408 unirl/trainer/pe.py
+    12 unirl/models/pe/__init__.py
+    22 unirl/models/pe/bundle.py
+    65 unirl/models/pe/instruction.py
+   176 unirl/models/pe/pipeline.py
+  4443 total
+
+=== Commit 698eaa0f (698eaa0f9e33258edd6405fbfcffaa154f40255c) ===
+   752 unirl/types/sample.py
+   298 unirl/types/primitives.py
+    22 unirl/types/segments/__init__.py
+    39 unirl/types/segments/base.py
+    84 unirl/types/segments/latent.py
+    40 unirl/types/segments/text.py
+    51 unirl/distributed/tensor/__init__.py
+   718 unirl/distributed/tensor/batch.py
+    59 unirl/distributed/tensor/factory.py
+   119 unirl/distributed/tensor/grad_context.py
+   137 unirl/distributed/tensor/pytree.py
+   276 unirl/distributed/tensor/ref.py
+   284 unirl/distributed/tensor/transport.py
+   132 unirl/distributed/tensor/worker_local.py
+    12 unirl/rollout/manager/__init__.py
+   145 unirl/rollout/manager/buffers.py
+   279 unirl/rollout/manager/dispatch.py
+    52 unirl/rollout/manager/filters.py
+   253 unirl/rollout/manager/rollout.py
+   407 unirl/trainer/pe.py
+    12 unirl/models/pe/__init__.py
+    22 unirl/models/pe/bundle.py
+    56 unirl/models/pe/instruction.py
+   184 unirl/models/pe/pipeline.py
+  4433 total
+
+=== Side-by-Side Comparison Across Commits ===
+File                                          |   73e9b696 |    fd344ad |   698eaa0f | diff(73e9-698e)
+------------------------------------------------------------------------------------------------------
+unirl/types/sample.py                         |        743 |        761 |        752 |              -9
+unirl/types/primitives.py                     |        298 |        298 |        298 |              +0
+unirl/types/segments/__init__.py              |         22 |         22 |         22 |              +0
+unirl/types/segments/base.py                  |         39 |         39 |         39 |              +0
+unirl/types/segments/latent.py                |         84 |         84 |         84 |              +0
+unirl/types/segments/text.py                  |         39 |         39 |         40 |              -1
+unirl/distributed/tensor/__init__.py          |         51 |         51 |         51 |              +0
+unirl/distributed/tensor/batch.py             |        774 |        718 |        718 |             +56
+unirl/distributed/tensor/factory.py           |         59 |         59 |         59 |              +0
+unirl/distributed/tensor/grad_context.py      |        119 |        119 |        119 |              +0
+unirl/distributed/tensor/pytree.py            |        137 |        137 |        137 |              +0
+unirl/distributed/tensor/ref.py               |        290 |        276 |        276 |             +14
+unirl/distributed/tensor/transport.py         |        284 |        284 |        284 |              +0
+unirl/distributed/tensor/worker_local.py      |        132 |        132 |        132 |              +0
+unirl/rollout/manager/__init__.py             |         12 |         12 |         12 |              +0
+unirl/rollout/manager/buffers.py              |        145 |        145 |        145 |              +0
+unirl/rollout/manager/dispatch.py             |        279 |        279 |        279 |              +0
+unirl/rollout/manager/filters.py              |         52 |         52 |         52 |              +0
+unirl/rollout/manager/rollout.py              |        253 |        253 |        253 |              +0
+unirl/trainer/pe.py                           |        408 |        408 |        407 |              +1
+unirl/models/pe/__init__.py                   |         12 |         12 |         12 |              +0
+unirl/models/pe/bundle.py                     |         22 |         22 |         22 |              +0
+unirl/models/pe/instruction.py                |         65 |         65 |         56 |              +9
+unirl/models/pe/pipeline.py                   |        176 |        176 |        184 |              -8
+------------------------------------------------------------------------------------------------------
+TOTAL                                         |       4495 |       4443 |       4433 |             +62

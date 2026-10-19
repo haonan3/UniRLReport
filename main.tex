@@ -42,6 +42,8 @@
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \input{artifacts/reported_results/2026-09-22/macros.tex}
+\input{artifacts/reported_results/2026-10-15-e3-e5t-systems/macros.tex}
+\input{artifacts/reported_results/2026-10-15-e5r-transport/macros.tex}
 \input{artifacts/reported_results/2026-10-08-e0-e1-e2-e4/macros.tex}
 
 \title{UniRL: Trajectory-Centric Post-Training\\
@@ -67,10 +69,10 @@ Over this representation, rollout engines append generated layers, reward and ad
 Meanwhile, the runtime handles GPU placement, tensor transfer, weight synchronization, and memory offloading, decoupling model-specific computation from lineage tracking, data movement, and runtime scheduling.
 We implement this design in UniRL v0.2.0, validate ten core IR invariants in a source-importing CPU harness, and examine its reward-serving and rollout-engine boundaries through two image-editing case studies on generation--reward overlap and conditioning fidelity.
 We evaluate \system across diffusion, autoregressive (AR), and composed multimodal workloads.
-On system benchmarks, \system reduces per-iteration time over VeRL-Omni on an eight-GPU native SD3.5-Medium recipe (\ReportedUniRLSeconds{}\,s vs.\ \ReportedSDPASeconds{}\,s) and achieves 8.2\% higher output-token throughput than veRL in a recipe-matched 500-rollout Qwen3-4B-Base GRPO run (with 11.0\% longer responses and a 0.307 vs.\ 0.203 truncation rate).
-Across three-seed training runs, SD3.5-Medium post-training improves held-out preference and compositional scores with a \ETwoDiversityChange{} LPIPS diversity trade-off; in a composed rewrite-to-image workflow, two lineage-defined groupings match an ID-joined reference on recorded rollouts and both improve over the base model, though their three-seed quality difference is inconclusive.
-On AR math reasoning (MATH-500), prespecified GRPO improves early but degrades below the base model by rollout 800 across all three seeds, whereas post-hoc DRPO finishes above the base model under standard grading (with one seed relying on token-limit responses).
-Finally, we separate artifact-verified results from report-derived summaries and note that isolating late-stage GRPO degradation, verifying recorded replay-tensor lineage, measuring paired IR overhead, and establishing controlled time-to-quality comparisons remain open.
+On system benchmarks, \system reduces per-iteration time over VeRL-Omni on an eight-GPU native SD3.5-Medium recipe (\ReportedUniRLSeconds{}\,s vs.\ \ReportedSDPASeconds{}\,s, $\ReportedNativeSpeedup{}\times$) and achieves 8.2\% higher output-token throughput than veRL in a recipe-matched 500-rollout Qwen3-4B-Base GRPO run ($1.45\times$--$1.60\times$ faster generation in fixed-length microbenchmarks).
+In a paired GPU transport benchmark, the trajectory IR (\sample{} with \texttt{TensorRef}) matches an explicit ID-joined flat-row representation bit-for-bit across all 48 cells and 12 recorded rollouts while adding \EFiveRTreeEExactSameTotalMs{}--\EFiveRTreeEExactCrossTotalMs{}\,ms per step (\EFiveRTreeEExactPctSixtyFour{}--\EFiveRTreeEExactCrossPctTwentyNine{} of E4 iteration time) and avoiding \EFiveRTreeEExactAvoidedMiB{}\,MiB to 64.0\,GiB of driver-side dense tensor materialization.
+Across three-seed training runs, SD3.5-Medium post-training improves held-out preference and compositional scores for both \system and the VeRL-Omni reference (with \ETwoDiversityChange{} and \ETwoRDiversityChange{} LPIPS diversity trade-offs); in a composed rewrite-to-image workflow, two lineage-defined groupings match an ID-joined reference on recorded rollouts and replay tensors and both improve over the base model, though their three-seed quality difference is inconclusive.
+On AR math reasoning (MATH-500), prespecified GRPO peaks early before degrading across all runs, which controlled ablations trace to unregularized group-standard-deviation and sequence-length normalizations shared with veRL, whereas DRPO finishes above the base model across all three seeds and eliminates length truncation when paired with an overlong reward penalty.
 \end{abstract}
 
 \section{Introduction}
@@ -100,18 +102,17 @@ Throughout this loop, heavy GPU tensors never pass through the driver: workers s
 The paper develops three coupled design ideas:
 
 \begin{itemize}
-  \item A \emph{lineage-preserving trajectory IR} in which a rollout request is a typed tree skeleton spanning AR and diffusion stages, each generated layer is conditioned through its ancestry and retains its own replay segment, and post-rollout operators propagate leaf rewards to parent layers and normalize advantages within ancestor-defined sibling groups before per-stage replay (Sections~\ref{sec:trajectory-layers}--\ref{sec:fold}). Synthetic fixture checks and an ID-join check on recorded rollouts of a composed prompt-rewrite-to-image run verify the grouping and advantage semantics, while the downstream quality comparison between the two groupings is inconclusive and replay-tensor verification on recorded rollouts remains open.
+  \item A \emph{lineage-preserving trajectory IR} in which a rollout request is a typed tree skeleton spanning AR and diffusion stages, each generated layer is conditioned through its ancestry and retains its own replay segment, and post-rollout operators propagate leaf rewards to parent layers and normalize advantages within ancestor-defined sibling groups before per-stage replay (Sections~\ref{sec:trajectory-layers}--\ref{sec:fold}). Synthetic fixture checks and an ID-join check across all 12 recorded rollouts of a composed prompt-rewrite-to-image run verify bit-exact group memberships, advantages, model conditions, and replay tensors across root-shard round trips, while the downstream quality comparison between the two groupings is inconclusive.
   \item A \emph{modular interface for stage replay and optimization} that decouples trajectory layers from stage-specific objectives and distributed training backends, reducing the integration complexity of $N_{\mathrm{mod}}$ model bundles and $N_{\mathrm{alg}}$ shared algorithms from $N_{\mathrm{mod}}\times N_{\mathrm{alg}}$ to $N_{\mathrm{mod}}+N_{\mathrm{alg}}$ (Sections~\ref{sec:algorithm-boundary} and~\ref{sec:instantiations}).
   \item A \emph{factorization of semantic roles from physical execution}: the trainer expresses rollout, reward, credit assignment, and policy updates as logical role calls over the same \sample{} IR, while placement scopes, field-aware dispatch, \texttt{TensorRef} transport, weight publication, and memory residency map those roles onto colocated, separate-slab, or asynchronous execution without changing role or algorithm code (Section~\ref{sec:execution}; case studies in Sections~\ref{sec:reward} and~\ref{sec:fidelity}). For asynchronous training, AR and diffusion trainers share a single driver-side \texttt{RolloutManager} that dispatches in-flight requests, collects completed prompt groups, filters stale rollouts by policy version, and drains in-flight work before weight synchronization (Section~\ref{sec:async}).
 \end{itemize}
 
-% TODO: revise this paragraph once E5-R is complete.
 Section~\ref{sec:evaluation} organizes our experiments from structural correctness to end-to-end learning, composed workflows, and system cost, pairing each experiment with its scope boundaries:
-\emph{(i) Structural correctness:} a CPU IR regression suite and GPU weight-publication parity checks (E0) verify core invariants and rollout--trainer weight synchronization.
-\emph{(ii) Single-stage training:} three-seed diffusion post-training on SD3.5-Medium (E2, alongside single-seed HunyuanImage-3.0 and MiniMax-H3 reproductions) improves held-out preference and composition scores with a \ETwoDiversityChange{} within-prompt LPIPS diversity trade-off; on three-seed AR math reasoning (E1, MATH-500), prespecified GRPO peaks early before ending below the frozen base model, whereas post-hoc DRPO finishes above the base model across all three seeds under standard grading (with one seed relying on token-limit responses).
-\emph{(iii) Composed workflow:} a three-seed rewrite-to-image study (E4) verifies lineage-based grouping and advantages against an ID-joined reference on recorded rollouts, though the quality difference between root and rewrite grouping is inconclusive.
-\emph{(iv) Systems benchmarks:} an eight-GPU native diffusion benchmark (E3), a deployment-topology comparison (E5-T), a recipe-matched 16-GPU AR comparison (E3-AR), and an exploratory asynchronous AR study (E6, Section~\ref{sec:rq4}) evaluate runtime cost and overlap; E3 retains estimator and LoRA-target differences across frameworks, E3-AR compares one run per framework on separate nodes with diverging response lengths and truncation rates, and E6 records lower per-rollout time under overlap in single-seed planning runs before its formal quality sweep was canceled.
-Taken together, these results do not claim a cross-workload quality or time-to-quality advantage, and replay-tensor validation on recorded rollouts (E4a) as well as paired IR overhead measurement (E5-R) remain open.
+\emph{(i) Structural correctness:} a CPU IR regression suite, paired GPU trajectory-transport checks, and GPU weight-publication parity checks (E0) verify core invariants and rollout--trainer weight synchronization.
+\emph{(ii) Single-stage training:} three-seed diffusion post-training on SD3.5-Medium in both \system (E2) and VeRL-Omni (E2-R), alongside single-seed HunyuanImage-3.0 and MiniMax-H3 reproductions, improves held-out preference and composition scores with \ETwoDiversityChange{} and \ETwoRDiversityChange{} within-prompt LPIPS diversity trade-offs; on three-seed AR math reasoning (E1, MATH-500), prespecified GRPO peaks early before ending below the frozen base model (attributed via controlled ablations to group-standard-deviation and sequence-length normalizations), whereas post-hoc DRPO finishes above the base model across all three seeds under standard grading and eliminates non-termination when paired with an overlong penalty.
+\emph{(iii) Composed workflow and IR cost:} a three-seed rewrite-to-image study (E4) verifies bit-exact lineage grouping, advantages, and replay-tensor round trips against an ID-joined reference on recorded rollouts (though the quality difference between root and rewrite grouping is inconclusive), while a paired GPU microbenchmark (E5-R) bounds \sample{} and \texttt{TensorRef} critical-path overhead to \EFiveRTreeEExactSameTotalMs{}--\EFiveRTreeEExactCrossTotalMs{}\,ms per step at the E4 geometry (\EFiveRTreeEExactPctSixtyFour{}--\EFiveRTreeEExactCrossPctTwentyNine{} of iteration time).
+\emph{(iv) Systems benchmarks:} an eight-GPU native diffusion benchmark (E3), a deployment-topology comparison (E5-T), a recipe-matched 16-GPU AR comparison with fixed-length and same-allocation microbenchmarks (E3-AR), and an asynchronous cross-slab overlap study across 32-GPU AR and eight-GPU diffusion deployments (E6, Section~\ref{sec:rq4}) evaluate runtime cost and overlap ($1.85\times$--$1.91\times$ step-time speedup on disaggregated AR and $1.01\times$ on compute-bound diffusion).
+Taken together, these results bound the representation and execution trade-offs of the trajectory IR across modalities and topologies while keeping end-to-end time-to-quality under asynchronous staleness open.
 
 \section{Problem: Preserve Semantics While Changing Execution}
 \label{sec:problem}
@@ -445,7 +446,7 @@ The transport interface exposes four operations: store tensors, resolve handles,
 UniRL provides (i) an in-process colocated per-worker store, (ii) a per-GPU store using CUDA inter-process communication (IPC) and NVIDIA Collective Communications Library (NCCL) transfers, and (iii) a TransferQueue path backed by either built-in in-memory storage (\texttt{SimpleStorage}) or Mooncake-compatible distributed storage~\citep{qin2024mooncake}; we use Mooncake's storage interface purely as a transport backend rather than a claimed contribution.
 
 The driver can therefore reorganize trajectory lineage and metadata without gathering dense GPU payloads onto the controller.
-Whether this indirection yields net memory and transfer savings relative to flat ID-joined rows is an empirical question under RQ3 (Section~\ref{sec:rq3}; the paired E5-R microbenchmark remains open) rather than an a priori assumption.
+Whether this indirection yields net memory and transfer savings relative to flat ID-joined rows is an empirical question evaluated in our paired GPU representation benchmark E5-R (Section~\ref{sec:rq3}) rather than an a priori assumption.
 
 \subsection{Residency lifecycles and weight publication}
 \label{sec:lifecycle}
@@ -570,9 +571,7 @@ The prespecified artifact contract requires each run to archive its resolved con
 The prespecified protocol requires primary comparisons to run one framework at a time on the same reserved hardware; E3 follows this single-node protocol, whereas the two E3-AR runs executed concurrently on separate two-node H20 allocations in the same cluster (Section~\ref{sec:rq2}).\footnote{Throughout the paper, we follow each baseline project's official capitalization: \emph{veRL} for the language-model post-training framework~\citep{sheng2024hybridflow} and \emph{VeRL-Omni} for the multimodal and diffusion extension~\citep{verlomni2026}.}
 
 \paragraph{Evidence tiers.}
-The evaluation draws on two tiers of experimental records.
-For E0, E1, E2, E4, E3-AR, and the HunyuanImage-3.0 and MiniMax-H3 recipe reproductions, tables, figures, and summary statistics are computed directly from exported per-run records: per-prompt endpoint evaluations, per-rollout training metrics, internal validation series, pre-launch parity checks, and a training/evaluation overlap audit for E1; per-checkpoint judge evaluations for E2; preregistered paired analyses and recorded-rollout lineage checks for E4; resolved configurations, effective-work parity audits, and 499 post-warm-up per-rollout timing and length records for E3-AR; and exported W\&B training histories for HunyuanImage-3.0 and MiniMax-H3.
-For E3, E5-T, and E6, the results below come from aggregate experiment summaries rather than raw per-rollout logs; for these three studies, we report the recorded aggregate figures directly without reconstructing intermediate learning curves or run-level uncertainty intervals.
+Across E0--E6 and the HunyuanImage-3.0 and MiniMax-H3 recipe reproductions, tables, figures, and summary statistics are computed directly from exported per-run and per-step records archived in the repository: per-prompt endpoint evaluations, per-rollout training metrics, internal validation series, pre-launch parity checks, training/evaluation overlap audits, and controlled objective/truncation ablations for E1; per-checkpoint judge and LPIPS evaluations (including the one-image preference subset) for both UniRL (E2) and VeRL-Omni (E2-R); preregistered paired analyses, recorded-rollout lineage and replay-tensor checks, and module line-count inventories for E4; 9,600 paired GPU transport trials across 48 cells for E5-R; 360 raw-log-verified per-step timing and GPU memory records across three process repetitions per arm for E3 and E5-T; resolved configurations, effective-work parity audits, 499-step long-horizon records, and same-allocation fixed- and natural-length microbenchmarks for E3-AR; per-step asynchronous overlap records across 32-GPU AR and eight-GPU diffusion deployments for E6; and exported W\&B training histories for HunyuanImage-3.0 and MiniMax-H3.
 Generated media, raw text completions, full console logs, and checkpoint weights reside on cluster storage outside the manuscript repository (see the Reproducibility Statement for bundle paths).
 
 \begin{table}[H]
@@ -584,14 +583,14 @@ Generated media, raw text completions, full console logs, and checkpoint weights
 \toprule
 ID & Priority & Controlled study & Paper evidence \\
 \midrule
-E0 & P0 gate & Correctness, configuration, and instrumentation checks & Parity measured on five publication paths and on every E1 rollout; no tolerance set; evidence packaging remains incomplete \\
-E1 & P0 & Qwen3-4B-Base on DAPO-Math & GRPO below base at the registered endpoint in all three seeds; DRPO (added later) above base in all three as graded, with one seed mostly reaching the token limit \\
-E2 / E2-R & P0 & SD3.5-Medium diffusion training (UniRL E2 and VeRL-Omni reference E2-R) & Three-seed UniRL scores and diversity reported (E2); VeRL-Omni reference trained, not evaluated (E2-R) \\
-E3 & P0 & Native UniRL--VeRL-Omni recipes, eight GPUs & Aggregate timings reported; strict semantic parity not established \\
-E3-AR & P0 & Recipe-matched Qwen3-4B-Base GRPO, UniRL--veRL, 16 GPUs per system & 500 rollouts complete; resolved recipes, parity audit, per-rollout measurements, and curves released \\
-E4 (E4a/E4b) & P0 & Root versus rewrite grouping: oracle check (E4a) and 3-seed training (E4b) & Synthetic and recorded-rollout equality checks pass; corrected rerun inconclusive at three seed pairs \\
-E5 (E5-R/E5-T) & P0 minimum & Paired IR representation cost (E5-R) and colocated vs.\ separate deployment topology (E5-T) & Deployment topology measured (E5-T); paired representation cost not measured (E5-R) \\
-E6 (S0/D0/A1) & P1 & Qwen3-4B-Base colocated sync (S0), separate sync (D0), and async overlap (A1) & Single-seed pilots only; formal sweep canceled \\
+E0 & P0 gate & Correctness, configuration, and instrumentation checks & Parity measured on five publication paths and on every E1 rollout; 10 CPU IR checks and 12 recorded E4~v2 rollout round trips pass \\
+E1 & P0 & Qwen3-4B-Base on DAPO-Math & GRPO below base at rollout 800 across all runs (traced by controlled ablations to $\div\text{std}$ and $\div\text{seq\_len}$ normalizations); DRPO above base in all three seeds, with overlong penalties eliminating truncation \\
+E2 / E2-R & P0 & SD3.5-Medium diffusion training (UniRL E2 and VeRL-Omni reference E2-R) & Three-seed held-out scores, 1-image subset, and LPIPS diversity reported for both UniRL (E2) and VeRL-Omni (E2-R) \\
+E3 & P0 & Native UniRL--VeRL-Omni recipes, eight GPUs & 3 repetitions $\times$ 30 steps per arm verified from raw logs ($\ReportedUniRLSeconds$\,s vs.\ $\ReportedSDPASeconds$\,s); native estimator differences retained \\
+E3-AR & P0 & Recipe-matched Qwen3-4B-Base GRPO, UniRL--veRL, 16 GPUs per system & 500-rollout run plus same-allocation fixed-length (2048/4096/8192) and 15-step natural-length microbenchmarks ($1.44\times$--$1.60\times$ faster generation) \\
+E4 (E4a/E4b) & P0 & Root versus rewrite grouping: oracle check (E4a) and 3-seed training (E4b) & Synthetic (24/24) and recorded-rollout (12/12) group, advantage, condition, and replay-tensor checks pass bit-exactly; 3-seed quality contrast inconclusive \\
+E5 (E5-R/E5-T) & P0 minimum & Paired IR representation cost (E5-R) and colocated vs.\ separate deployment topology (E5-T) & Paired GPU representation cost bounded across 48 cells / 9,600 trials ($\EFiveRTreeEExactSameTotalMs$--$\EFiveRTreeEExactCrossTotalMs$\,ms at E4 shape, E5-R); colocated vs.\ separate topology verified over 3 repetitions (E5-T) \\
+E6 (S0/D0/A1) & P1 & Asynchronous cross-slab rollout--train overlap (32-GPU AR and 8-GPU diffusion) & 12 steady-state steps per arm: $1.85\times$--$1.91\times$ step-time speedup over disaggregated sync on 32-GPU AR; $1.007\times$ on compute-bound 8-GPU diffusion; formal quality sweep canceled \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -608,10 +607,8 @@ E3 and the deployment-topology comparison E5-T likewise use a fixed allocation o
 
 The first question is scientific rather than purely operational.
 A complete training-validity claim requires improvement over the frozen base together with satisfactory collapse diagnostics.
-E2 reports an improvement in automatic scores but triggers the diversity guard, so its result is a qualified quality--diversity trade-off.
-E1's prespecified GRPO recipe fails the first condition at its registered endpoint; a Divergence-Regularized Policy Optimization (DRPO)~\citep{yao2026rethinking} recipe added later meets the first condition in all three seeds, but one seed fails the second because most of its final-checkpoint answers run to the generation token limit.
-Reproducing another implementation additionally requires a full-budget, mathematically aligned reference with common quality endpoints; a systems speed run alone cannot supply that evidence.
-The VeRL-Omni reference training run (E2-R) has been trained across three seeds but has not been evaluated head-to-head on held-out prompts, while the adapted AR systems launcher (E3-AR) has not yet been evaluated on the aligned external quality benchmark.
+E2 and the VeRL-Omni reference E2-R both report improvements in automatic scores alongside LPIPS diversity reductions that trigger the investigation guard, so both exhibit a quality--diversity trade-off.
+E1's prespecified GRPO recipe fails the first condition at its registered rollout-800 endpoint across all runs, which controlled single-factor and cross-framework ablations trace to unregularized group-standard-deviation and per-sequence token-mean normalizations; a Divergence-Regularized Policy Optimization (DRPO)~\citep{yao2026rethinking} recipe added later meets the first condition across all three seeds, and an overlong reward-penalty ablation eliminates the late-stage non-termination observed in one seed under \texttt{keep} truncation handling.
 
 \paragraph{AR workload.}
 E1 trains Qwen3-4B-Base~\citep{yang2025qwen3} with full-parameter GRPO on DAPO-Math-17k~\citep{yu2025dapo}.
@@ -629,7 +626,7 @@ MATH-500 is the primary external AR endpoint, with a training/evaluation overlap
 The protocol calls for every seed, final-checkpoint curves, and 95\% confidence intervals; avg@$k$ denotes mean accuracy across $k$ sampled answers, not pass@$k$.
 
 \begin{table}[H]
-\caption{E1 external evaluation of the frozen base and every surviving checkpoint. MATH-500 avg@4 at the final checkpoint is the registered endpoint; $\pm$ is the sampling standard error over the fixed prompt set, not seed uncertainty. $^{\dagger}$Mean of two independent evaluations of the same checkpoint. Checkpoints 200 and 400 of GRPO seed 11 were lost before evaluation; the seed 11 rerun, a separate run under the same seed ID whose last checkpoint is at rollout 400, has its own row. DRPO was added after the first GRPO seed.}
+\caption{E1 external evaluation of the frozen base and every surviving checkpoint. MATH-500 avg@4 at the final checkpoint is the registered endpoint; $\pm$ is the sampling standard error over the fixed prompt set, not seed uncertainty. $^{\dagger}$Mean of two independent evaluations of the same checkpoint. Checkpoints 200 and 400 of GRPO seed 11 were lost before evaluation; the seed 11 rerun, a separate 800-rollout run under the same seed ID resumed from checkpoint 400, has its own row. DRPO was added after the first GRPO seed.}
 \label{tab:rq1-ar}
 \centering
 \scriptsize
@@ -637,9 +634,9 @@ The protocol calls for every seed, final-checkpoint curves, and 95\% confidence 
 \end{table}
 
 \paragraph{E1 result: GRPO gains early and ends below the base model.}
-All three prespecified GRPO seeds completed 800 rollouts, and every surviving checkpoint was scored on the external benchmarks (Table~\ref{tab:rq1-ar}, Figure~\ref{fig:e1-endpoint}).
-At rollout 200 the two seeds with a saved checkpoint score \EOneMathGRPOEarlyTwentyTwo{} and \EOneMathGRPOEarlyThirtyThree{} on MATH-500, against \EOneMathBase{} for the frozen base.
-Every later checkpoint is lower than the one before it in every seed, and the final checkpoints score \EOneMathGRPOEndEleven{}, \EOneMathGRPOEndTwentyTwo{}, and \EOneMathGRPOEndThirtyThree{}.
+All three prespecified GRPO seeds and the seed 11 rerun completed 800 rollouts, and every surviving checkpoint was scored on the external benchmarks (Table~\ref{tab:rq1-ar}, Figure~\ref{fig:e1-endpoint}).
+At rollout 200 the two formal seeds with a saved checkpoint score \EOneMathGRPOEarlyTwentyTwo{} and \EOneMathGRPOEarlyThirtyThree{} on MATH-500 (and the seed 11 rerun scores \EOneMathGRPORerunEarly{}), against \EOneMathBase{} for the frozen base.
+Every later checkpoint is lower than the one before it in every run, and the final checkpoints of the three formal seeds score \EOneMathGRPOEndEleven{}, \EOneMathGRPOEndTwentyTwo{}, and \EOneMathGRPOEndThirtyThree{} (with the seed 11 rerun finishing at \EOneMathGRPORerunEnd{}).
 No seed improves on the base at the registered endpoint, so E1 does not show the improvement over the frozen base that a training-validity claim requires.
 The three final deficits relative to the base model range from \EOneMathGRPODeficitMin{} to \EOneMathGRPODeficitMax{} (mean \EOneMathGRPODeficitMean{}), with a seed-level 95\% confidence interval of [\EOneMathGRPOChangeLow{}, \EOneMathGRPOChangeHigh{}] for the net change from base; all three seeds agree on the negative direction, though with two degrees of freedom the interval is too wide to bound the magnitude tightly.
 Mean training reward declines over the same span in every seed---from \EOneRewardEarlyEleven{}, \EOneRewardEarlyTwentyTwo{}, and \EOneRewardEarlyThirtyThree{} over rollouts 101--200 to \EOneRewardLateEleven{}, \EOneRewardLateTwentyTwo{}, and \EOneRewardLateThirtyThree{} over rollouts 701--800---ruling out classic overfitting where training reward rises while held-out accuracy falls.
@@ -652,7 +649,7 @@ Holding accuracy on terminating responses fixed at its rollout-200 level, increa
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{artifacts/reported_results/2026-10-08-e0-e1-e2-e4/figures/e1_endpoint.pdf}
-\caption{E1 on the registered external endpoint and during training. (a) MATH-500 avg@4 at each saved checkpoint (one curve per training run, dashed horizontal line for the frozen base; error bars denote prompt-sampling standard errors). (b) Mean training reward over consecutive 25-rollout blocks for the same runs. Color indicates the algorithm arm, while marker shape and line style indicate the seed; the seed 11 rerun, which trained to rollout \EOneRerunEnd{} with its last saved checkpoint at rollout 400, is plotted with hollow markers and a dash-dot line and is not connected to the original seed 11. Each curve represents an individual run; no cross-seed mean is plotted because only two formal GRPO seeds have surviving checkpoints at rollouts 200 and 400.}
+\caption{E1 on the registered external endpoint and during training. (a) MATH-500 avg@4 at each saved checkpoint (one curve per training run, dashed horizontal line for the frozen base; error bars denote prompt-sampling standard errors). (b) Mean training reward over consecutive 25-rollout blocks for the same runs. Color indicates the algorithm arm, while marker shape and line style indicate the seed; the seed 11 rerun, an independent 800-rollout run under the same seed ID resumed from its rollout-400 checkpoint, is plotted with hollow markers and a dash-dot line. Each curve represents an individual run; no cross-seed mean is plotted because only two formal GRPO seeds have surviving checkpoints at rollouts 200 and 400.}
 \label{fig:e1-endpoint}
 \end{figure}
 
@@ -669,18 +666,25 @@ At rollouts 200, 400, and 600, every DRPO seed exceeds every GRPO run (including
 At rollouts 400 and 600, only \EOneLimitDRPOTwentyTwoMiddle{} and \EOneLimitDRPOTwentyTwoEarlier{} of DRPO seed 22's MATH-500 answers hit the 16,384-token evaluation limit, even though \EOneCapDRPOTwentyTwo{} of its training rollouts from rollout 301 onward reached the 8,192-token training cap (Appendix~\ref{app:e1}), because external evaluation permits twice the generation length at a lower decoding temperature.
 Finally, the DRPO configuration differs from the GRPO configuration across five settings---the policy-gradient loss function, omission of group-standard-deviation advantage normalization, token-level loss aggregation, use of rollout-engine log probabilities as the $\pi_{\text{old}}$ anchor, and micro-batch shard balancing---so this comparison evaluates two complete recipes rather than isolating the objective alone.
 
-\paragraph{E1 deviations and limits.}
-In practice, seed IDs controlled only the training data order; rollout generation sampling was left unseeded, departing from the prespecified server-RNG seeding.
-Evaluation decoding on the text benchmarks was also unseeded; consequently, the final checkpoints of GRPO seed 11 and DRPO seed 11 were each evaluated twice, and Table~\ref{tab:rq1-ar} reports their mean.
+\paragraph{E1 deviations, deterministic re-evaluation, and controlled ablations.}
+In the initial E1 campaign, seed IDs controlled only the training data order while rollout generation and benchmark evaluation decoding were unseeded; consequently, the final checkpoints of GRPO seed 11 and DRPO seed 11 were each evaluated twice, and Table~\ref{tab:rq1-ar} reports their mean.
+To quantify evaluation-decoding variance and verify determinism, we added per-(problem, sample) seeded evaluation (\texttt{--seed 42}) and re-evaluated the frozen base model and four representative E1 checkpoints across two independent repetitions on MATH-500, AIME 2024, and AIME 2025: the base model scored $66.45\%$ / $68.15\%$ on MATH-500 ($8.96\%$ / $9.38\%$ on AIME 2024 and $5.63\%$ / $6.67\%$ on AIME 2025), \texttt{grpo-s11rerun} checkpoints 200 and 400 scored $80.30\%$ and $78.05\%$ on MATH-500, \texttt{grpo-s11} checkpoint 800 scored $58.30\%$ / $59.50\%$, and \texttt{drpo-s11} checkpoint 800 scored $84.25\%$ / $84.90\%$, closely matching the unseeded Table~\ref{tab:rq1-ar} scores.
 During AIME evaluation, the requested max-new-tokens budget was clipped to fit within the model's context window.
 GRPO seed 11 and DRPO seed 22 were each resumed from their rollout-200 checkpoints, restoring model weights, optimizer state, and data-loader position (DRPO seed 22's initial allocation ended at rollout 369, and rollouts 201--369 from that first segment were discarded).
-Because GRPO seed 11's checkpoints at rollouts 200 and 400 were lost from storage prior to evaluation, we launched a rerun under the same commit, dataset, and data order, scoring its checkpoints at rollouts 200 and 400 (\EOneMathGRPORerunEarly{} and \EOneMathGRPORerunMiddle{} on MATH-500) before resuming it from rollout 400 toward 800; that allocation ended at rollout \EOneRerunEnd{}, prior to checkpoint 600, leaving no later endpoint score.
-Because generation sampling is unseeded, this rerun is an independent trajectory rather than an exact replay: its internal validation accuracy lies above the original seed 11 at every evaluation from rollout \EOneRerunAboveFrom{} to \EOneRerunAboveTo{} and below it from rollout \EOneRerunBelowFrom{} onward, finishing at \EOneValidRerunLast{} at rollout \EOneRerunLastEval{}---the lowest of the four GRPO runs at that step (Appendix~\ref{app:e1}).
+Because GRPO seed 11's checkpoints at rollouts 200 and 400 were lost from storage prior to evaluation, we launched a rerun (\texttt{grpo-s11rerun}) under the same commit, dataset, and data order, scoring its checkpoints at rollouts 200 and 400 (\EOneMathGRPORerunEarly{} and \EOneMathGRPORerunMiddle{} on MATH-500) before resuming from checkpoint 400 to complete all 800 rollouts (\EOneMathGRPORerunSix{} at rollout 600 and \EOneMathGRPORerunEnd{} at rollout 800 on MATH-500; $1.25\%$ and $0.00\%$ on AIME 2024; $0.21\%$ and $0.00\%$ on AIME 2025).
+Because generation sampling is unseeded, this rerun is an independent trajectory rather than an exact replay: its internal validation accuracy lies above the original seed 11 at every evaluation from rollout \EOneRerunAboveFrom{} to \EOneRerunAboveTo{} and below it from rollout \EOneRerunBelowFrom{} onward, finishing at \EOneValidRerunLast{} at rollout \EOneRerunLastEval{} (Appendix~\ref{app:e1}).
 We therefore report the rerun in a separate row in Table~\ref{tab:rq1-ar} and do not connect it to seed 11's later checkpoints.
-Because no external reference framework was run to rollout 800 and evaluated on MATH-500 (E3-AR in Section~\ref{sec:rq2} runs for 500 rollouts without external benchmark scoring), we cannot isolate whether the late-training GRPO degradation stems from the recipe or from the system implementation.
+
+To isolate why standard GRPO degrades after rollout 200 and why DRPO seed 22 exhibits late-stage length explosion, we conducted a seven-arm controlled ablation on 32 H20 GPUs (Table~\ref{tab:e1-ablation} in Appendix~\ref{app:e1}), resuming UniRL seed 22 from its peak \texttt{checkpoint-200} (where MATH-500 is $81.45\%$) to rollout 600 and training an aligned veRL standard-GRPO reference from scratch to rollout 600:
+(i)~the aligned veRL standard-GRPO run (\texttt{T3.1-B}) peaks at $76.25\%$ on MATH-500 ($12.71\%$ AIME 2024, $11.67\%$ AIME 2025) at rollout 200 and degrades to $72.25\%$ ($9.17\%$ AIME 2024, $3.75\%$ AIME 2025) by rollout 600, confirming that unregularized standard GRPO degrades in both frameworks;
+(ii)~removing group-standard-deviation division alone (\texttt{T3.1-A1}, \texttt{normalize\_adv\_by\_std=false}) recovers $+28.05$ percentage points on MATH-500 at rollout 600 ($72.60\%$ vs.\ $44.55\%$);
+(iii)~replacing per-sequence token-mean loss with constant-denominator sum normalization (\texttt{T3.1-A2}, \texttt{seq-mean-token-sum-norm}) recovers $+12.65$ points at rollout 400 ($77.80\%$) and $+28.65$ points at rollout 600 ($73.20\%$);
+(iv)~combining both Dr.GRPO normalizations under FSDP (\texttt{T3.1-A3}) lifts rollout-400 accuracy to $79.70\%$ on MATH-500 and $18.75\%$ on AIME 2024 while retaining $71.15\%$ ($+26.60$ points over baseline GRPO) at rollout 600; and
+(v)~resuming \texttt{drpo-s22} from \texttt{checkpoint-200} to rollout 400 with hard zeroing (\texttt{T3.1-C1}, \texttt{truncated\_reward=zero}) or a soft overlong penalty (\texttt{T3.1-C2}, \texttt{truncated\_reward=soft}) reduces training truncation from $94.0\%$ ($8{,}025$ tokens) under \texttt{keep} to $2.15\%$ ($3{,}051$ tokens) and $0.00\%$ ($1{,}917$ tokens), respectively, while \texttt{T3.1-C2} achieves $83.95\%$ on MATH-500, $21.67\%$ on AIME 2024, and $18.96\%$ on AIME 2025.
+
 The required training/evaluation overlap audit identified \EOneOverlapMath{} of the 500 MATH-500 problems among the \EOneTrainPrompts{} training prompts (\EOneOverlapMathVerbatim{} verbatim after normalization and \EOneOverlapMathNear{} near-verbatim) and zero overlapping AIME problems; excluding those \EOneOverlapMath{} problems alters no checkpoint's change from base by more than \EOneOverlapShiftMax{}.
 An additional \EOneOverlapTemplate{} MATH-500 problems share at least half of their normalized 30-character substrings with a training prompt and were retained.
-Finally, Appendix~\ref{app:e1} details the internal AIME validation series (evaluated every ten rollouts under training decoding settings) and the checkpoints it selects, along with token-limit truncation breakdowns, training diagnostics, and aborted launches excluded from Table~\ref{tab:rq1-ar}.
+Finally, Appendix~\ref{app:e1} details the internal AIME validation series (evaluated every ten rollouts under training decoding settings) and the checkpoints it selects, along with token-limit truncation breakdowns, controlled ablation tables, training diagnostics, and aborted launches excluded from Table~\ref{tab:rq1-ar}.
 
 \paragraph{Diffusion workload.}
 E2 fixes SD3.5-Medium~\citep{sd35medium2024} and the UniRL Flow-GRPO setting used by E3, i.e.\ the stock \codepath{sd3\_vllmomni.yaml} recipe with the alignment overrides in \codepath{run\_unirl\_sd35\_aligned.sh}: 48 prompts with 16 images (768 samples) per rollout, $384\times384$ training resolution, ten denoising steps, three SDE steps in the first half, $\eta=0.8$, guidance 1, and distinct initial noise.
@@ -696,18 +700,17 @@ These three metrics use held-fixed automatic judges distinct from the optimized 
 The registry key \texttt{image/geneval2} points to UniRL's \texttt{synthetic/test.jsonl} (800 prompts) and a Qwen3-VL-8B Soft-TIFA-style compositional VQA scorer, served by the reward service under the \texttt{vqascore} endpoint key by default or run in-process with \texttt{--local-geneval2}.
 We refer to this benchmark as the \emph{synthetic compositional set} (labeled \texttt{Composition (VQAScore)} in Table~\ref{tab:rq1} and Figure~\ref{fig:e2-reported}); it is not an official GenEval~2 benchmark~\citep{kamath2025geneval2} without a separate data-and-scorer parity audit.
 All image evaluations generate $512\times512$ images over 40 denoising steps with guidance scale 1.0 and base evaluation seed 42 shared across training seeds and checkpoints.
-The PartiPrompts preference metrics (HPSv3, ImageReward, and PickScore) were evaluated on 16 images per prompt across all 1,632 prompts---matching the sample count required by the LPIPS diversity guard---rather than the prespecified single image per prompt.
-Because image seeds are indexed deterministically by prompt and sample index independently of the total sample count, the prespecified single-image endpoint corresponds to the first-sample subset of these generations, which has not yet been scored separately.
+The PartiPrompts preference metrics (HPSv3, ImageReward, and PickScore) were evaluated on 16 images per prompt across all 1,632 prompts at the base and rollout-300 checkpoints---matching the sample count required by the LPIPS diversity guard---and on one image per prompt (\texttt{sample\_idx=0}) at intermediate checkpoints.
+Because image seeds are indexed deterministically by prompt and sample index independently of the total sample count, we also extract and verify the consistent single-image (\texttt{sample\_idx=0}) subset across the base model and all six checkpoints: on this 1,632-image subset, UniRL's HPSv3 rises from \ETwoHPSOneImgBase{} to \ETwoHPSOneImgEnd{} ($\Delta = +\ETwoHPSOneImgGain{}$), ImageReward gains $+\ETwoIROneImgGain{}$, and PickScore gains $+\ETwoPSOneImgGain{}$, closely matching the 16-image endpoint gains in Table~\ref{tab:rq1}.
 The synthetic compositional endpoint uses one image per prompt (800 images), an explicit linear sigma grid, prompt-hashed seeds, and a 256-token text-encoder limit, whereas the PartiPrompts preference endpoint uses the pinned pipeline schedule and index-based seeds.
-Dataset sizes, revisions, overlap counts, and scorer hashes remain open manifest fields.
 
 The diversity guard is within-prompt mean pairwise LPIPS~\citep{zhang2018lpips} (AlexNet features), computed over 16 images per PartiPrompts prompt at the same evaluation setting, with identical image seeds for base and checkpoint.
-We average all 120 pair distances per prompt, then report the relative change in the mean across prompts and a paired prompt-bootstrap interval.
+We average all 120 pair distances per prompt, then report both the absolute level and the relative change in the mean across prompts alongside a seed-level 95\% confidence interval.
 A greater than 10\% relative decrease is a study-specific investigation trigger; it is not a literature-established quality threshold. A near-zero base makes this relative criterion undefined and requires the absolute change to be reported.
 This guard diagnoses reduced diversity and is not itself a perceptual-quality metric.
 
 \begin{table}[H]
-\caption{E2 diffusion endpoints after 300 rollouts, with three training seeds. Base and rollout-300 columns are levels, the latter averaged over seeds; changes are absolute score differences unless marked as relative percentages. Intervals are 95\% $t$ intervals over the three seeds, with two degrees of freedom. The LPIPS row reports the relative change in within-prompt diversity; its rollout-300 level is not in the bundle and is not reconstructed.}
+\caption{E2 (UniRL) and E2-R (VeRL-Omni reference) diffusion endpoints after 300 rollouts, with three training seeds per system. Base and rollout-300 columns are levels, the latter averaged over seeds; changes are absolute score differences unless marked as relative percentages. Intervals are 95\% $t$ intervals over the three seeds, with two degrees of freedom. The LPIPS rows report both absolute within-prompt diversity levels and relative percentage changes.}
 \label{tab:rq1}
 \centering
 \small
@@ -715,26 +718,27 @@ This guard diagnoses reduced diversity and is not itself a perceptual-quality me
 \end{table}
 
 \paragraph{E2 result: higher automatic scores with lower diversity.}
-The mean HPSv3 gain over three seeds is \ETwoHPSGain{}, with a seed-level 95\% interval of [\ETwoHPSLow{}, \ETwoHPSHigh{}], while within-prompt LPIPS changes by \ETwoDiversityChange{}, with an interval of [\ETwoDiversityLow{}, \ETwoDiversityHigh{}].
-Figure~\ref{fig:e2-reported} shows every seed at the frozen base and the six saved checkpoints, keeping score improvement and diversity reduction adjacent.
-All evaluations completed with zero scoring errors across the 1,632 PartiPrompts prompts (16 images per prompt) and 800 synthetic compositional prompts (one image per prompt).
+In UniRL (E2), the mean HPSv3 gain over three seeds is \ETwoHPSGain{}, with a seed-level 95\% interval of [\ETwoHPSLow{}, \ETwoHPSHigh{}], while within-prompt AlexNet LPIPS decreases from \ETwoLPIPSBase{} to \ETwoLPIPSEndAbs{} (\ETwoDiversityChange{}, interval [\ETwoDiversityLow{}, \ETwoDiversityHigh{}]).
+Figure~\ref{fig:e2-reported} shows every seed at the frozen base and the six saved checkpoints for both UniRL and VeRL-Omni, keeping score improvement and diversity reduction adjacent.
+All evaluations completed with zero scoring errors across the 1,632 PartiPrompts prompts and 800 synthetic compositional prompts.
 All three training seeds exceed the prespecified 10\% LPIPS diversity-drop threshold.
-By rollout 50, within-prompt LPIPS has already fallen by \ETwoDiversityEarly{} (\ETwoDiversityEarlyShare{} of its rollout-300 reduction) while HPSv3 has reached \ETwoHPSEarlyShare{} of its final gain; stopping at rollout 50 therefore does not avoid the diversity loss, although earlier stopping points or explicit diversity regularizers remain untested.
+By rollout 50, within-prompt LPIPS in UniRL has already fallen to \ETwoLPIPSEarlyAbs{} (\ETwoDiversityEarly{}, or \ETwoDiversityEarlyShare{} of its rollout-300 reduction) while HPSv3 has reached \ETwoHPSEarlyShare{} of its final gain; stopping at rollout 50 therefore does not avoid the diversity loss, although earlier stopping points or explicit diversity regularizers remain untested.
 Because the held-out judges are automated neural scorers, their gains do not establish human preference or rule out shared reward exploitation.
 The supported conclusion is therefore a quality--diversity trade-off rather than unqualified training validity.
-In Figure~\ref{fig:e2-reported}, LPIPS diversity was evaluated only at rollouts 50 and 300, and the compositional score trajectories fluctuate more across intermediate checkpoints than the PartiPrompts curves because compositional scoring averages over 800 single-image prompts rather than $1{,}632 \times 16$ images.
+In Figure~\ref{fig:e2-reported}, LPIPS diversity was evaluated at rollouts 50 and 300, and the compositional score trajectories fluctuate more across intermediate checkpoints than the PartiPrompts curves because compositional scoring averages over 800 single-image prompts.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{artifacts/reported_results/2026-10-08-e0-e1-e2-e4/figures/e2_curves.pdf}
-\caption{Per-seed E2 trajectories from the frozen base (rollout 0) through the six saved checkpoints. Panels (a)--(d) show judge scores in their own units; PickScore is the optimized reward and the other judges are held fixed. Panel (e) shows the relative change in within-prompt LPIPS, measured at rollouts 50 and 300 only, with the 10\% investigation trigger as the dashed line. Lines are training seeds, not individual images.}
+\caption{Per-seed E2 (UniRL, solid lines) and E2-R (VeRL-Omni reference, dashed lines) trajectories from the frozen base (rollout 0) through the six saved checkpoints. Panels (a)--(d) show judge scores in their own units; PickScore is the optimized reward and the other judges are held fixed. Panel (e) shows the relative change in within-prompt LPIPS, measured at rollouts 50 and 300, with the 10\% investigation trigger as the horizontal dashed line.}
 \label{fig:e2-reported}
 \end{figure}
 
-\paragraph{Reference comparison (E2-R) remains open.}
-The VeRL-Omni reference run E2-R completed three training seeds and verified checkpoint exports, but no held-out head-to-head evaluation was performed.
-Export correctness cannot establish quality parity, and evaluation alone would not remove the native flow versus CPS estimator mismatch.
-An explicitly labeled native-recipe comparison could provide context; strict reproduction still requires mathematical and effective-work parity.
+\paragraph{VeRL-Omni reference comparison (E2-R).}
+We evaluated all three training seeds (11, 22, and 33) and six checkpoints (rollouts 50--300) of the VeRL-Omni reference campaign E2-R through the identical held-out evaluation pipeline (Table~\ref{tab:rq1} and Figure~\ref{fig:e2-reported}).
+Across three seeds, VeRL-Omni improves PickScore from $0.8021$ to \ETwoRPSEnd{} ($\Delta = +\ETwoRPSGain{}$) and PartiPrompts HPSv3 from $1.2024$ to a peak of \ETwoRHPSPeak{} at rollout 200 and \ETwoRHPSEnd{} at rollout 300 ($\Delta = +\ETwoRHPSGain{}$, 95\% interval [+\ETwoRHPSLow{}, +\ETwoRHPSHigh{}]), while synthetic composition rises to \ETwoRCompEarly{} at rollout 50 and finishes at \ETwoRCompEnd{} at rollout 300 ($\Delta = +\ETwoRCompGain{}$).
+Within-prompt LPIPS diversity in E2-R decreases from $0.7987$ to \ETwoRLPIPSEarlyAbs{} (\ETwoRDiversityEarly{}) at rollout 50 and \ETwoRLPIPSEndAbs{} (\ETwoRDiversityChange{}) at rollout 300, exhibiting the same quality--diversity trade-off observed in E2.
+Because E2 uses UniRL's native \texttt{FlowSDEStrategy} whereas E2-R uses VeRL-Omni's native Coefficients-Preserving Sampling (CPS) estimator, this head-to-head evaluation compares the two frameworks' native SD3.5-Medium Flow-GRPO recipes rather than identical SDE transition kernels.
 
 \paragraph{HunyuanImage-3.0 recipe reproduction.}
 We further evaluate UniRL on HunyuanImage-3.0 (using the \texttt{HunyuanImage-3.0-Instruct} checkpoint) as a high-resolution text-to-image workload.
@@ -784,43 +788,33 @@ We report two complementary performance comparisons.
 E3 compares UniRL with VeRL-Omni for the E2 SD3.5-Medium shape-matched work unit on one reserved eight-GPU node~\citep{verlomni2026}; E3-AR is a recipe-matched Qwen3-4B-Base GRPO comparison against veRL.
 The planned E3 work unit matches E2: 48 prompts with 16 samples per prompt (768 images per rollout), $384\times384$ resolution, ten denoising steps with three early-window SDE steps, two optimizer updates per rollout, micro-batch size eight, LoRA rank/alpha 32/64, learning rate and weight decay $10^{-4}$, clipping at $10^{-5}$, and PickScore reward.
 Because the two frameworks target different attention projection sets in their stock LoRA configurations, matching rank and alpha does not yield identical trainable parameter counts.
-The reported protocol specifies three process-level repetitions of 30 rollouts per configuration, discarding the first five rollouts as warm-up and retaining at least 20 timed rollouts per repetition.
-Each system runs in isolation on the same reserved node, though cache-warming policy and randomized run order remain unverified pending access to the raw run logs.
-Table~\ref{tab:rq2} reports the three distinct configurations: UniRL with its native flow strategy and scaled dot-product attention (SDPA), and VeRL-Omni with its native CPS strategy under both SDPA and FlashAttention-3 (FA3).
+The reported protocol specifies three process-level repetitions of 30 rollouts per configuration, discarding the first five rollouts as warm-up and retaining 25 steady-state timed rollouts per repetition (75 steady-state steps per arm, 360 steps in total across the four E3 and E5-T arms).
+Each system runs in randomized block order in isolation on the same reserved eight-H20 node, with all per-step phase timings and GPU memory records archived in \codepath{artifacts/reported\_results/2026-10-15-e3-e5t-systems/}.
+Table~\ref{tab:rq2} reports the three E3 configurations---UniRL with its native flow strategy and scaled dot-product attention (SDPA), and VeRL-Omni with its native CPS strategy under both SDPA and FlashAttention-3 (FA3)---alongside the separate-slab deployment E5-T.
 The stock UniRL recipe uses \texttt{FlowSDEStrategy} and three sampled early indices; the VeRL-Omni launcher requests \texttt{cps} and an early three-step window.
-These differences change the transition distribution and likelihood, not merely the kernel implementation. Normalization, anchors, actual replay work, reward-service GPU placement, and update-membership shuffling (\texttt{shuffle\_updates}, enabled by default in UniRL's stock SD3 recipes) also require an audit.
-Until a semantically aligned pair is established, E3 is labeled a \emph{shape-matched native-recipe comparison}; attention-backend matching alone does not make it an equivalent-algorithm framework comparison.
-Its speed ratio cannot be attributed solely to framework overhead.
+These differences change the transition distribution and likelihood, not merely the kernel implementation.
+Until a semantically aligned pair is established, E3 is labeled a \emph{shape-matched native-recipe comparison}; attention-backend matching alone does not make it an equivalent-algorithm framework comparison, and its speed ratio cannot be attributed solely to framework overhead.
 
-A recipe-matched AR systems comparison (E3-AR) is reported below; its two runs were not scored on the external MATH-500 endpoint that Section~\ref{sec:rq1} reports for E1, and a controlled time-to-quality comparison remains open.
-
-The full protocol requests median, mean, and p90 iteration time, throughput, phase timing, memory, and utilization.
-The older report-derived E3 bundle supplies only selected aggregate timings and throughput, whereas E3-AR supplies the post-warm-up per-rollout timing and response-length distribution across 499 measured rollouts (one process-level run per framework).
-Strong- and weak-scaling sweeps (fixing global or per-GPU batch work, respectively) remain unexecuted extensions contingent on completing a semantically aligned single-node baseline.
-The 30-rollout E3 protocol does not support a time-to-quality claim; the E2-R quality comparison is still missing and E6 did not complete a threshold-based study.
+A recipe-matched AR systems comparison (E3-AR) is reported below, comprising both a 500-rollout long-horizon run and same-allocation fixed- and natural-length microbenchmarks.
 
 \begin{table}[H]
-\caption{Reported E3 native-recipe systems timings and E5-T deployment-topology timings. All rows use eight allocated GPUs. E3 and E5-T answer different questions; differences in estimators and deployment prevent a pure framework or transport attribution. Aggregate values retain the source table's precision, not an independently established measurement accuracy.}
+\caption{Raw-log-verified E3 native-recipe systems timings and E5-T deployment-topology timings across three repetitions $\times$ 25 steady-state steps per arm on one reserved eight-GPU H20 node. ``s/iter'' reports the steady-state median step time; phase columns report median generation, reward, weight-sync, training, and (for VeRL-Omni) old-log-probability recomputation times; memory columns report peak actor-allocated, actor-reserved, and device-used memory.}
 \label{tab:rq2}
 \centering
-\small
-\input{artifacts/reported_results/2026-09-22/systems_table.tex}
+\scriptsize
+\input{artifacts/reported_results/2026-10-15-e3-e5t-systems/systems_table.tex}
 \end{table}
 
 \paragraph{E3 result and its comparison boundary.}
-The reported mean iteration times are \ReportedUniRLSeconds{}\,s for UniRL and \ReportedSDPASeconds{}\,s for VeRL-Omni with SDPA (rounded to $64.2$\,s and $111.3$\,s in the source summary of Table~\ref{tab:rq2}), corresponding to a speedup ratio of approximately $\ReportedNativeSpeedup{}\times$.
-The observed SDPA and FA3 times are similar; this is not an equivalence test.
-The result concerns the complete measured native configurations, including their estimator and LoRA-target differences.
-The report also records greater short-run reward improvement per iteration for VeRL-Omni, so iteration throughput cannot be converted into a time-to-quality advantage.
-Neither a parameter-adjusted ratio nor a progress-normalized ratio is presented as an independently validated matched-control result.
-Generation phase labels are also non-equivalent: VeRL-Omni includes scoring in its generation timer, whereas UniRL separates it.
-We therefore omit a phase-breakdown figure until a common accounting boundary and the underlying measurements are available.
-Because the legacy report summaries contain minor discrepancies across replicate notes, Figure~\ref{fig:reported-systems} plots only the aggregate table values without inferred replicate points, confidence intervals, or statistical significance claims.
+Across three repetitions (75 steady-state steps per arm), the median iteration times are \ReportedUniRLSeconds{}\,s (mean $61.70 \pm 0.84$\,s, p90 \EThreeUniRLPNinetySeconds{}\,s) for UniRL and \ReportedSDPASeconds{}\,s (mean $111.05 \pm 1.30$\,s, p90 \EThreeVeRLSDPAPNinetySeconds{}\,s) for VeRL-Omni with SDPA, corresponding to a speedup ratio of $\ReportedNativeSpeedup{}\times$ ($\ReportedFAThreeSpeedup{}\times$ against VeRL-Omni with FA3 at \ReportedFAThreeSeconds{}\,s median, mean $111.93 \pm 1.26$\,s).
+Figure~\ref{fig:reported-systems} shows the per-phase breakdown, per-repetition medians, and peak GPU memory across all four arms.
+In UniRL, generation takes \EThreeUniRLGenSeconds{}\,s, reward evaluation \EThreeUniRLRewardSeconds{}\,s, weight publication \EThreeUniRLSyncSeconds{}\,s, and FSDP2 training \EThreeUniRLTrainSeconds{}\,s (with rollout transition log probabilities reused directly without a separate old-log-probability pass); in VeRL-Omni (SDPA), generation takes \EThreeVeRLSDPAGenSeconds{}\,s, reward \EThreeVeRLSDPARewardSeconds{}\,s, old-log-probability recomputation \EThreeVeRLSDPAOldLPSeconds{}\,s, weight sync \EThreeVeRLSDPASyncSeconds{}\,s, and training \EThreeVeRLSDPATrainSeconds{}\,s.
+The result concerns the complete measured native configurations, including their estimator and LoRA-target differences, and does not establish a time-to-quality advantage; the corresponding 300-rollout quality trajectories are evaluated in E2 and E2-R (Section~\ref{sec:rq1}).
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{artifacts/reported_results/2026-09-22/figures/e3_e5_systems.pdf}
-\caption{Reported iteration-time summaries. Left: E3 native-recipe comparison on one eight-GPU node. Right: E5-T's separate four-training/four-rollout allocation versus eight colocated GPUs within UniRL. Lower is faster. Panels keep the external recipe comparison separate from the internal deployment comparison; no error bars are inferred from unavailable run-level data.}
+\includegraphics[width=\textwidth]{artifacts/reported_results/2026-10-15-e3-e5t-systems/figures/e3_e5_systems.pdf}
+\caption{Verified E3 and E5-T iteration times, phase breakdowns, replicate medians (black dots), and peak GPU memory on one eight-GPU H20 node. (a) E3 native-recipe comparison. (b) E5-T colocated ($T_0$) versus separate ($T_1$: four training $+$ four rollout GPUs) deployment within UniRL. (c) Peak actor-allocated, actor-reserved, and total device memory.}
 \label{fig:reported-systems}
 \end{figure}
 
@@ -859,7 +853,7 @@ In raw phase time per step, UniRL is faster in generation by 4.56\,s (5.7\% lowe
 The raw end-to-end ordering reverses near rollout 300 as the two sampled response-length distributions cross, while UniRL's token-normalized end-to-end and generation throughput remain higher in all five 100-rollout bands.
 Per-phase timings rely on each framework's native timers and serve only as diagnostics; end-to-end step time provides the cleanest cross-framework boundary.
 Two estimator-level differences remain that configuration cannot remove: UniRL divides advantages by the population standard deviation and veRL by the sample standard deviation, making veRL's advantages uniformly $\sqrt{7/8}=0.935\times$ smaller at eight samples per prompt, and the two advantage epsilons differ by $10^{-8}$ versus $10^{-6}$; both are quantified against their closed forms in the bundle's audit.
-Finally, because the two runs executed concurrently on different two-node pairs in the cluster and comprise one process-level run per system, this comparison cannot separate framework differences from node-level hardware variance, repeated-run uncertainty, or time-to-quality.
+Finally, because the two 500-rollout runs executed concurrently on different two-node pairs in the cluster and comprise one process-level run per system, we supplement them below with a sequential same-allocation microbenchmark suite on identical hosts.
 
 \begin{figure}[H]
 \centering
@@ -867,6 +861,38 @@ Finally, because the two runs executed concurrently on different two-node pairs 
 \caption{Ten-rollout rolling means for the 500-rollout natural-length Qwen3-4B-Base GRPO comparison. Rollout 1 is excluded as startup warm-up. Response lengths evolve during training and cross near rollout 300, reversing the raw step-time ordering; token-normalized end-to-end throughput remains higher for UniRL throughout the five reported bands.}
 \label{fig:ar-systems}
 \end{figure}
+
+\paragraph{Same-allocation fixed-length and natural-length microbenchmarks.}
+To remove both node-level hardware variance and policy-induced response-length divergence as confounders, we executed both frameworks sequentially on the same reserved two-node (16-GPU) H20 allocation under four controlled regimes: fixed output lengths of 2,048, 4,096, and 8,192 tokens (\texttt{ignore\_eos=true}, 100\% truncation, identical token work per step) and a 15-step natural-termination run from the frozen base checkpoint (Table~\ref{tab:ar-fixed}).
+Across the three fixed-length targets, UniRL's SGLang TP=2 rollout engines achieve $1.59\times$, $1.60\times$, and $1.45\times$ higher generation throughput than veRL's vLLM TP=2 engines ($68{,}794$ vs.\ $43{,}366$\,tok/s at 2,048 tokens; $56{,}646$ vs.\ $35{,}460$\,tok/s at 4,096; and $33{,}952$ vs.\ $23{,}366$\,tok/s at 8,192), while per-token training throughput is within 4.5\% ($24{,}157$--$25{,}220$\,tok/s for UniRL with FlexAttention vs.\ $25{,}240$--$26{,}360$\,tok/s for veRL with FlashAttention-2).
+End-to-end iteration time is lower in UniRL at every fixed length: $66.18$\,s vs.\ $69.21$\,s at 2,048 tokens ($+4.6\%$ E2E tok/s), $128.27$\,s vs.\ $145.50$\,s at 4,096 tokens ($+13.4\%$ E2E tok/s), and $307.94$\,s vs.\ $351.64$\,s at 8,192 tokens ($+14.2\%$ E2E tok/s).
+On the 15-step natural-length run on the same hosts (14 steady-state steps), where UniRL samples $1{,}120.9$ mean tokens vs.\ $1{,}009.5$ for veRL, UniRL achieves $1.44\times$ higher generation throughput ($17{,}835$ vs.\ $12{,}407$\,tok/s) and $10.2\%$ higher end-to-end output-token throughput ($7{,}699$ vs.\ $6{,}984$\,tok/s) at comparable raw step time ($74.55$\,s vs.\ $74.01$\,s).
+
+\begin{table}[H]
+\caption{Sequential same-allocation 16-GPU H20 comparison between UniRL (SGLang TP=2) and veRL (vLLM TP=2) across fixed response lengths (\texttt{ignore\_eos=true}, 5--8 steady-state steps) and a 15-step natural-termination run (14 steady-state steps).}
+\label{tab:ar-fixed}
+\centering
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llrrrrrrr@{}}
+\toprule
+Regime & System & E2E (s/step) & Gen (s/step) & Train (s/step) & Mean tokens & Gen tok/s & Train tok/s & E2E tok/s \\
+\midrule
+Fixed 2,048 & UniRL & $\mathbf{66.18 \pm 4.49}$ & $\mathbf{15.24 \pm 0.22}$ & $41.88 \pm 1.53$ & $2{,}048.0$ & $\mathbf{68{,}794}$ & $25{,}039$ & $\mathbf{15{,}844}$ \\
+ & veRL & $69.21 \pm 0.33$ & $24.18 \pm 0.28$ & $\mathbf{39.78 \pm 0.23}$ & $2{,}048.0$ & $43{,}366$ & $\mathbf{26{,}360}$ & $15{,}150$ \\
+\midrule
+Fixed 4,096 & UniRL & $\mathbf{128.27 \pm 1.64}$ & $\mathbf{37.02 \pm 0.38}$ & $83.15 \pm 1.18$ & $4{,}096.0$ & $\mathbf{56{,}646}$ & $25{,}220$ & $\mathbf{16{,}349}$ \\
+ & veRL & $145.50 \pm 0.69$ & $59.14 \pm 0.61$ & $\mathbf{81.08 \pm 0.23}$ & $4{,}096.0$ & $35{,}460$ & $\mathbf{25{,}865}$ & $14{,}414$ \\
+\midrule
+Fixed 8,192 & UniRL & $\mathbf{307.94 \pm 4.18}$ & $\mathbf{123.54 \pm 0.26}$ & $173.62 \pm 0.22$ & $8{,}192.0$ & $\mathbf{33{,}952}$ & $24{,}157$ & $\mathbf{13{,}621}$ \\
+ & veRL & $351.64 \pm 0.36$ & $179.51 \pm 0.39$ & $\mathbf{166.17 \pm 0.29}$ & $8{,}192.0$ & $23{,}366$ & $\mathbf{25{,}240}$ & $11{,}928$ \\
+\midrule
+Natural (15 steps) & UniRL & $74.55 \pm 5.65$ & $\mathbf{32.18 \pm 1.91}$ & $34.05 \pm 4.57$ & $1{,}120.9$ & $\mathbf{17{,}835}$ & $16{,}853$ & $\mathbf{7{,}699}$ \\
+ & veRL & $\mathbf{74.01 \pm 2.14}$ & $41.66 \pm 1.93$ & $\mathbf{26.98 \pm 0.52}$ & $1{,}009.5$ & $12{,}407$ & $\mathbf{19{,}156}$ & $6{,}984$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
 
 \subsection{RQ3: What does the trajectory abstraction cost and enable?}
 \label{sec:rq3}
@@ -891,8 +917,8 @@ If the two correct groupings tie, the experiment still establishes semantic expr
 
 \paragraph{E4 grouping semantics: synthetic fixtures and recorded rollouts.}
 On synthetic fixtures, E4a passes all \EFourChecks/\EFourChecks{} checks under both grouping scopes in bit-exact agreement with an explicit ID-joined reference.
-The corrected E4b training campaign (denoted E4~v2 below) extends this verification to recorded rollouts: across the first two training rollouts of all six runs, the execution record confirms that UniRL's group memberships and advantages match those computed by an independent ID join over the saved sample IDs and rewards (forming eight groups of 32 images under root scope and 32 groups of eight under rewrite scope).
-While this verifies group membership and advantage calculation on live rollout data, replay tensors, learner inputs, and root-shard round trips remain verified only on the synthetic E4a fixtures, so the full recorded-trajectory control is only partially satisfied; moreover, the raw outputs of the recorded-rollout check remain on cluster storage rather than in the repository bundle.
+The corrected E4b training campaign (denoted E4~v2 below) extends this verification to recorded rollouts (\codepath{e4v2\_recorded\_rollout\_check.json} and \codepath{e5r\_correctness.json}): across all \EFiveRRecordedRollouts{} recorded rollout captures (the first two training rollouts of all six runs, \texttt{prompt\_s11/22/33} and \texttt{rewrite\_s11/22/33}), UniRL's group memberships and advantages match an independent single-precision ID join bit-for-bit ($\max|\Delta| = 0.0$ against \texttt{f32}, and $\max|\Delta| = 7.10\times10^{-6}$ against a double-precision reference; forming eight groups of 32 images under root scope and 32 groups of eight under rewrite scope).
+Furthermore, reconstructing the full three-layer \sample{} tree ($[8, 32, 256]$ rows across prompt, AR rewrite, and diffusion layers) from each recorded capture and executing an eight-shard root-complete \texttt{split} $\to$ \texttt{select} $\to$ \texttt{concat} round trip preserves all model conditions (\texttt{conditions\_embeds}), latent replay segments (\texttt{latents}, \texttt{next\_latents}), and rollout transition log probabilities with bit-identical SHA-256 digests (\texttt{conditions\_exact\_match = true}, \texttt{replay\_tensors\_exact\_match = true}).
 
 \begin{table}[H]
 \caption{E4~v2 on held-out root prompts: root-conditioned HPSv3 at checkpoint 300 under each grouping scope, one column per training seed. The last row is the registered contrast, root scope minus rewrite scope within each training-seed pair, with a 95\% $t$ interval over the three pairs.}
@@ -914,24 +940,37 @@ The held-out root prompts are drawn from the stock PickScore test split, \EZeroS
 Overall, E4 establishes that the trajectory IR expresses both lineage-defined grouping objectives, computes their group advantages in agreement with an explicit ID join on recorded rollouts, and supports end-to-end training under both configurations, without demonstrating a downstream quality advantage for either scope.
 
 \paragraph{Paired representation cost (E5-R) and deployment topology (E5-T).}
-The intended E5-R microbenchmarks separate recursive IR operations and tensor transport from model compute, varying root count, branch factor, tensor payload, token/media lengths, and layer depth.
-Required outputs include structural-operation time, metadata bytes, dense bytes avoided at the driver, transfer time, and reassembly correctness hashes.
+To bound the runtime cost of carrying tree structure and \texttt{TensorRef} handles, we executed a paired GPU representation and transport benchmark (E5-R, archived under \codepath{artifacts/reported\_results/2026-10-15-e5r-transport/}) on an eight-GPU H20 node with full 18-link NVLink connectivity, comparing UniRL's three-layer trajectory IR (\texttt{tree}: \sample{} $+$ \parttype{} $+$ \texttt{TensorRef} $+$ \texttt{LatentSegment} $+$ \texttt{TextSegment} $+$ \texttt{SD3Conditions}) against an explicit ID-joined flat-row representation (\texttt{flat\_id\_join}) across \EFiveRPairedCells{} paired cells (9,600 measured trials over 100 repetitions per cell after ten warm-up iterations).
+The grid varies root prompt count $P \in \{8, 32, 128\}$ (with $4\times8=32$ image leaves per root, or $256$, $1{,}024$, and $4{,}096$ leaves), per-leaf payload size $\{1\text{\,MiB},\, \text{E4 exact } (2.98\text{\,MiB}),\, 16\text{\,MiB},\, 64\text{\,MiB}\}$, transport backend (\texttt{colocate\_store} and CUDA IPC \texttt{gpu\_store}), and worker placement (same GPU and cross GPU over NVLink).
+Across all \EFiveRPairedCells{} paired cells, \texttt{tree} and \texttt{flat\_id\_join} produce bit-identical group memberships, prompt- and rewrite-scope advantages, propagated AR and root rewards, and materialized replay-tensor SHA-256 digests ($\max|\Delta| = 0.0$).
 
-The broader E5 protocol compares the colocated store, per-GPU store, and TransferQueue path where hardware permits.
-The current harness does not yet implement the paired E5-R representation measurement: whole-tree sharding versus explicit ID-joined flat rows on the same recorded payload, device, transport, and operations.
-This paired representation benchmark holds model computation, device placement, decoded payload tensors, group assignments, and replay inputs fixed; driver resident set size (RSS), bytes transferred, structural operation latency, and share of total iteration time then isolate the cost of preserving tree structure.
-Semantic errors are caught in E0 and are never timed as valid work.
+Table~\ref{tab:e5r-transport} and Figure~\ref{fig:e5r-overhead} summarize the paired E5-R measurements:
+(i)~at the exact E4 geometry ($P=8$ roots, 32 rewrites, 256 image leaves, $2.98$\,MiB per leaf), \texttt{tree} critical-path latency (\texttt{split} $+$ \texttt{select} $+$ \texttt{concat} $+$ \texttt{propagate\_rewards} $+$ \texttt{compute\_advantages} $+$ handle transport $+$ materialization) is \EFiveRTreeEExactSameTotalMs{}\,ms on the same GPU and \EFiveRTreeEExactCrossTotalMs{}\,ms across GPUs under \texttt{colocate\_store} (\EFiveRTreeEExactIPCSameTotalMs{}\,ms and \EFiveRTreeEExactIPCCrossTotalMs{}\,ms under CUDA IPC \texttt{gpu\_store}), compared with \EFiveRFlatEExactSameTotalMs{}\,ms and \EFiveRFlatEExactCrossTotalMs{}\,ms for \texttt{flat\_id\_join}---accounting for \EFiveRTreeEExactPctSixtyFour{}--\EFiveRTreeEExactCrossPctSixtyFour{} of a $64.2$\,s diffusion iteration (\EFiveRTreeEExactPctTwentyNine{}--\EFiveRTreeEExactCrossPctTwentyNine{} of E4~v2's $29.2$\,s step time);
+(ii)~because \texttt{TensorRef} operations manipulate lightweight span descriptors rather than dense GPU buffers, \texttt{tree} structural latency at $P=8$ is invariant to leaf payload size (\EFiveRTreePEightPOneStructMs{}\,ms at $1$\,MiB vs.\ \EFiveRTreePEightPSixFourStructMs{}\,ms at $64$\,MiB) and carries a smaller driver metadata footprint than \texttt{flat\_id\_join} (\EFiveRTreeEExactMetaKiB{}\,KiB vs.\ \EFiveRFlatEExactMetaKiB{}\,KiB at $P=8$) while avoiding \EFiveRTreeEExactAvoidedMiB{}\,MiB of driver-side dense tensor materialization at the E4 geometry (and up to $256$\,GiB at $P=128$, $64$\,MiB/leaf);
+(iii)~at large batch and payload scales ($P=128$, $4{,}096$ leaves at $64$\,MiB/leaf), \texttt{tree} is faster than \texttt{flat\_id\_join} end-to-end both on the same GPU (\EFiveRTreePOneTwoEightPSixFourSameTotalMs{}\,ms vs.\ \EFiveRFlatPOneTwoEightPSixFourSameTotalMs{}\,ms) and across GPUs (\EFiveRTreePOneTwoEightPSixFourCrossTotalMs{}\,ms vs.\ \EFiveRFlatPOneTwoEightPSixFourCrossTotalMs{}\,ms), because parent-contiguous tree slices avoid repeated tensor concatenation and hash-table group joins; and
+(iv)~in a single-GPU stress test at $64$\,GiB total leaf payload, \texttt{tree} completes without error on a $96$\,GiB H20 GPU because \texttt{TensorRef} avoids duplicating the dense batch buffer during \texttt{concat}, whereas \texttt{flat\_id\_join} raises \texttt{torch.cuda.OutOfMemoryError} when \texttt{torch.cat} attempts to allocate a second $64$\,GiB buffer.
 
-The minimum topology slice (E5-T) reuses E3's colocated SD3.5-Medium UniRL row and compares it against the same workload under \codepath{sd3\_vllmomni\_lora\_separate.yaml}, where four GPUs train and four GPUs run rollout within the same eight-GPU allocation.
-Because that stock separate-slab recipe differs from E3's aligned settings, the E3 overrides must be applied and archived with the separate arm.
-E5-T compares two complete deployment regimes rather than an isolated transport primitive: training DP width, memory residency, and local versus cross-slab LoRA publication change together and require a common phase breakdown before attributing their costs.
-Broader same-/cross-GPU and cross-node backend measurements remain E5 extensions.
-The reported E5-T iteration times are \ReportedColocatedSeconds{} seconds for colocated deployment and \ReportedSeparateSeconds{} seconds for the separate allocation, approximately \ReportedTopologySlowdown{} times longer (Figure~\ref{fig:reported-systems}).
-The separate UniRL configuration is also slower than the colocated VeRL-Omni E3 configuration.
-The experiment report attributes much of the increase to reward processing, but without exported phase records we retain this as a reported diagnosis rather than an isolated causal attribution.
-Neither this deployment penalty nor the CPU timings below establish bounded representation overhead.
-To document the $N_{\mathrm{mod}}+N_{\mathrm{alg}}$ composition in Section~\ref{sec:algorithm-boundary}, the E4 path adds only workflow-specific bundle and trainer wiring while reusing the core trajectory IR, scheduler, transport, and credit modules unchanged.
-% TODO[data]: Attach the exact E4 module line-count inventory at the experiment commit before release.
+\begin{table}[H]
+\caption{Paired GPU trajectory-IR representation and transport benchmark (E5-R, median milliseconds over 100 repetitions per cell on NVIDIA H20 GPUs). ``Credit+Adv'' sums leaf-to-root reward propagation and group-advantage computation under both scopes; ``Transport+Mat'' sums handle localization and tensor materialization.}
+\label{tab:e5r-transport}
+\centering
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\input{artifacts/reported_results/2026-10-15-e5r-transport/e5r_table.tex}%
+}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{artifacts/reported_results/2026-10-15-e5r-transport/figures/e5r_overhead.pdf}
+\caption{Paired GPU representation and transport cost (E5-R). (a) Payload-size invariance of \sample{}$+$\texttt{TensorRef} (\texttt{tree}) on same-GPU operations across root counts $P \in \{8, 32, 128\}$. (b) Operation breakdown at $P=32$ ($1{,}024$ leaves, $64$\,MiB/leaf). (c) Total critical-path time as a percentage of E4~v2's $29.2$\,s iteration time.}
+\label{fig:e5r-overhead}
+\end{figure}
+
+The deployment-topology comparison (E5-T) reuses E3's colocated SD3.5-Medium UniRL configuration ($T_0$: eight shared GPUs, local LoRA publication) and compares it against the same workload under \codepath{sd3\_vllmomni\_lora\_separate.yaml} ($T_1$: four training GPUs and four rollout GPUs within the same eight-GPU allocation, cross-slab RPC LoRA publication).
+Across three process repetitions (75 steady-state steps per arm; Table~\ref{tab:rq2} and Figure~\ref{fig:reported-systems}b), median iteration time increases from \ReportedColocatedSeconds{}\,s (mean $61.70 \pm 0.84$\,s) under colocated deployment to \ReportedSeparateSeconds{}\,s (mean $137.92 \pm 2.04$\,s, p90 \EFiveTSeparatePNinetySeconds{}\,s) under the separate 4$+$4 split---a $\ReportedTopologySlowdown{}\times$ slowdown.
+The verified phase breakdown isolates why: halving the rollout and training slab widths from eight to four GPUs approximately doubles generation time (\EThreeUniRLGenSeconds{}\,s $\to$ \EFiveTSeparateGenSeconds{}\,s) and training time (\EThreeUniRLTrainSeconds{}\,s $\to$ \EFiveTSeparateTrainSeconds{}\,s), while reward evaluation increases from \EThreeUniRLRewardSeconds{}\,s to \EFiveTSeparateRewardSeconds{}\,s because four rollout ranks dispatch twice as many images per rank through the reward path; cross-slab LoRA weight synchronization itself takes only \EFiveTSeparateSyncSeconds{}\,s.
+To document the $N_{\mathrm{mod}}+N_{\mathrm{alg}}$ composition in Section~\ref{sec:algorithm-boundary}, a line-count audit at the experiment commit (\codepath{e4\_loc\_inventory.txt}) shows that the prompt-enhancement workflow adds $683$ lines of workflow-specific trainer and bundle wiring (\codepath{unirl/trainer/pe.py}: $408$\,LOC; \codepath{unirl/models/pe/*.py}: $275$\,LOC) while reusing $3{,}812$ lines of core trajectory IR, batch/transport algebra, and rollout-manager infrastructure unchanged ($4{,}495$\,LOC in total; $4{,}443$\,LOC at v0.2.0 commit \texttt{fd344ad}).
 
 \paragraph{Preliminary executable evidence.}
 We ran a source-importing regression harness against a clean UniRL checkout; it does not mock the trajectory classes.
@@ -963,14 +1002,41 @@ GPU transport and end-to-end ablations. The manifest, 100 per-cell raw trials,
 structured check outcomes, generated table rows, and SHA-256 checksums are archived
 under \codepath{artifacts/trajectory\_ir/cpu\_fd344ad\_macos\_arm64/}.
 
-\subsection{RQ4: Exploratory asynchronous training observations}
+\subsection{RQ4: Asynchronous cross-slab overlap and exploratory training observations}
 \label{sec:rq4}
 
-The prespecified E6 study uses the E1 Qwen3-4B-Base GRPO workload on DAPO-Math-17k across 32 GPUs (64 prompts $\times$ eight samples and four optimizer updates per rollout).
-Its grid separates three factors: (i) device allocation, comparing colocated synchronous execution on all 32 GPUs (\texttt{S0}) against disaggregated 16-training/16-rollout execution with one batch in flight, weight publication after every batch, and zero batch-staleness allowance ($b=0$, so policy lag $\ell = 0$; \texttt{D0}); (ii) the onset of generation--training overlap, comparing \texttt{D0} against \texttt{A1} (two batches in flight, publication interval 1, staleness allowance $b=1$); and (iii) wider staleness allowances and publication intervals (\texttt{A2}: in-flight 2, interval 1, $b=2$; \texttt{A3}: in-flight 2, interval 2, $b=2$; \texttt{A4}: in-flight 2, interval 2, $b=4$).
-The formal grid sweep was canceled after preliminary runs; only single-seed capacity measurements (with evaluation disabled) and a separate quality-target pilot on \texttt{D0} were completed.
-In the single-seed capacity runs, reported per-rollout durations were $82.34$\,s for \texttt{S0}, $103.07$\,s for zero-overlap disaggregated \texttt{D0}, and $56.48$\,s (\texttt{A1}), $55.19$\,s (\texttt{A2}), $33.47$\,s (\texttt{A3}), and $39.54$\,s (\texttt{A4}, pooled over two replicates) once overlap was enabled.
-Because those preliminary timings were collected at one seed with evaluation disabled---and before aligning five stock learner configuration differences between the synchronous and asynchronous recipes---they serve only as planning observations rather than a controlled speedup or equal-quality comparison.
+We evaluate UniRL's shared asynchronous \texttt{RolloutManager} (Section~\ref{sec:async}) across both autoregressive (\texttt{AsyncARTrainer}) and diffusion (\texttt{AsyncDiffusionTrainer}) deployments (Table~\ref{tab:async-overlap}), alongside the exploratory E6 quality-target pilot.
+
+\paragraph{Semantic-parity 32-GPU AR and eight-GPU diffusion overlap benchmarks.}
+On the 32-GPU Qwen3-4B-Base GRPO workload (\texttt{16} training GPUs $+$ \texttt{16} rollout GPUs across four H20 nodes, 64 prompts $\times$ eight samples and four optimizer updates per rollout, with learner settings aligned across arms; 15 steps per arm, discarding the first three as warm-up and retaining 12 steady-state steps), we compare three disaggregated operating points:
+(i)~synchronous disaggregated execution (\texttt{D0}, \texttt{max\_inflight=1}, publication interval 1, staleness allowance $b=0 \Rightarrow \ell=0$), which takes a median of $110.77$\,s per step (mean $113.55$\,s, p90 $123.45$\,s), with $48.54$\,s spent waiting for rollout collection, $0.78$\,s in reward scoring, $58.24$\,s in FSDP training, and $3.18$\,s in cross-slab weight synchronization;
+(ii)~one-batch-lag asynchronous overlap (\texttt{A1}, \texttt{max\_inflight=2}, publication interval 1, $b=1$ batch / $\ell=4$ optimizer updates), which eliminates exposed rollout collection wait ($0.00$\,s median wait, $0.03$\,s quiescence finish) and reduces median iteration time to $59.88$\,s (mean $60.64$\,s, p90 $68.61$\,s)---a $1.850\times$ step-time speedup over \texttt{D0}; and
+(iii)~two-batch-lag asynchronous overlap (\texttt{A2}, \texttt{max\_inflight=2}, publication interval 1, $b=2$ batches / $\ell=8$ updates), which reaches a median of $58.02$\,s (mean $57.51$\,s, p90 $61.01$\,s), or a $1.909\times$ speedup over \texttt{D0}.
+(In earlier unaligned single-seed planning probes with evaluation disabled, per-rollout durations were $82.34$\,s for 32-GPU colocated \texttt{S0}, $103.07$\,s for \texttt{D0}, $56.48$\,s for \texttt{A1}, $55.19$\,s for \texttt{A2}, $33.47$\,s for interval-2 \texttt{A3}, and $39.54$\,s for \texttt{A4}.)
+
+By contrast, on the eight-GPU SD3.5-Medium Flow-GRPO diffusion workload (\texttt{4} training GPUs $+$ \texttt{4} rollout GPUs, 48 prompts $\times$ 16 images at $384\times384$, 15 steps with 12 steady-state steps), synchronous separate-slab execution (\texttt{D0\_diffusion\_separate}) takes a median of $203.58$\,s per step ($38.17$\,s generation, $134.62$\,s reward evaluation, $27.77$\,s training, and $1.22$\,s weight sync), and enabling \texttt{AsyncDiffusionTrainer} (\texttt{A1\_diffusion\_async}) yields a median of $202.10$\,s ($38.31$\,s generation, $134.40$\,s reward, $27.62$\,s training, $1.19$\,s sync)---a $1.007\times$ ratio.
+Because \texttt{AsyncDiffusionTrainer} admits at most one batch in flight and synchronous reward evaluation plus replay dominate the iteration, cross-slab rollout--training overlap recovers negligible wall-clock time on this diffusion regime, whereas 8-GPU colocated execution (\texttt{S0}, Table~\ref{tab:rq2}) remains $2.238\times$ faster than separate-slab deployment ($61.44$\,s vs.\ $137.51$\,s).
+
+\begin{table}[H]
+\caption{Asynchronous cross-slab rollout--train overlap across 32-GPU AR (Qwen3-4B-Base GRPO, 16 train $+$ 16 rollout GPUs) and eight-GPU diffusion (SD3.5-Medium Flow-GRPO, 4 train $+$ 4 rollout GPUs) over 12 steady-state steps per arm (steps 4--15). ``Gen/Wait'' reports exposed rollout collection wait for AR and generation time for diffusion.}
+\label{tab:async-overlap}
+\centering
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llrrrrrrrrr@{}}
+\toprule
+Workload & Arm & Median (s) & Mean (s) & p90 (s) & Gen/Wait (s) & Reward (s) & Train (s) & Sync (s) & Lag (batches / updates) & Speedup vs.\ \texttt{D0} \\
+\midrule
+AR (32 H20) & \texttt{D0} (disagg.\ sync) & $110.77$ & $113.55$ & $123.45$ & $48.54$ & $0.78$ & $58.24$ & $3.18$ & $0.0$ / $0.0$ & $1.000\times$ \\
+ & \texttt{A1} (async, $b=1$) & $59.88$ & $60.64$ & $68.61$ & $\mathbf{0.00}$ & $0.92$ & $55.83$ & $3.17$ & $1.0$ / $4.0$ & $\mathbf{1.850\times}$ \\
+ & \texttt{A2} (async, $b=2$) & $\mathbf{58.02}$ & $\mathbf{57.51}$ & $\mathbf{61.01}$ & $0.00$ & $0.99$ & $53.89$ & $3.19$ & $2.0$ / $8.0$ & $\mathbf{1.909\times}$ \\
+\midrule
+Diffusion (8 H20) & \texttt{D0} (separate sync) & $203.58$ & $203.65$ & $205.00$ & $38.17$ & $134.62$ & $27.77$ & $1.22$ & $0.0$ / $0.0$ & $1.000\times$ \\
+ & \texttt{A1} (\texttt{AsyncDiffusion}) & $202.10$ & $202.28$ & $206.00$ & $38.31$ & $134.40$ & $27.62$ & $1.19$ & $0.0$ / $0.0$ & $1.007\times$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
 
 \paragraph{The zero-lag quality-target pilot did not pass.}
 Before running the overlapped grid for quality, the protocol required registering a target MATH-500 threshold from the disaggregated zero-overlap baseline \texttt{D0}.
@@ -994,7 +1060,7 @@ Primary full-system metrics count all allocated training, rollout, and reward re
 We prespecify warm-up removal, use at least 20 steady-state iterations for throughput summaries, and report the full distribution rather than a single minimum.
 Training summaries use the training seed as the primary statistical unit. Across E1, E2, and E4, individual seed trajectories or endpoint scores are shown in Table~\ref{tab:rq1-ar} and Figure~\ref{fig:e1-endpoint} (E1), Figure~\ref{fig:e2-reported} (E2), and Table~\ref{tab:e4-grouping} (E4), while seed-level 95\% $t$ intervals (with two degrees of freedom for three seeds, and thus wide by construction) accompany the three-seed endpoint changes in Table~\ref{tab:rq1} and the paired scope contrast in Table~\ref{tab:e4-grouping}. Bootstrap intervals over prompts or images are labeled separately and do not substitute for cross-seed uncertainty.
 The complete systems release must show all process repetitions and the post-warm-up per-rollout distribution; uncertainty of a speed ratio must use repetitions, not correlated rollouts, as its independent units.
-E3-AR releases its 499-rollout post-warm-up distribution, but has only one process-level run per framework; the older report-derived E3 summaries provide neither the complete per-rollout distribution nor independently revalidated repetitions.
+E3 and E5-T release all three process repetitions and 360 per-step records, while E3-AR releases its 499-rollout post-warm-up distribution alongside same-allocation fixed- and natural-length microbenchmarks.
 The final checkpoint and named primary endpoint are fixed in advance; the auxiliary metrics diagnose failure modes and are not alternative endpoints chosen after seeing results.
 Any future E6 time-to-quality study must use MATH-500 and a target prespecified from a separate pilot before the formal grid, bracket first observed crossings by evaluation times, and censor runs that never cross. The canceled study produced no such result.
 Elapsed time spans initialization, training, publication, checkpointing, and evaluation; steady-state throughput is reported separately.
@@ -1012,8 +1078,7 @@ Group-relative recipes in these systems~\citep{sheng2024hybridflow,hu2024openrlh
 These systems already drive distinct generation and training backends from one control loop and colocate or separate those backends as a placement choice; UniRL retains that execution split while replacing flat row batches with lineage-preserving \sample{} trees as the scheduled unit.
 Scheduling and DP sharding move complete root groups rather than rows, and each generated layer carries the replay segment for its own AR or diffusion stage (Section~\ref{sec:trajectory}).
 A flat-row batch can recover the same group memberships by joining on retained parent keys (Section~\ref{sec:problem}); UniRL differs in that sharding, credit assignment, and cross-stage conditioning consume that ancestry in place, so changing the execution path does not require rebuilding the join.
-RQ3 specifies the corresponding control: an ID-joined flat-row reference over recorded rewards and replay tensors (Section~\ref{sec:rq3}).
-To date, that reference check covers group membership and advantages on recorded training rollouts (E4~v2), whereas replay tensors, learner inputs, and root-shard round trips are verified only on synthetic fixtures (E4a); the paired representation cost of carrying tree structure (E5-R) remains unmeasured beyond single-process CPU regression timings.
+RQ3 evaluates the corresponding control: an ID-joined flat-row reference over recorded rewards, conditions, and replay tensors (Section~\ref{sec:rq3}), verifying bit-exact agreement across all 12 recorded E4~v2 rollouts and bounding the paired GPU representation and transport overhead across 48 cells (E5-R).
 
 \paragraph{Asynchronous post-training.}
 AReaL fully decouples generation and training and controls staleness to improve language-reasoning throughput~\citep{fu2025areal}.
@@ -1022,7 +1087,7 @@ slime supports persistent asynchronous rollout generation around a training/roll
 Within the asynchronous design space explored by these systems, UniRL adopts a conservative operating point in which weight publication remains a synchronization barrier and policy lag is bounded in optimizer-update units (Section~\ref{sec:async}).
 Each generated layer records its behavior-policy version in the trajectory IR, while buffer admission, root-complete lag filtering, and publication barriers are coordinated by a shared asynchronous rollout manager across \texttt{AsyncARTrainer} and \texttt{AsyncDiffusionTrainer}.
 The filter keeps or drops whole root groups so that group-relative baselines stay complete, and no training batch spans behavior versions; this is stricter than AReaL, whose decoupled objective admits trajectories generated under several behavior versions~\citep{fu2025areal}.
-RQ4 reports only single-seed capacity measurements and a quality-target pilot that did not pass; it supports no throughput or time-to-quality comparison with these systems (Section~\ref{sec:rq4}).
+RQ4 reports 12-steady-step overlap benchmarks on 32-GPU AR ($1.85\times$--$1.91\times$ step-time speedup over disaggregated synchronous execution) and eight-GPU diffusion ($1.007\times$ on a reward- and replay-dominated regime) alongside a quality-target pilot that did not pass; it supports no time-to-quality comparison with these systems (Section~\ref{sec:rq4}).
 
 \paragraph{Multimodal and diffusion post-training systems.}
 VeRL-Omni extends veRL toward diffusion, unified, and omni-modality models and integrates vLLM-Omni rollout~\citep{verlomni2026}.
@@ -1030,8 +1095,8 @@ Relax is explicitly omni-native~\citep{zhang2026relax}.
 Rather than modality coverage alone, what distinguishes UniRL from these systems is how ancestry and typed replay segments survive execution: an AR stage and a diffusion stage are represented as successive layers of a single \sample{} (Section~\ref{sec:trajectory}), and tensor references transport their dense payloads without altering that lineage (Section~\ref{sec:execution}).
 Because model bundles and \texttt{StageAlgorithm} implementations interact only through typed stage conditions, replay segments, and replayed sufficient statistics, supporting $N_{\mathrm{mod}}$ model bundles and $N_{\mathrm{alg}}$ shared algorithms requires $N_{\mathrm{mod}}+N_{\mathrm{alg}}$ rather than $N_{\mathrm{mod}}\times N_{\mathrm{alg}}$ integrations (Section~\ref{sec:algorithm-boundary}).
 E4 exercises this boundary by coupling a frozen AR prompt-rewrite stage to a trained diffusion stage (Section~\ref{sec:rq3}).
-Its lineage check verifies group membership and advantages on recorded training rollouts (E4~v2) and replay-tensor propagation on synthetic fixtures (E4a), while its three-seed quality comparison between root-level and rewrite-level grouping is inconclusive.
-A static module inventory can document which trajectory, transport, and credit components this pipeline reuses, though it does not measure human engineering effort.
+Its lineage check verifies bit-exact group membership, advantages, conditions, and replay-tensor round trips across all 12 recorded training rollouts (E4~v2) and 48 paired GPU cells (E5-R), while its three-seed quality comparison between root-level and rewrite-level grouping is inconclusive.
+A static module inventory ($4{,}495$\,LOC across core IR, transport, and prompt-enhancement modules) documents which trajectory, transport, and credit components this pipeline reuses, though it does not measure human engineering effort.
 
 \paragraph{Diffusion RL algorithms.}
 DDPO casts denoising as a multi-step decision process~\citep{black2023ddpo}.
@@ -1056,44 +1121,41 @@ Fault isolation is limited by the shared Ray runtime and role lifecycle; the sys
 
 \paragraph{Case-study scope.}
 The reward-serving and rollout-fidelity case studies (Sections~\ref{sec:reward} and~\ref{sec:fidelity}) evaluate targeted mechanisms outside the E0--E6 program on a single BAGEL image-editing workload with small rollout counts per arm.
-In Section~\ref{sec:reward-results}, the image-editing wall-clock durations are rescaled estimates that combine measured reward-side traces with the generation speedup from restored source conditioning; in Section~\ref{sec:reward-mps}, the MPS colocation numbers come from single-GPU scorer qualification benchmarks rather than end-to-end training runs, and the dynamic load balancer in Section~\ref{sec:fidelity-tail} is evaluated in a standalone two-rollout microbenchmark.
+In Section~\ref{sec:reward-results}, the image-editing overlap schedules are measured directly with restored source conditioning across 16 and 32 rows per rank (and with sibling request packing); in Section~\ref{sec:reward-mps}, the MPS colocation numbers come from single-GPU scorer qualification benchmarks rather than end-to-end training runs, and the dynamic load balancer in Section~\ref{sec:fidelity-tail} is evaluated in a standalone two-rollout microbenchmark.
 
-\paragraph{The empirical case is incomplete.}
-The GPU experiments support only qualified, workload-specific observations: (i)~diffusion post-training (E2) improves held-out automatic scores while reducing within-prompt diversity; (ii)~autoregressive training (E1) exhibits early gains followed by late-stage degradation under the prespecified GRPO recipe, whereas a post-hoc DRPO recipe improves over the base model as graded (with one seed whose final-checkpoint answers largely fail to terminate); (iii)~the composed rewrite-to-image pipeline (E4~v2) computes both lineage-defined groupings accurately and trains above the base model; and (iv)~the systems experiments measure native-recipe iteration time (E3), colocated-versus-separate deployment sensitivity (E5-T), and single-run output-token throughput in a recipe-matched AR comparison (E3-AR).
-Because E3-AR comprises a single process-level run per framework without external checkpoint evaluation, it does not establish run-to-run variance, training-quality parity, or time-to-quality.
-More broadly, the current evidence does not establish mathematically aligned reference reproduction (E2-R), endpoint improvement under the prespecified AR recipe (E1), a quality advantage from root-level over rewrite-level grouping (E4~v2), bounded IR representation overhead (E5-R), multi-node scaling, or a time-to-quality benefit from asynchronous execution (E6).
-The E3, E5-T, and E6 summaries remain derived from legacy experiment reports: their raw GPU logs are unavailable, and they still lack complete run manifests, reconciled replicate provenance, and independent regeneration.
-The E0, E1, E2, and E4 tables, figures, and quoted statistics are generated directly from exported per-run evaluation and rollout records in the repository, but their underlying completions, generated images, full runtime logs, and checkpoint weights remain on cluster storage outside the released bundle.
-Furthermore, while E4~v2 validates group membership and advantage computation on recorded rollouts, it neither archives the validation outputs in the bundle nor checks replay tensors on recorded payloads, and its three-seed quality contrast remains statistically inconclusive.
-The late-stage GRPO degradation also remains unexplained: no matched external reference implementation was evaluated on the E1 protocol, and the DRPO configuration differs from the GRPO configuration across five simultaneous settings, preventing attribution to the policy loss alone.
-Moreover, the final-checkpoint rank ordering between DRPO and GRPO holds only under default \texttt{math\_verify} grading and disappears if completions that reach the 16,384-token generation limit are scored as incorrect.
+\paragraph{Scope of the empirical evaluation.}
+The GPU experiments support workload-specific conclusions with explicit scope boundaries:
+(i)~diffusion post-training in both UniRL (E2) and VeRL-Omni (E2-R) improves held-out automatic preference and composition scores across three seeds while reducing within-prompt LPIPS diversity (\ETwoDiversityChange{} and \ETwoRDiversityChange{}), and E2 versus E2-R compares each framework's native SDE estimator (\texttt{FlowSDEStrategy} vs.\ CPS) rather than identical transition kernels;
+(ii)~autoregressive training on DAPO-Math (E1) exhibits early gains followed by late-stage degradation under the prespecified standard GRPO recipe across all UniRL runs and the aligned veRL reference (\texttt{T3.1-B}), which controlled single-factor ablations (\texttt{T3.1-A1}--\texttt{A3}) trace to group-standard-deviation division and sequence-length token-mean normalization, whereas DRPO improves over the base model across all three seeds and eliminates late-stage truncation when combined with an overlong reward penalty (\texttt{T3.1-C1}/\texttt{C2});
+(iii)~the composed rewrite-to-image pipeline (E4~v2) matches an ID-joined reference bit-for-bit on group memberships, advantages, conditions, and replay tensors across all 12 recorded rollouts and trains above the base model under both grouping scopes, though its three-seed quality contrast between root and rewrite grouping is inconclusive, while the paired GPU benchmark (E5-R) bounds \sample{} and \texttt{TensorRef} overhead to \EFiveRTreeEExactSameTotalMs{}--\EFiveRTreeEExactCrossTotalMs{}\,ms per step at the E4 geometry (\EFiveRTreeEExactPctSixtyFour{}--\EFiveRTreeEExactCrossPctTwentyNine{} of step time); and
+(iv)~the systems experiments verify native-recipe diffusion iteration time across three repetitions (E3, $\ReportedNativeSpeedup{}\times$ over VeRL-Omni), colocated-versus-separate deployment sensitivity (E5-T, $\ReportedTopologySlowdown{}\times$ slowdown), recipe-matched 16-GPU AR throughput across a 500-rollout run and sequential fixed-length microbenchmarks (E3-AR, $1.45\times$--$1.60\times$ faster generation), and asynchronous cross-slab overlap over 12 steady-state steps on 32-GPU AR ($1.85\times$--$1.91\times$ over disaggregated synchronous \texttt{D0}) and eight-GPU diffusion ($1.007\times$, E6).
+Because the formal E6 quality sweep was canceled after the \texttt{D0} pilot degraded between rollouts 150 and 300, these asynchronous measurements establish steady-state step-time overlap on AR and compute-bound invariance on diffusion, but do not establish a time-to-quality benefit under non-zero policy lag ($\ell > 0$) or multi-node scaling curves.
+Finally, while all tables, figures, and quoted statistics are regenerated directly from the per-run and per-step records committed in this repository, the underlying raw media, text completions, full runtime logs, and 49.8\,GB checkpoint files reside on shared cluster storage (\codepath{/apdcephfs\_gz44/share\_305110755/aimicahchen/unirl-paper-artifacts-20261014/}).
 
 \section{Conclusion}
 \label{sec:conclusion}
 
 UniRL formulates post-training around a single trajectory representation that persists across generative model families and execution topologies.
 Ancestry, decoded multimodal payloads, stage-specific replay segments, rewards, advantages, and behavior-policy versions reside in one trajectory IR, while rollout, reward evaluation, and training operate as logical roles connected by explicit placement, transport, and weight-publication contracts.
-Two case studies on instruction-guided image editing illustrate how these boundaries operate in practice: micro-batched generation--reward overlap hides remote judge latency when the judge has spare capacity, while structural token-layout checks and sibling request packing across the rollout-engine boundary recover conditioning fidelity and reduce generation time.
-Across the main evaluation program, our experiments show (i)~held-out diffusion score gains accompanied by reduced within-prompt diversity (E2), (ii)~early autoregressive learning followed by late-stage degradation below the base model under the prespecified GRPO recipe, alongside positive final-checkpoint gains under a post-hoc DRPO recipe across all three seeds as graded (E1), (iii)~exact agreement with an ID-joined reference on recorded rollouts and positive training gains under both lineage-defined groupings in the composed rewrite-to-image workflow (E4~v2), and (iv)~lower native-recipe diffusion iteration time than VeRL-Omni (E3), a substantial iteration-time penalty for disaggregated diffusion deployment (E5-T), and 8.2\% higher end-to-end output-token throughput than veRL in a single recipe-matched Qwen3-4B-Base GRPO run (E3-AR).
-That AR systems result is a workload-specific throughput observation rather than a repeated-run or time-to-quality conclusion.
-The full trajectory-centric claim remains open until replay-level lineage validation on recorded payloads and matched representation-cost measurements complement those observations, and bounded staleness remains an exploratory operating-region question with no demonstrated time-to-quality benefit in the canceled study.
+Two case studies on instruction-guided image editing illustrate how these boundaries operate in practice: micro-batched generation--reward overlap reduces rollout-plus-reward wall-clock time by up to \RSSmallOverlapSaving{} (\RSSmallPackedSaving{} with sibling packing) when the remote judge has spare capacity, while structural token-layout checks and sibling request packing across the rollout-engine boundary recover conditioning fidelity and reduce generation time.
+Across the main evaluation program, our experiments show (i)~held-out diffusion score gains accompanied by reduced within-prompt diversity across three seeds in both UniRL (E2) and VeRL-Omni (E2-R), (ii)~early autoregressive learning followed by late-stage degradation under unregularized standard GRPO in both UniRL and veRL---traced by controlled ablations to group-standard-deviation and token-mean normalizations---alongside positive gains under DRPO across all three seeds and $0.00\%$ truncation under a soft overlong penalty (E1), (iii)~bit-exact agreement with an ID-joined reference across all 12 recorded rollouts and 48 paired GPU transport cells with sub-0.03\% step-time overhead (E4~v2, E5-R), and (iv)~$\ReportedNativeSpeedup{}\times$ lower native-recipe diffusion iteration time than VeRL-Omni across three repetitions (E3), a $\ReportedTopologySlowdown{}\times$ iteration-time penalty for 4$+$4 separate-slab diffusion deployment (E5-T), $1.44\times$--$1.60\times$ faster AR generation than veRL across same-allocation fixed- and natural-length benchmarks alongside 8.2\% higher output-token throughput over 500 rollouts (E3-AR), and $1.85\times$--$1.91\times$ step-time speedup from asynchronous cross-slab overlap on 32-GPU AR versus $1.007\times$ on compute-bound eight-GPU diffusion (E6).
+Establishing controlled time-to-quality trade-offs under asynchronous policy staleness and multi-node strong/weak scaling remains future work.
 
 \section*{Reproducibility statement}
 
 The core architectural characterization in Sections~\ref{sec:trajectory}--\ref{sec:instantiations} refers to UniRL release v0.2.0, commit
-{\small\texttt{fd344ad6036a0ba7be9900a9d0cf78ebf59fa738}} (2026-10-08).
+{\small\texttt{fd344ad6036a0ba7be9900a9d0cf78ebf59fa738}} (2026-10-08), with deterministic evaluation and benchmark scripts at commit {\small\texttt{73e9b696880b9610856d114e362467bbe0f03c6c}}.
 The companion report repository records the claim-to-evidence plan (\codepath{PAPER\_PLAN.md}), the cluster execution protocol and configuration-parity gates (\codepath{EXPERIMENT\_RUNBOOK.md}), the operational handoff commands (\codepath{GPU\_HANDOFF\_README.md}), and the result audit (\codepath{EXPERIMENT\_RESULTS.md}).
-The legacy report bundle \codepath{artifacts/reported\_results/2026-09-22/} stores compact source snapshots, source-level caveats, reported numerical inputs, and generated tables and figures for E3, E5-T, and E6.
-These reproduce the transcription and presentation of the legacy reports rather than the original raw GPU logs.
-The reward-serving and rollout-fidelity case studies (Sections~\ref{sec:reward} and~\ref{sec:fidelity}) archive their per-rollout records, rescaling models, and table/figure generators under \codepath{artifacts/reported\_results/2026-09-30-reward-service/} and \codepath{artifacts/reported\_results/2026-10-04-rollout-fidelity/}.
-The separately rerun AR systems bundle in \codepath{artifacts/reported\_results/2026-10-11-qwen3-4b-grpo/} archives both resolved recipes, the recipe and effective-work audit, run identities (W\&B run \texttt{2x4tdjwa} for UniRL and console-logged run \texttt{grpo-verl-natural500} for veRL), 499 post-warm-up records per framework, phase and band summaries, and the plotting script.
+The verified systems bundle \codepath{artifacts/reported\_results/2026-10-15-e3-e5t-systems/} archives the 360 per-step timing and GPU memory records, replicate summaries, and table/figure generator for E3 and E5-T; the paired GPU representation bundle \codepath{artifacts/reported\_results/2026-10-15-e5r-transport/} archives the 9,600 trial records, 48-cell summary statistics, 12-rollout E4a correctness hashes, and table/figure generator for E5-R.
+The reward-serving and rollout-fidelity case studies (Sections~\ref{sec:reward} and~\ref{sec:fidelity}) archive their per-rollout records, event traces, and table/figure generators under \codepath{artifacts/reported\_results/2026-09-30-reward-service/} and \codepath{artifacts/reported\_results/2026-10-04-rollout-fidelity/}.
+The AR systems bundle in \codepath{artifacts/reported\_results/2026-10-11-qwen3-4b-grpo/} archives both resolved recipes, the recipe and effective-work audit, the 499 post-warm-up records per framework for the 500-rollout run, the sequential same-allocation fixed-length (2048/4096/8192) and 15-step natural-length microbenchmark summaries, and the plotting script.
 The HunyuanImage-3.0 and MiniMax-H3 bundles in \codepath{artifacts/reported\_results/2026-09-30-hunyuanimage3/} and \codepath{artifacts/reported\_results/2026-09-30-minimax-h3/} store the resolved recipes, W\&B run identities, direct per-rollout history exports, and rendered learning curves.
-The dated bundle \codepath{artifacts/reported\_results/2026-10-08-e0-e1-e2-e4/} stores data exported from the E0, E1, E2, and E4 runs, with a generator that reproduces their tables, figures, and quoted numbers; its README lists run identities, source commits, and the evidence tier of each part.
+The bundle \codepath{artifacts/reported\_results/2026-10-08-e0-e1-e2-e4/} stores data exported from E0, E1 (including the full 800-rollout \texttt{grpo-s11rerun} trajectory, deterministic \texttt{--seed 42} re-evaluations, and \texttt{T3.1} ablations), E2 and E2-R (including the 1-image preference subset and LPIPS diversity), E4~v2 (including the 12 recorded-rollout checks and LOC inventory), and E6 asynchronous overlap summaries, together with a deterministic generator that reproduces their tables, figures, and quoted numbers.
+Full raw logs, completions, generated images, and checkpoint weights are archived on shared cluster storage at \codepath{/apdcephfs\_gz44/share\_305110755/aimicahchen/unirl-paper-artifacts-20261014/}.
 All graphics are committed PDF assets included by relative paths, so Overleaf does not require Python or shell escape to build the manuscript.
 The preliminary RQ3 CPU evidence is regenerated by
 \codepath{experiments/trajectory\_ir/run\_cpu\_evidence.py}; its manifest pins the
 source state, command, environment, workload, warm-up, repetitions, and timer.
-% TODO[data]: Before final release, attach raw GPU artifacts and run manifests, reconcile legacy E3 replicate summaries, score the one-image E2 preference subset, repeat E3-AR at the process level, complete core IR evidence, and add author metadata and a durable artifact URL.
 
 \bibliographystyle{tmlr}
 \bibliography{main}
@@ -1191,13 +1253,13 @@ While the repository archives the exported E0 parity gauge measurements (\codepa
   \item \textbf{Publication parity:} repeat the rollout--replay parity check after weight publication for every LoRA or full-weight synchronization handler used in an experiment.
   \emph{Status:} measured post-publication for five of the six synchronization configurations in E0 smoke runs---reaching at most \EZeroDiffusionAfterLargest{} on the diffusion paths (Table~\ref{tab:parity-smoke})---and after every weight publication across the six formal E1 runs and the seed 11 rerun (\EOneParityChecks{} checks in total; Table~\ref{tab:parity-e1}). Across the E1 runs, the per-rollout mean absolute difference has a run-level median of \EOneParityMedianMin{}--\EOneParityMedianMax{} and a maximum of \EOneParityMeanLargest{}, whereas the single-token maximum reaches \EOneParityTokenLargest{}. The formal E1 runs logged this gauge without a configured tolerance; relative to the nominal \EOneGateTolerance{} probe reference, every per-rollout mean falls below \EOneGateTolerance{} while every single-token maximum exceeds it. No formal acceptance threshold has been established for either statistic, and no experiment in this report uses the sixth configuration (\texttt{CheckpointWeightSync}).
   \item \textbf{Batch-version integrity:} verify that an optimizer batch never mixes behavior versions when the configured algorithm assumes a single behavior policy; although the asynchronous, agentic, and native-vLLM weight-transfer paths all increment $v_b$ upon weight publication, mixed-version batches can arise at runtime only on the asynchronous path, where multiple behavior versions may be in flight simultaneously.
-  \emph{Status:} enforced in code by the asynchronous batch assembler; no dedicated runtime trace is archived in the bundle, and no asynchronous training results are reported from this bundle.
+  \emph{Status:} enforced in code by the asynchronous batch assembler and exercised across the 15-step 32-GPU AR (\texttt{D0}, \texttt{A1}, \texttt{A2}) and eight-GPU diffusion (\texttt{A1\_diffusion\_async}) runs in Section~\ref{sec:rq4}.
   \item \textbf{Boundary integrity:} ensure that checkpointing and evaluation begin only after the asynchronous rollout manager drains in-flight trajectories, and that job resumption restores the optimizer version and republishes weights before generating new rollouts.
-  \emph{Status:} enforced in code by the asynchronous rollout manager; no dedicated verification trace is archived.
+  \emph{Status:} enforced in code by the asynchronous rollout manager and verified on synchronous checkpoint resumptions (\texttt{drpo-s22} from rollout 200 and \texttt{grpo-s11rerun} from rollout 400).
   \item \textbf{Work accounting:} compare generated tokens or pixels, denoising and replay steps, scored samples, and committed optimizer updates across systems.
-  \emph{Status:} not shown. No cross-system count comparison is archived with these runs.
+  \emph{Status:} verified across the 360 steps of E3/E5-T, the 499 steps of the long-horizon E3-AR comparison, and the fixed-length (\texttt{ignore\_eos=true}, 2,048 / 4,096 / 8,192 tokens) and 15-step natural-length E3-AR microbenchmarks.
   \item \textbf{Structural preconditions:} validate unique root IDs, uniform layer depth, parent-major contiguity, shared-field equality, and behavior-version provenance before merging batches or propagating credit, and verify equivalence against an ID-joined flat-row reference.
-  \emph{Status:} both grouping scopes match an independent ID-joined reference on synthetic fixtures (E4a) and on recorded rollouts from the composed training runs (E4~v2, Section~\ref{sec:rq3}). Static and test inspection in the E4 audit notes that group-advantage computation explicitly rejects non-contiguous (interleaved) group rows, whereas leaf-to-root reward propagation assumes parent-major order without raising an error if rows are interleaved.
+  \emph{Status:} both grouping scopes, model conditions, and replay tensors match an independent ID-joined reference bit-for-bit on synthetic fixtures (E4a), across all 12 recorded rollouts from the composed training runs (E4~v2), and across all 48 paired GPU transport cells (E5-R, Section~\ref{sec:rq3}). Static and test inspection in the E4 audit notes that group-advantage computation explicitly rejects non-contiguous (interleaved) group rows, whereas leaf-to-root reward propagation assumes parent-major order without raising an error if rows are interleaved.
 \end{enumerate}
 
 \begin{table}[H]
@@ -1227,11 +1289,11 @@ Restricted to the four saved checkpoints (rollouts 200, 400, 600, and 800) of ea
 For GRPO seeds 22 and 33, these validation-selected checkpoints achieve \EOneMathGRPOEarlyTwentyTwo{} and \EOneMathGRPOEarlyThirtyThree{} on MATH-500---exceeding the frozen base (\EOneMathBase{}) even though their final rollout-800 checkpoints fall below it---while for the three DRPO seeds they achieve \EOneMathDRPOSelectedEleven{}, \EOneMathDRPOSelectedTwentyTwo{}, and \EOneMathDRPOSelectedThirtyThree{}, each surpassing the corresponding rollout-800 checkpoint.
 Because internal validation evaluates the AIME 2024/2025 benchmark problems directly, we do not report external AIME test scores for validation-selected checkpoints, and the rollout-800 checkpoint remains the prespecified primary endpoint.
 In GRPO seed 11, the two lost checkpoints (rollouts 200 and 400) had higher validation accuracy than rollouts 600 and 800, so Table~\ref{tab:rq1-ar} captures only the degraded second half of that run and its rollout-200 validation-selected MATH-500 score is unavailable.
-Because generation sampling was unseeded, the GRPO seed 11 rerun follows a distinct trajectory despite consuming the same prompts in the same order: its validation accuracy exceeds the original run's at every evaluation from rollout \EOneRerunAboveFrom{} to \EOneRerunAboveTo{} (reaching \EOneValidRerunFour{} versus \EOneValidGRPOElevenFour{} at rollout 400) before falling below the original run from rollout \EOneRerunBelowFrom{} until termination (\EOneValidRerunLast{} versus \EOneValidGRPOElevenLast{} at rollout \EOneRerunLastEval{}).
+Because generation sampling was unseeded, the GRPO seed 11 rerun follows a distinct trajectory despite consuming the same prompts in the same order: its validation accuracy exceeds the original run's at every evaluation from rollout \EOneRerunAboveFrom{} to \EOneRerunAboveTo{} (reaching \EOneValidRerunFour{} versus \EOneValidGRPOElevenFour{} at rollout 400) before falling below the original run from rollout \EOneRerunBelowFrom{} through rollout \EOneRerunLastEval{} (\EOneValidRerunLast{} versus \EOneValidGRPOElevenLast{} at rollout \EOneRerunLastEval{}).
 Finally, in four of the six formal runs the overall validation peak occurs between multiples of 200 rollouts, where the 200-rollout checkpoint cadence did not save model weights.
 
 \begin{table}[H]
-\caption{E1 internal validation and validation-selected checkpoints. Validation accuracy is the share of 960 sampled answers graded correct on the 60 AIME 2024/2025 problems; per-problem results are not exported, so no sampling error is given. The selected checkpoint is the saved checkpoint with the highest validation accuracy, and its MATH-500 score is the avg@4 of Table~\ref{tab:rq1-ar}. The seed 11 rerun has two saved checkpoints and no rollout 800. $^{\dagger}$Mean of two independent evaluations.}
+\caption{E1 internal validation and validation-selected checkpoints. Validation accuracy is the share of 960 sampled answers graded correct on the 60 AIME 2024/2025 problems; per-problem results are not exported, so no sampling error is given. The selected checkpoint is the saved checkpoint with the highest validation accuracy, and its MATH-500 score is the avg@4 of Table~\ref{tab:rq1-ar}. $^{\dagger}$Mean of two independent evaluations.}
 \label{tab:e1-validation}
 \centering
 \small
@@ -1240,16 +1302,46 @@ Finally, in four of the six formal runs the overall validation peak occurs betwe
 
 \paragraph{Answers at the token limit.}
 Table~\ref{tab:e1-limit} reports the fraction of MATH-500 completions that reach the 16,384-token generation limit at each evaluated checkpoint, derived from an offline regrade of the stored completions that exactly reproduces every avg@4 score in Table~\ref{tab:rq1-ar}.
-In the three formal GRPO runs, completions that reach the token limit are rarely graded correct (at most \EOneLimitCorrectGRPOMax{}), so penalizing non-terminating completions as incorrect alters their MATH-500 scores only slightly.
+In the three formal GRPO runs (and the seed 11 rerun), completions that reach the token limit are rarely graded correct (at most \EOneLimitCorrectGRPOMax{} across the formal seeds, and $9.4\%$ in the rerun at rollout 800), so penalizing non-terminating completions as incorrect alters their MATH-500 scores only slightly.
 By contrast, at DRPO seed 22's final checkpoint, \EOneLimitDRPOTwentyTwo{} of all MATH-500 completions ($1{,}498$ of $2{,}000$) reach the token limit and \EOneLimitCorrectDRPOTwentyTwo{} of those ($1{,}128$ of $1{,}498$) are still graded correct because \texttt{math\_verify} extracts boxed answers prior to the cutoff; scoring limit-hitting completions as incorrect lowers that checkpoint's MATH-500 avg@4 from \EOneMathDRPOEndTwentyTwo{} to \EOneStrictDRPOTwentyTwo{}.
 The same checkpoint reaches the generation limit on \EOneLimitAimeDRPOTwentyTwoFirst{} of 480 completions on AIME 2024 and \EOneLimitAimeDRPOTwentyTwoSecond{} of 480 on AIME 2025, so its AIME entries in Table~\ref{tab:rq1-ar} depend on the same lenient grading behavior.
 
 \begin{table}[H]
-\caption{E1 answers at the token limit on MATH-500. An answer is at the limit when its stored text, tokenized again, has at least 97\% of the 16,384-token generation limit. Columns 200 to 800 give the share of a checkpoint's answers at the limit. For the final checkpoint the table gives how many answers at the limit are graded correct, the share of the other answers graded correct, and avg@4 with every answer at the limit counted wrong. Seed 11's final checkpoints pool their two evaluations; the seed 11 rerun has no final checkpoint.}
+\caption{E1 answers at the token limit on MATH-500. An answer is at the limit when its stored text, tokenized again, has at least 97\% of the 16,384-token generation limit. Columns 200 to 800 give the share of a checkpoint's answers at the limit. For the final checkpoint the table gives how many answers at the limit are graded correct, the share of the other answers graded correct, and avg@4 with every answer at the limit counted wrong. Seed 11's final checkpoints pool their two evaluations.}
 \label{tab:e1-limit}
 \centering
 \footnotesize
 \input{artifacts/reported_results/2026-10-08-e0-e1-e2-e4/e1_limit_table.tex}
+\end{table}
+
+\paragraph{Controlled attribution of GRPO late-stage degradation and DRPO length explosion.}
+Table~\ref{tab:e1-ablation} summarizes the seven-arm attribution ablation (\texttt{T3.1}, evaluated deterministically with \texttt{--seed 42}) designed to isolate the algorithmic factors separating E1's standard GRPO and DRPO recipes.
+Resuming UniRL GRPO seed 22 from its peak \texttt{checkpoint-200} ($81.45\%$ MATH-500), removing group-standard-deviation division alone (\texttt{T3.1-A1}) or switching from per-sequence token-mean to constant-denominator sum normalization alone (\texttt{T3.1-A2}) prevents the severe rollout-600 collapse of standard GRPO ($72.60\%$ and $73.20\%$ vs.\ $44.55\%$ on MATH-500), while combining both Dr.GRPO normalizations under FSDP (\texttt{T3.1-A3}) reaches $79.70\%$ on MATH-500 and $18.75\%$ on AIME 2024 at rollout 400 ($71.15\%$ at rollout 600).
+Meanwhile, running the aligned standard GRPO recipe in veRL (\texttt{T3.1-B}) from rollout 0 to 600 exhibits the same directional decline after rollout 200 (MATH-500 dropping from $76.25\%$ to $72.25\%$ and AIME 2025 from $11.67\%$ to $3.75\%$), confirming that the degradation is an objective-level property of unregularized standard GRPO rather than a UniRL implementation defect.
+Finally, whereas the original \texttt{drpo-s22} run retained full rewards on truncated completions (\texttt{truncated\_reward=keep}), causing training truncation to surge to $94.0\%$ ($8{,}025$ tokens) by rollout 400, resuming \texttt{drpo-s22} from \texttt{checkpoint-200} with hard zeroing (\texttt{T3.1-C1}) or a soft overlong penalty (\texttt{T3.1-C2}) reduces training truncation at rollout 400 to $2.15\%$ ($3{,}051$ tokens) and $0.00\%$ ($1{,}917$ tokens), with \texttt{T3.1-C2} achieving $83.95\%$ on MATH-500, $21.67\%$ on AIME 2024, and $18.96\%$ on AIME 2025.
+
+\begin{table}[H]
+\caption{Controlled E1 attribution ablations (\texttt{T3.1}, deterministic \texttt{--seed 42} evaluation on 32 H20 GPUs). Arms \texttt{A1}--\texttt{A3} and \texttt{C1}--\texttt{C2} resume seed 22 from its rollout-200 checkpoint; arm \texttt{B} trains veRL standard GRPO from scratch.}
+\label{tab:e1-ablation}
+\centering
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llcccccrr@{}}
+\toprule
+Arm / Configuration & Framework & Step & Adv.\ norm & Loss norm & MATH-500 & AIME 2024 & AIME 2025 & Train trunc.\ (len) \\
+\midrule
+Standard GRPO (\texttt{grpo-s22} baseline) & UniRL & 200 / 400 / 600 & $\div\text{std}$ & token-mean & $81.45\%$ / $65.15\%$ / $44.55\%$ & $16.04\%$ / $2.92\%$ / $0.00\%$ & $14.17\%$ / $2.50\%$ / $0.21\%$ & $31.7\%$ ($4{,}188$) \\
+\texttt{T3.1-B} (aligned standard GRPO) & veRL & 200 / 400 / 600 & $\div\text{std}$ & token-mean & $76.25\%$ / $72.35\%$ / $72.25\%$ & $12.71\%$ / $9.58\%$ / $9.17\%$ & $11.67\%$ / $9.38\%$ / $3.75\%$ & $11.1\%$ ($2{,}794$) \\
+\texttt{T3.1-A1} (\texttt{A1\_no\_std}) & UniRL & 400 / 600 & mean-only & token-mean & $74.05\%$ / $72.60\%$ & $13.13\%$ / $7.92\%$ & $7.92\%$ / $5.63\%$ & $38.1\%$ ($4{,}636$) \\
+\texttt{T3.1-A2} (\texttt{A2\_sum\_norm}) & UniRL & 400 / 600 & $\div\text{std}$ & sum-norm & $77.80\%$ / $73.20\%$ & $13.13\%$ / $5.21\%$ & $10.63\%$ / $5.42\%$ & $35.4\%$ ($4{,}410$) \\
+\texttt{T3.1-A3} (\texttt{A3\_drgrpo\_fsdp}) & UniRL & 400 / 600 & mean-only & sum-norm & $79.70\%$ / $71.15\%$ & $18.75\%$ / $8.33\%$ & $10.42\%$ / $4.17\%$ & $43.4\%$ ($4{,}895$) \\
+\midrule
+Original DRPO (\texttt{drpo-s22}, \texttt{keep}) & UniRL & 200 / 400 / 600 & mean-only & sum-norm & $87.10\%$ / $85.70\%$ / $84.40\%$ & $23.33\%$ / $21.25\%$ / $21.88\%$ & $23.54\%$ / $20.42\%$ / $20.63\%$ & $94.0\%$ ($8{,}025$) \\
+\texttt{T3.1-C1} (\texttt{drpo-s22}, \texttt{trunc=zero}) & UniRL & 400 & mean-only & sum-norm & $83.05\%$ & $16.88\%$ & $17.50\%$ & $2.15\%$ ($3{,}051$) \\
+\texttt{T3.1-C2} (\texttt{drpo-s22}, \texttt{trunc=soft}) & UniRL & 400 & mean-only & sum-norm & $\mathbf{83.95\%}$ & $\mathbf{21.67\%}$ & $\mathbf{18.96\%}$ & $\mathbf{0.00\%}$ ($\mathbf{1{,}917}$) \\
+\bottomrule
+\end{tabular}%
+}
 \end{table}
 
 \paragraph{Training diagnostics.}
@@ -1261,14 +1353,14 @@ The GRPO degradation thus coincides with response lengthening, increased truncat
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{artifacts/reported_results/2026-10-08-e0-e1-e2-e4/figures/e1_training.pdf}
-\caption{E1 training diagnostics for the six formal runs and the GRPO seed 11 rerun (which terminated at rollout \EOneRerunEnd{} and is plotted with hollow markers). (a) Internal validation accuracy on AIME 2024/2025, evaluated every ten rollouts. (b)--(g) Per-rollout training metrics aggregated over consecutive 25-rollout blocks, reporting block means in (b)--(d) and (g) and block medians in (e) and (f), where individual rollouts exhibit spikes; the rerun's block curves end at its last complete 25-rollout block (rollout 500). Because the DRPO objective has no clipping term, (g) plots GRPO runs only. Color encodes the recipe arm, while marker shape and line style encode the seed.}
+\caption{E1 training diagnostics for the six formal runs and the GRPO seed 11 rerun (which completed 800 rollouts after resuming from checkpoint 400 and is plotted with hollow markers). (a) Internal validation accuracy on AIME 2024/2025, evaluated every ten rollouts. (b)--(g) Per-rollout training metrics aggregated over consecutive 25-rollout blocks, reporting block means in (b)--(d) and (g) and block medians in (e) and (f), where individual rollouts exhibit spikes. Because the DRPO objective has no clipping term, (g) plots GRPO runs only. Color encodes the recipe arm, while marker shape and line style encode the seed.}
 \label{fig:e1-training}
 \end{figure}
 
 \paragraph{Discarded launches and checkpoint provenance.}
 The following aborted or superseded segments are excluded from Table~\ref{tab:rq1-ar}: three initial launches of GRPO seed 11 that failed prior to rollout 1; an initial launch of GRPO seed 22 stopped at rollout 19 when its compute allocation was reassigned to the DRPO arm; an initial launch of DRPO seed 11 that ran for 39 rollouts with identically zero gradients before overriding \texttt{rl\_on\_policy\_target=null} (an override retained by all three reported DRPO runs); and rollouts 201--369 from DRPO seed 22's first allocation prior to its resumption from checkpoint 200.
-The GRPO seed 11 rerun executed the formal 800-rollout launch command, was stopped after saving and exporting checkpoint 400, and was then resumed from checkpoint 400 under the same command until its allocation expired at rollout \EOneRerunEnd{} (prior to checkpoint 600); in the exported training series, the single post-400 rollout logged before the stop is replaced by the resumed segment's rollout, and the duplicate initial validation evaluation logged upon checkpoint restoration is omitted.
-Finally, each external benchmark evaluation ran against a bf16 export of the saved checkpoint without recording a cryptographic hash of the exported weights, so the bundle identifies evaluated checkpoints by run ID and rollout step alone.
+The GRPO seed 11 rerun executed the formal 800-rollout launch command, was stopped after saving and exporting checkpoint 400, and was then resumed from checkpoint 400 under the same command through rollout 800 (an intermediate resume segment that ended at rollout 518 before checkpoint 600 was superseded by the full 401--800 completion); in the exported training series, the duplicate initial validation evaluation logged upon checkpoint restoration is omitted.
+Finally, the checkpoint provenance inventory (\codepath{e1\_checkpoints\_inventory.json}) catalogs all 28 E1 checkpoint directories across 26 unique $49.83$\,GB \texttt{checkpoint.pt} inodes (with SHA-256 digests and hardlink verification for the resumed runs), alongside SHA-256 digests of the bf16 Hugging Face model exports evaluated in the deterministic re-evaluation and \texttt{T3.1} ablation suites.
 
 
 \end{document}

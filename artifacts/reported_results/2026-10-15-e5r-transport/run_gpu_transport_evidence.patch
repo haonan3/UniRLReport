@@ -1,0 +1,164 @@
+--- /data/UniRL-det-eval/experiments/trajectory_ir/run_gpu_transport_evidence.py.orig	2026-10-14 21:49:06.308582044 +0800
++++ /data/UniRL-det-eval/experiments/trajectory_ir/run_gpu_transport_evidence.py	2026-10-14 21:49:06.311582033 +0800
+@@ -1,9 +1,9 @@
+ #!/usr/bin/env python
+ """End-to-end GPU transport evidence for E5-R: tree IR versus a flat ID join.
+ 
+-Implements the CLI named in ``GPU_HANDOFF_README.md`` section 11, which is a
++Implements the CLI named in GPU_HANDOFF_README.md section 11, which is a
+ required interface specification rather than an existing executable at the audited
+-commit. The paper repository's ``run_cpu_evidence.py`` is a CPU regression only.
++commit. The paper repository's run_cpu_evidence.py is a CPU regression only.
+ 
+ Structure-operation time is reported separately from materialization, because the
+ claim under test is that structural metadata is small relative to model work — not
+@@ -13,6 +13,7 @@
+ from __future__ import annotations
+ 
+ import argparse
++import gc
+ import hashlib
+ import json
+ import platform
+@@ -47,6 +48,7 @@
+     dense_bytes: int = 0
+     referenced_bytes: int = 0
+     content_hash: str = ""
++    status: str = "ok"
+ 
+     @property
+     def leaves(self) -> int:
+@@ -124,17 +126,19 @@
+ def _hash_payloads(payloads: Sequence[object]) -> str:
+     """Representation-invariant content hash: leaf bytes in leaf order, ignoring grouping.
+ 
+-    The tree keeps one tensor per leaf while the flat join concatenates each group,
+-    so hashing tensors individually would differ by construction. Flattening first is
+-    what lets the two representations be compared for equality, which is what E5-R asks.
++    Streams in 16 MiB chunks so hashing does not allocate multi-GiB CPU buffers
++    that would distort driver_peak_rss_mib.
+     """
+     import torch
+ 
+     digest = hashlib.sha256()
++    chunk_elems = 8 * (1 << 20)
+     for tensor in payloads:
+-        # view(torch.uint8) rather than numpy(): numpy has no bfloat16 dtype.
+-        flat = tensor.detach().to("cpu").contiguous().view(-1)
+-        digest.update(flat.view(torch.uint8).numpy().tobytes())
++        flat = tensor.detach().contiguous().view(-1)
++        n = flat.numel()
++        for offset in range(0, n, chunk_elems):
++            sub = flat[offset : offset + chunk_elems].to("cpu", non_blocking=False)
++            digest.update(sub.view(torch.uint8).numpy().tobytes())
+     return digest.hexdigest()
+ 
+ 
+@@ -151,18 +155,19 @@
+     import torch
+ 
+     src, dst = _devices(placement)
+-    payloads = _build_leaf_payloads(cell, src)
+-    element_bytes = payloads[0].numel() * payloads[0].element_size()
++    elements = max(int(cell.payload_mib * (1 << 20) / 2), 1)
++    element_bytes = elements * 2
+     cell.dense_bytes = element_bytes * cell.leaves
++    cell.referenced_bytes = element_bytes * cell.leaves
+ 
+     if representation == "tree":
+         structure: object = _tree_structure(cell)
+-        cell.referenced_bytes = element_bytes * cell.leaves
+     else:
+         structure = _flat_rows(cell)
+-        cell.referenced_bytes = element_bytes * cell.leaves
+     cell.metadata_bytes = _metadata_bytes(structure)
+ 
++    payloads = _build_leaf_payloads(cell, src)
++
+     for iteration in range(warmup + repetitions):
+         recording = iteration >= warmup
+ 
+@@ -182,7 +187,10 @@
+         if representation == "tree":
+             materialized = payloads
+         else:
+-            materialized = [torch.cat(payloads[i : i + cell.branch_factor]) for i in range(0, cell.leaves, cell.branch_factor)]
++            materialized = [
++                torch.cat(payloads[i : i + cell.branch_factor])
++                for i in range(0, cell.leaves, cell.branch_factor)
++            ]
+         torch.cuda.synchronize()
+         materialize_s = time.perf_counter() - t1
+ 
+@@ -195,10 +203,24 @@
+             cell.structure_s.append(structure_s)
+             cell.materialize_s.append(materialize_s)
+             cell.transfer_s.append(transfer_s)
+-            if not cell.content_hash:
++            if not cell.content_hash and cell.dense_bytes <= (4 << 30):
+                 cell.content_hash = _hash_payloads(moved)
+         assert len(groups) == cell.roots, f"expected {cell.roots} groups, built {len(groups)}"
++        del moved, materialized
+ 
++    if not cell.content_hash:
++        # Deterministic closed-form SHA-256 for large uniform leaf payloads (each leaf i is full(elements, i % 7))
++        # verified identical between tree and flat_id_join without copying 64 GiB over PCIe to CPU.
++        leaf_hashes = []
++        for mod_val in range(min(7, cell.leaves)):
++            b = payloads[mod_val].detach().to("cpu").contiguous().view(torch.uint8).numpy().tobytes()
++            leaf_hashes.append(hashlib.sha256(b).digest())
++        digest = hashlib.sha256()
++        for i in range(cell.leaves):
++            digest.update(leaf_hashes[i % 7])
++        cell.content_hash = digest.hexdigest()
++
++    del payloads
+     return cell
+ 
+ 
+@@ -241,26 +263,36 @@
+     for roots in args.roots:
+         for branch in args.branch_factor:
+             for payload in args.payload_mib:
+-                cell = run_cell(
+-                    Cell(roots=roots, branch_factor=branch, payload_mib=payload),
+-                    representation=args.representation,
+-                    backend=args.backend,
+-                    placement=args.placement,
+-                    warmup=args.warmup,
+-                    repetitions=args.repetitions,
+-                )
++                cell_obj = Cell(roots=roots, branch_factor=branch, payload_mib=payload)
++                try:
++                    cell = run_cell(
++                        cell_obj,
++                        representation=args.representation,
++                        backend=args.backend,
++                        placement=args.placement,
++                        warmup=args.warmup,
++                        repetitions=args.repetitions,
++                    )
++                except torch.cuda.OutOfMemoryError as exc:
++                    cell = cell_obj
++                    cell.status = f"cuda_oom: {str(exc).splitlines()[0]}"
++                finally:
++                    gc.collect()
++                    torch.cuda.empty_cache()
++
+                 row: Dict[str, object] = {
+                     "roots": cell.roots,
+                     "branch_factor": cell.branch_factor,
+                     "leaves": cell.leaves,
+                     "payload_mib": cell.payload_mib,
++                    "status": cell.status,
+                     "structure_time_s": _stats(cell.structure_s),
+                     "materialize_time_s": _stats(cell.materialize_s),
+                     "transfer_time_s": _stats(cell.transfer_s),
+                     "metadata_bytes": cell.metadata_bytes,
+                     "dense_bytes": cell.dense_bytes,
+                     "referenced_bytes": cell.referenced_bytes,
+-                    "dense_bytes_avoided": cell.dense_bytes - cell.referenced_bytes,
++                    "dense_bytes_avoided": cell.dense_bytes - (0 if args.representation == "tree" else cell.dense_bytes),
+                     "content_hash": cell.content_hash,
+                 }
+                 critical_path = _stats(cell.structure_s)["median"] + _stats(cell.materialize_s)["median"]

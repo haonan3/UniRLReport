@@ -1,0 +1,1821 @@
+{
+  "backend": "gpu_store",
+  "cells": [
+    {
+      "branch_factor": 1,
+      "content_hash": "6ba3bde0dbe11ce6578eade9624f61f05a8f5075a24f3c768d2f9ce47d14504f",
+      "critical_path_time_s": 6.065145134925842e-05,
+      "dense_bytes": 8388608,
+      "dense_bytes_avoided": 0,
+      "leaves": 8,
+      "materialize_time_s": {
+        "max": 8.211657404899597e-05,
+        "mean": 5.460536107420921e-05,
+        "median": 5.381926894187927e-05,
+        "min": 5.202926695346832e-05,
+        "n": 100,
+        "p90": 5.749799311161041e-05
+      },
+      "metadata_bytes": 576,
+      "overhead_fraction_of_model_work": 9.44726656530505e-07,
+      "payload_mib": 1.0,
+      "referenced_bytes": 8388608,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 2.4771317839622498e-05,
+        "mean": 7.106103003025055e-06,
+        "median": 6.83218240737915e-06,
+        "min": 6.452202796936035e-06,
+        "n": 100,
+        "p90": 7.3891133069992065e-06
+      },
+      "transfer_bandwidth_gib_s": 44.10460677819956,
+      "transfer_time_s": {
+        "max": 0.00019305944442749023,
+        "mean": 0.00017618777230381965,
+        "median": 0.00017713569104671478,
+        "min": 0.00015641935169696808,
+        "n": 100,
+        "p90": 0.00018549710512161255
+      }
+    },
+    {
+      "branch_factor": 1,
+      "content_hash": "fcdbbc7b8611b5f9c55b50cb73dfe0062b1612481d4b7ac22a9b426627050ccf",
+      "critical_path_time_s": 0.00011949986219406128,
+      "dense_bytes": 134217728,
+      "dense_bytes_avoided": 0,
+      "leaves": 8,
+      "materialize_time_s": {
+        "max": 0.00019836798310279846,
+        "mean": 0.00011322064325213433,
+        "median": 0.00011214800179004669,
+        "min": 0.0001103375107049942,
+        "n": 100,
+        "p90": 0.00011364743113517761
+      },
+      "metadata_bytes": 576,
+      "overhead_fraction_of_model_work": 1.8613685700009544e-06,
+      "payload_mib": 16.0,
+      "referenced_bytes": 134217728,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 7.188878953456879e-05,
+        "mean": 8.180737495422363e-06,
+        "median": 7.351860404014587e-06,
+        "min": 6.498768925666809e-06,
+        "n": 100,
+        "p90": 8.208677172660828e-06
+      },
+      "transfer_bandwidth_gib_s": 257.69473926733735,
+      "transfer_time_s": {
+        "max": 0.0006928965449333191,
+        "mean": 0.00048676332458853723,
+        "median": 0.00048507004976272583,
+        "min": 0.0004726611077785492,
+        "n": 100,
+        "p90": 0.0004930011928081512
+      }
+    },
+    {
+      "branch_factor": 1,
+      "content_hash": "1e24362fb6898bd3eabe7d9389617737c1fea0696769bf546b78aa702827b22c",
+      "critical_path_time_s": 0.00036532990634441376,
+      "dense_bytes": 536870912,
+      "dense_bytes_avoided": 0,
+      "leaves": 8,
+      "materialize_time_s": {
+        "max": 0.0004268623888492584,
+        "mean": 0.0003576495312154293,
+        "median": 0.0003569014370441437,
+        "min": 0.0003538448363542557,
+        "n": 100,
+        "p90": 0.0003591533750295639
+      },
+      "metadata_bytes": 576,
+      "overhead_fraction_of_model_work": 5.690496983557846e-06,
+      "payload_mib": 64.0,
+      "referenced_bytes": 536870912,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 6.927922368049622e-05,
+        "mean": 9.070560336112977e-06,
+        "median": 8.42846930027008e-06,
+        "min": 7.1302056312561035e-06,
+        "n": 100,
+        "p90": 9.199604392051697e-06
+      },
+      "transfer_bandwidth_gib_s": 330.84752581169573,
+      "transfer_time_s": {
+        "max": 0.0016933083534240723,
+        "mean": 0.0015128782764077186,
+        "median": 0.0015112701803445816,
+        "min": 0.0014970004558563232,
+        "n": 100,
+        "p90": 0.0015229824930429459
+      }
+    },
+    {
+      "branch_factor": 1,
+      "content_hash": "2c3abd8c359fcf7c97aed36345e4bb4897d5dfeecb79df78d40d8647b9ca5175",
+      "critical_path_time_s": 0.0013339519500732422,
+      "dense_bytes": 2147483648,
+      "dense_bytes_avoided": 0,
+      "leaves": 8,
+      "materialize_time_s": {
+        "max": 0.0013870615512132645,
+        "mean": 0.0013231947273015976,
+        "median": 0.0013221632689237595,
+        "min": 0.0013169441372156143,
+        "n": 100,
+        "p90": 0.0013273246586322784
+      },
+      "metadata_bytes": 576,
+      "overhead_fraction_of_model_work": 2.077806775815019e-05,
+      "payload_mib": 256.0,
+      "referenced_bytes": 2147483648,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 7.026828825473785e-05,
+        "mean": 1.2513827532529832e-05,
+        "median": 1.1788681149482727e-05,
+        "min": 9.739771485328674e-06,
+        "n": 100,
+        "p90": 1.3310462236404419e-05
+      },
+      "transfer_bandwidth_gib_s": 359.3337889112513,
+      "transfer_time_s": {
+        "max": 0.0057585593312978745,
+        "mean": 0.005567563064396382,
+        "median": 0.005565855652093887,
+        "min": 0.005546273663640022,
+        "n": 100,
+        "p90": 0.005574995651841164
+      }
+    },
+    {
+      "branch_factor": 4,
+      "content_hash": "45bcbd95626aacc7dea77a0ff54d3603d298bbc5ffa38ef2b22377569ead29b9",
+      "critical_path_time_s": 6.319023668766022e-05,
+      "dense_bytes": 33554432,
+      "dense_bytes_avoided": 0,
+      "leaves": 32,
+      "materialize_time_s": {
+        "max": 9.620003402233124e-05,
+        "mean": 5.4526086896657946e-05,
+        "median": 5.3688883781433105e-05,
+        "min": 5.170702934265137e-05,
+        "n": 100,
+        "p90": 5.634129047393799e-05
+      },
+      "metadata_bytes": 2304,
+      "overhead_fraction_of_model_work": 9.84271599496265e-07,
+      "payload_mib": 1.0,
+      "referenced_bytes": 33554432,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 4.434026777744293e-05,
+        "mean": 9.958669543266297e-06,
+        "median": 9.501352906227112e-06,
+        "min": 8.920207619667053e-06,
+        "n": 100,
+        "p90": 1.0110437870025635e-05
+      },
+      "transfer_bandwidth_gib_s": 141.9452261093955,
+      "transfer_time_s": {
+        "max": 0.0002508088946342468,
+        "mean": 0.0002195548079907894,
+        "median": 0.00022015534341335297,
+        "min": 0.0002046041190624237,
+        "n": 100,
+        "p90": 0.00022516585886478424
+      }
+    },
+    {
+      "branch_factor": 4,
+      "content_hash": "4affdfe6829129ff01c88340f76133c1dd25d243becf2c8656672a5e168e4166",
+      "critical_path_time_s": 0.00035798363387584686,
+      "dense_bytes": 536870912,
+      "dense_bytes_avoided": 0,
+      "leaves": 32,
+      "materialize_time_s": {
+        "max": 0.0004124436527490616,
+        "mean": 0.0003473312221467495,
+        "median": 0.0003466736525297165,
+        "min": 0.00034349411725997925,
+        "n": 100,
+        "p90": 0.00034860335290431976
+      },
+      "metadata_bytes": 2304,
+      "overhead_fraction_of_model_work": 5.576069063486711e-06,
+      "payload_mib": 16.0,
+      "referenced_bytes": 536870912,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 8.018873631954193e-05,
+        "mean": 1.2040939182043076e-05,
+        "median": 1.1309981346130371e-05,
+        "min": 1.0089948773384094e-05,
+        "n": 100,
+        "p90": 1.2589618563652039e-05
+      },
+      "transfer_bandwidth_gib_s": 331.6023965114699,
+      "transfer_time_s": {
+        "max": 0.0017053671181201935,
+        "mean": 0.0015098050609230996,
+        "median": 0.001507829874753952,
+        "min": 0.0014867130666971207,
+        "n": 100,
+        "p90": 0.0015165116637945175
+      }
+    },
+    {
+      "branch_factor": 4,
+      "content_hash": "8325f1d1d6d41943a012aaf988ff35e9bfd202501906843f1e1a63f870e55d96",
+      "critical_path_time_s": 0.0013007763773202896,
+      "dense_bytes": 2147483648,
+      "dense_bytes_avoided": 0,
+      "leaves": 32,
+      "materialize_time_s": {
+        "max": 0.001342935487627983,
+        "mean": 0.0012867538630962371,
+        "median": 0.0012855958193540573,
+        "min": 0.001282045617699623,
+        "n": 100,
+        "p90": 0.0012896955013275146
+      },
+      "metadata_bytes": 2304,
+      "overhead_fraction_of_model_work": 2.026131428847803e-05,
+      "payload_mib": 64.0,
+      "referenced_bytes": 2147483648,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 8.228793740272522e-05,
+        "mean": 1.629732549190521e-05,
+        "median": 1.51805579662323e-05,
+        "min": 1.2760981917381287e-05,
+        "n": 100,
+        "p90": 1.7039477825164795e-05
+      },
+      "transfer_bandwidth_gib_s": 359.08287578831624,
+      "transfer_time_s": {
+        "max": 0.0057839397341012955,
+        "mean": 0.005572460070252419,
+        "median": 0.005569744855165482,
+        "min": 0.005554273724555969,
+        "n": 100,
+        "p90": 0.005578003823757172
+      }
+    },
+    {
+      "branch_factor": 4,
+      "content_hash": "7c5a0646f4898894474b7205898c7ef8ef9be5bad8ea4a2c237de091ca4326cc",
+      "critical_path_time_s": 0.005134839564561844,
+      "dense_bytes": 8589934592,
+      "dense_bytes_avoided": 0,
+      "leaves": 32,
+      "materialize_time_s": {
+        "max": 0.005123043432831764,
+        "mean": 0.0051087736338377,
+        "median": 0.0051083918660879135,
+        "min": 0.005096385255455971,
+        "n": 100,
+        "p90": 0.005114523693919182
+      },
+      "metadata_bytes": 2304,
+      "overhead_fraction_of_model_work": 7.998192468164865e-05,
+      "payload_mib": 256.0,
+      "referenced_bytes": 8589934592,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 4.5729801058769226e-05,
+        "mean": 2.664947882294655e-05,
+        "median": 2.644769847393036e-05,
+        "min": 2.2549182176589966e-05,
+        "n": 100,
+        "p90": 2.8479844331741333e-05
+      },
+      "transfer_bandwidth_gib_s": 367.18559171575123,
+      "transfer_time_s": {
+        "max": 0.02182861603796482,
+        "mean": 0.021789081878960132,
+        "median": 0.02178734727203846,
+        "min": 0.0217580646276474,
+        "n": 100,
+        "p90": 0.02182156592607498
+      }
+    },
+    {
+      "branch_factor": 8,
+      "content_hash": "bdf43d6017439b97a733eec9e71cc50d578cac76cadde9d98d7e218ad34e6ac2",
+      "critical_path_time_s": 8.592195808887482e-05,
+      "dense_bytes": 67108864,
+      "dense_bytes_avoided": 0,
+      "leaves": 64,
+      "materialize_time_s": {
+        "max": 0.00014770589768886566,
+        "mean": 7.329177111387253e-05,
+        "median": 7.246062159538269e-05,
+        "min": 7.052905857563019e-05,
+        "n": 100,
+        "p90": 7.428787648677826e-05
+      },
+      "metadata_bytes": 4608,
+      "overhead_fraction_of_model_work": 1.3383482568360563e-06,
+      "payload_mib": 1.0,
+      "referenced_bytes": 67108864,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 7.9350546002388e-05,
+        "mean": 1.4181993901729583e-05,
+        "median": 1.3461336493492126e-05,
+        "min": 1.2712553143501282e-05,
+        "n": 100,
+        "p90": 1.4210119843482971e-05
+      },
+      "transfer_bandwidth_gib_s": 207.5142519650952,
+      "transfer_time_s": {
+        "max": 0.000513928011059761,
+        "mean": 0.00030368760228157045,
+        "median": 0.00030118413269519806,
+        "min": 0.000279255211353302,
+        "n": 100,
+        "p90": 0.00031683221459388733
+      }
+    },
+    {
+      "branch_factor": 8,
+      "content_hash": "953a9330ff99c343b7991a00e9cc2f14ae94158601939905bee8c4611e8bff9e",
+      "critical_path_time_s": 0.0006710551679134369,
+      "dense_bytes": 1073741824,
+      "dense_bytes_avoided": 0,
+      "leaves": 64,
+      "materialize_time_s": {
+        "max": 0.0007191672921180725,
+        "mean": 0.0006550217792391777,
+        "median": 0.0006535965949296951,
+        "min": 0.000650288537144661,
+        "n": 100,
+        "p90": 0.0006597470492124557
+      },
+      "metadata_bytes": 4608,
+      "overhead_fraction_of_model_work": 1.0452572708932039e-05,
+      "payload_mib": 16.0,
+      "referenced_bytes": 1073741824,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 9.896047413349152e-05,
+        "mean": 1.8880479037761687e-05,
+        "median": 1.745857298374176e-05,
+        "min": 1.5651807188987732e-05,
+        "n": 100,
+        "p90": 2.2200867533683777e-05
+      },
+      "transfer_bandwidth_gib_s": 348.78008837886756,
+      "transfer_time_s": {
+        "max": 0.0030633527785539627,
+        "mean": 0.002868039011955261,
+        "median": 0.002867136150598526,
+        "min": 0.002846585586667061,
+        "n": 100,
+        "p90": 0.0028729941695928574
+      }
+    },
+    {
+      "branch_factor": 8,
+      "content_hash": "6325ee7f565c4afde198c5c29a4827ad48f09a2ae80418399cb1b868c565eb52",
+      "critical_path_time_s": 0.002537820488214493,
+      "dense_bytes": 4294967296,
+      "dense_bytes_avoided": 0,
+      "leaves": 64,
+      "materialize_time_s": {
+        "max": 0.0037568677216768265,
+        "mean": 0.0025262055918574334,
+        "median": 0.0025129523128271103,
+        "min": 0.0025088414549827576,
+        "n": 100,
+        "p90": 0.0025170743465423584
+      },
+      "metadata_bytes": 4608,
+      "overhead_fraction_of_model_work": 3.952991414664319e-05,
+      "payload_mib": 64.0,
+      "referenced_bytes": 4294967296,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 9.582936763763428e-05,
+        "mean": 2.5775227695703505e-05,
+        "median": 2.4868175387382507e-05,
+        "min": 2.1958723664283752e-05,
+        "n": 100,
+        "p90": 2.68593430519104e-05
+      },
+      "transfer_bandwidth_gib_s": 364.3069206118706,
+      "transfer_time_s": {
+        "max": 0.0111710075289011,
+        "mean": 0.010982012506574393,
+        "median": 0.010979752987623215,
+        "min": 0.01096133328974247,
+        "n": 100,
+        "p90": 0.010994398966431618
+      }
+    },
+    {
+      "branch_factor": 8,
+      "content_hash": "3440050bfe52cb1a390e9dfee28ffc4b6439b80f244710d5698fde07a7da016f",
+      "critical_path_time_s": 0.010085217654705048,
+      "dense_bytes": 17179869184,
+      "dense_bytes_avoided": 0,
+      "leaves": 64,
+      "materialize_time_s": {
+        "max": 0.010065030306577682,
+        "mean": 0.010040418393909931,
+        "median": 0.010038690641522408,
+        "min": 0.010031471028923988,
+        "n": 100,
+        "p90": 0.010048627853393555
+      },
+      "metadata_bytes": 4608,
+      "overhead_fraction_of_model_work": 0.00015709061767453346,
+      "payload_mib": 256.0,
+      "referenced_bytes": 17179869184,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 7.71600753068924e-05,
+        "mean": 4.762964323163033e-05,
+        "median": 4.6527013182640076e-05,
+        "min": 4.182755947113037e-05,
+        "n": 100,
+        "p90": 5.063973367214203e-05
+      },
+      "transfer_bandwidth_gib_s": 368.3989436690996,
+      "transfer_time_s": {
+        "max": 0.04347502440214157,
+        "mean": 0.043430893272161486,
+        "median": 0.043431177735328674,
+        "min": 0.0433992575854063,
+        "n": 100,
+        "p90": 0.04345104470849037
+      }
+    },
+    {
+      "branch_factor": 32,
+      "content_hash": "5aaadf4a7f9ca7cb0810cdb81dd88f269b0fa78095f8de3c66881db8d3a2b83c",
+      "critical_path_time_s": 0.00023104622960090637,
+      "dense_bytes": 268435456,
+      "dense_bytes_avoided": 0,
+      "leaves": 256,
+      "materialize_time_s": {
+        "max": 0.0002654455602169037,
+        "mean": 0.00019632035866379738,
+        "median": 0.00019543617963790894,
+        "min": 0.0001929551362991333,
+        "n": 100,
+        "p90": 0.00019771605730056763
+      },
+      "metadata_bytes": 18784,
+      "overhead_fraction_of_model_work": 3.5988509283630276e-06,
+      "payload_mib": 1.0,
+      "referenced_bytes": 268435456,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.000125126913189888,
+        "mean": 3.716032952070236e-05,
+        "median": 3.5610049962997437e-05,
+        "min": 3.387033939361572e-05,
+        "n": 100,
+        "p90": 3.958120942115784e-05
+      },
+      "transfer_bandwidth_gib_s": 301.46112518642303,
+      "transfer_time_s": {
+        "max": 0.0010552890598773956,
+        "mean": 0.0008324554190039634,
+        "median": 0.0008292943239212036,
+        "min": 0.0008109547197818756,
+        "n": 100,
+        "p90": 0.0008450038731098175
+      }
+    },
+    {
+      "branch_factor": 32,
+      "content_hash": "63e43495830864ef38ab808d860c6113a40b45d108e998c9b38f6c96ef8b565b",
+      "critical_path_time_s": 0.002537911757826805,
+      "dense_bytes": 4294967296,
+      "dense_bytes_avoided": 0,
+      "leaves": 256,
+      "materialize_time_s": {
+        "max": 0.0025421306490898132,
+        "mean": 0.002490459531545639,
+        "median": 0.002489602193236351,
+        "min": 0.0024858620017766953,
+        "n": 100,
+        "p90": 0.0024931542575359344
+      },
+      "metadata_bytes": 18784,
+      "overhead_fraction_of_model_work": 3.953133579169478e-05,
+      "payload_mib": 16.0,
+      "referenced_bytes": 4294967296,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.00013272836804389954,
+        "mean": 5.02479262650013e-05,
+        "median": 4.83095645904541e-05,
+        "min": 4.367902874946594e-05,
+        "n": 100,
+        "p90": 5.2647665143013e-05
+      },
+      "transfer_bandwidth_gib_s": 364.27447726850585,
+      "transfer_time_s": {
+        "max": 0.011151516810059547,
+        "mean": 0.010982516203075648,
+        "median": 0.010980730876326561,
+        "min": 0.010964712128043175,
+        "n": 100,
+        "p90": 0.010995881631970406
+      }
+    },
+    {
+      "branch_factor": 32,
+      "content_hash": "bcc2f190321e962b2ca89b1128cd853473d711bad4dcf7cdba849ef41cdc7a29",
+      "critical_path_time_s": 0.00996398739516735,
+      "dense_bytes": 17179869184,
+      "dense_bytes_avoided": 0,
+      "leaves": 256,
+      "materialize_time_s": {
+        "max": 0.010576397180557251,
+        "mean": 0.00989742275327444,
+        "median": 0.009887810796499252,
+        "min": 0.00988009199500084,
+        "n": 100,
+        "p90": 0.00989922508597374
+      },
+      "metadata_bytes": 18784,
+      "overhead_fraction_of_model_work": 0.00015520229587488084,
+      "payload_mib": 64.0,
+      "referenced_bytes": 17179869184,
+      "roots": 8,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 9.152851998806e-05,
+        "mean": 7.631238549947739e-05,
+        "median": 7.617659866809845e-05,
+        "min": 6.78282231092453e-05,
+        "n": 100,
+        "p90": 8.148699998855591e-05
+      },
+      "transfer_bandwidth_gib_s": 368.32800119821144,
+      "transfer_time_s": {
+        "max": 0.04525738023221493,
+        "mean": 0.04350704757496714,
+        "median": 0.04343954287469387,
+        "min": 0.04339248314499855,
+        "n": 100,
+        "p90": 0.04345756210386753
+      }
+    },
+    {
+      "branch_factor": 32,
+      "content_hash": "",
+      "critical_path_time_s": NaN,
+      "dense_bytes": 68719476736,
+      "dense_bytes_avoided": 0,
+      "leaves": 256,
+      "materialize_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "metadata_bytes": 18784,
+      "overhead_fraction_of_model_work": NaN,
+      "payload_mib": 256.0,
+      "referenced_bytes": 68719476736,
+      "roots": 8,
+      "status": "cuda_oom: CUDA out of memory. Tried to allocate 8.00 GiB. GPU 0 has a total capacity of 95.00 GiB of which 6.63 GiB is free. Process 3395135 has 88.37 GiB memory in use. Of the allocated memory 88.00 GiB is allocated by PyTorch, and 0 bytes is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)",
+      "structure_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "transfer_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      }
+    },
+    {
+      "branch_factor": 1,
+      "content_hash": "45bcbd95626aacc7dea77a0ff54d3603d298bbc5ffa38ef2b22377569ead29b9",
+      "critical_path_time_s": 0.00020440667867660522,
+      "dense_bytes": 33554432,
+      "dense_bytes_avoided": 0,
+      "leaves": 32,
+      "materialize_time_s": {
+        "max": 0.00025199539959430695,
+        "mean": 0.00019751990213990212,
+        "median": 0.00019319728016853333,
+        "min": 0.00018672645092010498,
+        "n": 100,
+        "p90": 0.0002162046730518341
+      },
+      "metadata_bytes": 2370,
+      "overhead_fraction_of_model_work": 3.18390465228357e-06,
+      "payload_mib": 1.0,
+      "referenced_bytes": 33554432,
+      "roots": 32,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 5.0360336899757385e-05,
+        "mean": 1.1829901486635208e-05,
+        "median": 1.12093985080719e-05,
+        "min": 1.019984483718872e-05,
+        "n": 100,
+        "p90": 1.2449920177459717e-05
+      },
+      "transfer_bandwidth_gib_s": 43.02412879632978,
+      "transfer_time_s": {
+        "max": 0.0007480774074792862,
+        "mean": 0.0007135863043367862,
+        "median": 0.0007263366132974625,
+        "min": 0.0006088484078645706,
+        "n": 100,
+        "p90": 0.0007396675646305084
+      }
+    },
+    {
+      "branch_factor": 1,
+      "content_hash": "4affdfe6829129ff01c88340f76133c1dd25d243becf2c8656672a5e168e4166",
+      "critical_path_time_s": 0.0004380941390991211,
+      "dense_bytes": 536870912,
+      "dense_bytes_avoided": 0,
+      "leaves": 32,
+      "materialize_time_s": {
+        "max": 0.0005065388977527618,
+        "mean": 0.0004255541041493416,
+        "median": 0.00042511336505413055,
+        "min": 0.0004199724644422531,
+        "n": 100,
+        "p90": 0.00042729079723358154
+      },
+      "metadata_bytes": 2370,
+      "overhead_fraction_of_model_work": 6.823896247649861e-06,
+      "payload_mib": 16.0,
+      "referenced_bytes": 536870912,
+      "roots": 32,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 8.53557139635086e-05,
+        "mean": 1.3903845101594924e-05,
+        "median": 1.298077404499054e-05,
+        "min": 1.1472031474113464e-05,
+        "n": 100,
+        "p90": 1.4340505003929138e-05
+      },
+      "transfer_bandwidth_gib_s": 255.4455394289586,
+      "transfer_time_s": {
+        "max": 0.0021571405231952667,
+        "mean": 0.0019590016454458237,
+        "median": 0.0019573643803596497,
+        "min": 0.001930631697177887,
+        "n": 100,
+        "p90": 0.0019729211926460266
+      }
+    },
+    {
+      "branch_factor": 1,
+      "content_hash": "8325f1d1d6d41943a012aaf988ff35e9bfd202501906843f1e1a63f870e55d96",
+      "critical_path_time_s": 0.0014168713241815567,
+      "dense_bytes": 2147483648,
+      "dense_bytes_avoided": 0,
+      "leaves": 32,
+      "materialize_time_s": {
+        "max": 0.001468392089009285,
+        "mean": 0.0014002910256385804,
+        "median": 0.0013996213674545288,
+        "min": 0.001393212005496025,
+        "n": 100,
+        "p90": 0.0014034546911716461
+      },
+      "metadata_bytes": 2370,
+      "overhead_fraction_of_model_work": 2.2069646794105245e-05,
+      "payload_mib": 64.0,
+      "referenced_bytes": 2147483648,
+      "roots": 32,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 8.549913763999939e-05,
+        "mean": 1.8317420035600663e-05,
+        "median": 1.7249956727027893e-05,
+        "min": 1.4690682291984558e-05,
+        "n": 100,
+        "p90": 1.9039958715438843e-05
+      },
+      "transfer_bandwidth_gib_s": 332.17584927841114,
+      "transfer_time_s": {
+        "max": 0.006217682734131813,
+        "mean": 0.006021823100745678,
+        "median": 0.006020907312631607,
+        "min": 0.005987867712974548,
+        "n": 100,
+        "p90": 0.00603148527443409
+      }
+    },
+    {
+      "branch_factor": 1,
+      "content_hash": "7c5a0646f4898894474b7205898c7ef8ef9be5bad8ea4a2c237de091ca4326cc",
+      "critical_path_time_s": 0.005296749994158745,
+      "dense_bytes": 8589934592,
+      "dense_bytes_avoided": 0,
+      "leaves": 32,
+      "materialize_time_s": {
+        "max": 0.005278969183564186,
+        "mean": 0.005268424022942781,
+        "median": 0.005268478766083717,
+        "min": 0.005261190235614777,
+        "n": 100,
+        "p90": 0.0052721500396728516
+      },
+      "metadata_bytes": 2370,
+      "overhead_fraction_of_model_work": 8.25038939900116e-05,
+      "payload_mib": 256.0,
+      "referenced_bytes": 8589934592,
+      "roots": 32,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 3.569014370441437e-05,
+        "mean": 2.8675515204668044e-05,
+        "median": 2.8271228075027466e-05,
+        "min": 2.5799497961997986e-05,
+        "n": 100,
+        "p90": 3.074854612350464e-05
+      },
+      "transfer_bandwidth_gib_s": 359.22983013694414,
+      "transfer_time_s": {
+        "max": 0.022304043173789978,
+        "mean": 0.022270903903990984,
+        "median": 0.02226986549794674,
+        "min": 0.022248907014727592,
+        "n": 100,
+        "p90": 0.02228744514286518
+      }
+    },
+    {
+      "branch_factor": 4,
+      "content_hash": "ecd8fc438d7f259c85c47e809dbd5ffaf2e7cd4b88c11ff08e67e54a60ce00c9",
+      "critical_path_time_s": 0.00019980594515800476,
+      "dense_bytes": 134217728,
+      "dense_bytes_avoided": 0,
+      "leaves": 128,
+      "materialize_time_s": {
+        "max": 0.000264214351773262,
+        "mean": 0.000178851168602705,
+        "median": 0.00017750635743141174,
+        "min": 0.0001742672175168991,
+        "n": 100,
+        "p90": 0.00018119439482688904
+      },
+      "metadata_bytes": 9480,
+      "overhead_fraction_of_model_work": 3.1122421364175195e-06,
+      "payload_mib": 1.0,
+      "referenced_bytes": 134217728,
+      "roots": 32,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.00010879524052143097,
+        "mean": 2.3363083600997923e-05,
+        "median": 2.2299587726593018e-05,
+        "min": 2.104043960571289e-05,
+        "n": 100,
+        "p90": 2.3597851395606995e-05
+      },
+      "transfer_bandwidth_gib_s": 142.9789032772146,
+      "transfer_time_s": {
+        "max": 0.0010594669729471207,
+        "mean": 0.0008700312301516533,
+        "median": 0.0008742548525333405,
+        "min": 0.0007833056151866913,
+        "n": 100,
+        "p90": 0.0008969437330961227
+      }
+    },
+    {
+      "branch_factor": 4,
+      "content_hash": "79355bfe3d8fc01da037e0586bff292ad7b1abf96cc84489001f0517159d9b6e",
+      "critical_path_time_s": 0.0013920124620199203,
+      "dense_bytes": 2147483648,
+      "dense_bytes_avoided": 0,
+      "leaves": 128,
+      "materialize_time_s": {
+        "max": 0.0014169514179229736,
+        "mean": 0.0013625243678689002,
+        "median": 0.0013620834797620773,
+        "min": 0.0013543330132961273,
+        "n": 100,
+        "p90": 0.0013657249510288239
+      },
+      "metadata_bytes": 9480,
+      "overhead_fraction_of_model_work": 2.1682437103114022e-05,
+      "payload_mib": 16.0,
+      "referenced_bytes": 2147483648,
+      "roots": 32,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.0001193564385175705,
+        "mean": 3.104051575064659e-05,
+        "median": 2.9928982257843018e-05,
+        "min": 2.7319416403770447e-05,
+        "n": 100,
+        "p90": 3.2529234886169434e-05
+      },
+      "transfer_bandwidth_gib_s": 332.02721793551245,
+      "transfer_time_s": {
+        "max": 0.006254073232412338,
+        "mean": 0.006026037465780973,
+        "median": 0.006023602560162544,
+        "min": 0.005995117127895355,
+        "n": 100,
+        "p90": 0.006038255989551544
+      }
+    },
+    {
+      "branch_factor": 4,
+      "content_hash": "4307ada41528a2876c4d62441bacb880613c5e4d16d7608eaed44c1adc475c17",
+      "critical_path_time_s": 0.005151072517037392,
+      "dense_bytes": 8589934592,
+      "dense_bytes_avoided": 0,
+      "leaves": 128,
+      "materialize_time_s": {
+        "max": 0.005131611600518227,
+        "mean": 0.005106684546917677,
+        "median": 0.005106184631586075,
+        "min": 0.00509636290371418,
+        "n": 100,
+        "p90": 0.005111493170261383
+      },
+      "metadata_bytes": 9480,
+      "overhead_fraction_of_model_work": 8.023477440868211e-05,
+      "payload_mib": 64.0,
+      "referenced_bytes": 8589934592,
+      "roots": 32,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 6.156042218208313e-05,
+        "mean": 4.558701068162918e-05,
+        "median": 4.4887885451316833e-05,
+        "min": 4.067271947860718e-05,
+        "n": 100,
+        "p90": 5.0321221351623535e-05
+      },
+      "transfer_bandwidth_gib_s": 359.0585601800941,
+      "transfer_time_s": {
+        "max": 0.02230527624487877,
+        "mean": 0.022281644195318223,
+        "median": 0.022280488163232803,
+        "min": 0.02225719578564167,
+        "n": 100,
+        "p90": 0.02229735627770424
+      }
+    },
+    {
+      "branch_factor": 4,
+      "content_hash": "5378df973f810762679c0303d2e2f2521cbfafef76bd23e2559d66904ea03fbf",
+      "critical_path_time_s": 0.02046773210167885,
+      "dense_bytes": 34359738368,
+      "dense_bytes_avoided": 0,
+      "leaves": 128,
+      "materialize_time_s": {
+        "max": 0.020410051569342613,
+        "mean": 0.020388111639767885,
+        "median": 0.020388701930642128,
+        "min": 0.020357564091682434,
+        "n": 100,
+        "p90": 0.020402852445840836
+      },
+      "metadata_bytes": 9480,
+      "overhead_fraction_of_model_work": 0.00031881202650590107,
+      "payload_mib": 256.0,
+      "referenced_bytes": 34359738368,
+      "roots": 32,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.00010825879871845245,
+        "mean": 7.972665131092071e-05,
+        "median": 7.903017103672028e-05,
+        "min": 7.215142250061035e-05,
+        "n": 100,
+        "p90": 8.529983460903168e-05
+      },
+      "transfer_bandwidth_gib_s": 367.3641781745227,
+      "transfer_time_s": {
+        "max": 0.08722895942628384,
+        "mean": 0.0871043467335403,
+        "median": 0.08710702322423458,
+        "min": 0.08701255545020103,
+        "n": 100,
+        "p90": 0.08715644292533398
+      }
+    },
+    {
+      "branch_factor": 8,
+      "content_hash": "5aaadf4a7f9ca7cb0810cdb81dd88f269b0fa78095f8de3c66881db8d3a2b83c",
+      "critical_path_time_s": 0.00029458291828632355,
+      "dense_bytes": 268435456,
+      "dense_bytes_avoided": 0,
+      "leaves": 256,
+      "materialize_time_s": {
+        "max": 0.00032872334122657776,
+        "mean": 0.0002575712651014328,
+        "median": 0.00025663524866104126,
+        "min": 0.00025226548314094543,
+        "n": 100,
+        "p90": 0.00025983527302742004
+      },
+      "metadata_bytes": 18960,
+      "overhead_fraction_of_model_work": 4.588518976422485e-06,
+      "payload_mib": 1.0,
+      "referenced_bytes": 268435456,
+      "roots": 32,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.00012287497520446777,
+        "mean": 3.8986019790172575e-05,
+        "median": 3.794766962528229e-05,
+        "min": 3.615953028202057e-05,
+        "n": 100,
+        "p90": 3.997050225734711e-05
+      },
+      "transfer_bandwidth_gib_s": 204.54469366543833,
+      "transfer_time_s": {
+        "max": 0.0014303922653198242,
+        "mean": 0.0012238270416855812,
+        "median": 0.001222226768732071,
+        "min": 0.0011736955493688583,
+        "n": 100,
+        "p90": 0.0012480858713388443
+      }
+    },
+    {
+      "branch_factor": 8,
+      "content_hash": "63e43495830864ef38ab808d860c6113a40b45d108e998c9b38f6c96ef8b565b",
+      "critical_path_time_s": 0.002632472664117813,
+      "dense_bytes": 4294967296,
+      "dense_bytes_avoided": 0,
+      "leaves": 256,
+      "materialize_time_s": {
+        "max": 0.002634061500430107,
+        "mean": 0.0025835432298481464,
+        "median": 0.0025823917239904404,
+        "min": 0.002577003091573715,
+        "n": 100,
+        "p90": 0.00258697010576725
+      },
+      "metadata_bytes": 18960,
+      "overhead_fraction_of_model_work": 4.100424710463883e-05,
+      "payload_mib": 16.0,
+      "referenced_bytes": 4294967296,
+      "roots": 32,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.00012706592679023743,
+        "mean": 5.179822444915771e-05,
+        "median": 5.008094012737274e-05,
+        "min": 4.659965634346008e-05,
+        "n": 100,
+        "p90": 5.505979061126709e-05
+      },
+      "transfer_bandwidth_gib_s": 349.4040314454634,
+      "transfer_time_s": {
+        "max": 0.01160820759832859,
+        "mean": 0.011449006255716085,
+        "median": 0.01144806481897831,
+        "min": 0.011410605162382126,
+        "n": 100,
+        "p90": 0.011467011645436287
+      }
+    },
+    {
+      "branch_factor": 8,
+      "content_hash": "bcc2f190321e962b2ca89b1128cd853473d711bad4dcf7cdba849ef41cdc7a29",
+      "critical_path_time_s": 0.010075420141220093,
+      "dense_bytes": 17179869184,
+      "dense_bytes_avoided": 0,
+      "leaves": 256,
+      "materialize_time_s": {
+        "max": 0.010017238557338715,
+        "mean": 0.009998984597623349,
+        "median": 0.009998250752687454,
+        "min": 0.009989120066165924,
+        "n": 100,
+        "p90": 0.010007087141275406
+      },
+      "metadata_bytes": 18960,
+      "overhead_fraction_of_model_work": 0.00015693800843021952,
+      "payload_mib": 64.0,
+      "referenced_bytes": 17179869184,
+      "roots": 32,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.00013458915054798126,
+        "mean": 7.986105978488922e-05,
+        "median": 7.716938853263855e-05,
+        "min": 7.129833102226257e-05,
+        "n": 100,
+        "p90": 8.401647210121155e-05
+      },
+      "transfer_bandwidth_gib_s": 364.5446283897551,
+      "transfer_time_s": {
+        "max": 0.04392540454864502,
+        "mean": 0.04389205420389772,
+        "median": 0.04389037378132343,
+        "min": 0.04385654628276825,
+        "n": 100,
+        "p90": 0.04391222260892391
+      }
+    },
+    {
+      "branch_factor": 8,
+      "content_hash": "",
+      "critical_path_time_s": NaN,
+      "dense_bytes": 68719476736,
+      "dense_bytes_avoided": 0,
+      "leaves": 256,
+      "materialize_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "metadata_bytes": 18960,
+      "overhead_fraction_of_model_work": NaN,
+      "payload_mib": 256.0,
+      "referenced_bytes": 68719476736,
+      "roots": 32,
+      "status": "cuda_oom: CUDA out of memory. Tried to allocate 2.00 GiB. GPU 0 has a total capacity of 95.00 GiB of which 645.94 MiB is free. Process 3395135 has 94.37 GiB memory in use. Of the allocated memory 94.00 GiB is allocated by PyTorch, and 0 bytes is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)",
+      "structure_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "transfer_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      }
+    },
+    {
+      "branch_factor": 32,
+      "content_hash": "dc30bbcff855ec724839820dec5434207f793b1d65929157122d5c386a46266d",
+      "critical_path_time_s": 0.0008710529655218124,
+      "dense_bytes": 1073741824,
+      "dense_bytes_avoided": 0,
+      "leaves": 1024,
+      "materialize_time_s": {
+        "max": 0.000811723992228508,
+        "mean": 0.0007495345175266266,
+        "median": 0.000748535618185997,
+        "min": 0.0007441956549882889,
+        "n": 100,
+        "p90": 0.0007520876824855804
+      },
+      "metadata_bytes": 77248,
+      "overhead_fraction_of_model_work": 1.3567803201274336e-05,
+      "payload_mib": 1.0,
+      "referenced_bytes": 1073741824,
+      "roots": 32,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.00023192539811134338,
+        "mean": 0.0001242818124592304,
+        "median": 0.00012251734733581543,
+        "min": 0.0001196879893541336,
+        "n": 100,
+        "p90": 0.00012709759175777435
+      },
+      "transfer_bandwidth_gib_s": 301.5566265168519,
+      "transfer_time_s": {
+        "max": 0.0035500843077898026,
+        "mean": 0.0033188649453222752,
+        "median": 0.003316126763820648,
+        "min": 0.0032707788050174713,
+        "n": 100,
+        "p90": 0.003340167924761772
+      }
+    },
+    {
+      "branch_factor": 32,
+      "content_hash": "cdcb6e4615875882a7e48462f7c46b22bd6b01b60e8834907688579d4acdc863",
+      "critical_path_time_s": 0.010071881115436554,
+      "dense_bytes": 17179869184,
+      "dense_bytes_avoided": 0,
+      "leaves": 1024,
+      "materialize_time_s": {
+        "max": 0.009933751076459885,
+        "mean": 0.009902754668146371,
+        "median": 0.009901123121380806,
+        "min": 0.009892182424664497,
+        "n": 100,
+        "p90": 0.009913351386785507
+      },
+      "metadata_bytes": 77248,
+      "overhead_fraction_of_model_work": 0.00015688288341801485,
+      "payload_mib": 16.0,
+      "referenced_bytes": 17179869184,
+      "roots": 32,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.00043149106204509735,
+        "mean": 0.0001797795481979847,
+        "median": 0.00017075799405574799,
+        "min": 0.00016027875244617462,
+        "n": 100,
+        "p90": 0.00017744675278663635
+      },
+      "transfer_bandwidth_gib_s": 364.50805919027925,
+      "transfer_time_s": {
+        "max": 0.04392573423683643,
+        "mean": 0.04389369012787938,
+        "median": 0.043894777074456215,
+        "min": 0.04385019652545452,
+        "n": 100,
+        "p90": 0.04391160421073437
+      }
+    },
+    {
+      "branch_factor": 32,
+      "content_hash": "",
+      "critical_path_time_s": NaN,
+      "dense_bytes": 68719476736,
+      "dense_bytes_avoided": 0,
+      "leaves": 1024,
+      "materialize_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "metadata_bytes": 77248,
+      "overhead_fraction_of_model_work": NaN,
+      "payload_mib": 64.0,
+      "referenced_bytes": 68719476736,
+      "roots": 32,
+      "status": "cuda_oom: CUDA out of memory. Tried to allocate 2.00 GiB. GPU 0 has a total capacity of 95.00 GiB of which 645.94 MiB is free. Process 3395135 has 94.37 GiB memory in use. Of the allocated memory 94.00 GiB is allocated by PyTorch, and 0 bytes is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)",
+      "structure_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "transfer_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      }
+    },
+    {
+      "branch_factor": 32,
+      "content_hash": "",
+      "critical_path_time_s": NaN,
+      "dense_bytes": 274877906944,
+      "dense_bytes_avoided": 0,
+      "leaves": 1024,
+      "materialize_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "metadata_bytes": 77248,
+      "overhead_fraction_of_model_work": NaN,
+      "payload_mib": 256.0,
+      "referenced_bytes": 274877906944,
+      "roots": 32,
+      "status": "cuda_oom: CUDA out of memory. Tried to allocate 256.00 MiB. GPU 0 has a total capacity of 95.00 GiB of which 133.94 MiB is free. Process 3395135 has 94.87 GiB memory in use. Of the allocated memory 94.50 GiB is allocated by PyTorch, and 0 bytes is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)",
+      "structure_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "transfer_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      }
+    },
+    {
+      "branch_factor": 1,
+      "content_hash": "ecd8fc438d7f259c85c47e809dbd5ffaf2e7cd4b88c11ff08e67e54a60ce00c9",
+      "critical_path_time_s": 0.000804603099822998,
+      "dense_bytes": 134217728,
+      "dense_bytes_avoided": 0,
+      "leaves": 128,
+      "materialize_time_s": {
+        "max": 0.000896090641617775,
+        "mean": 0.0007663063891232013,
+        "median": 0.000764625146985054,
+        "min": 0.0007514841854572296,
+        "n": 100,
+        "p90": 0.0007713250815868378
+      },
+      "metadata_bytes": 9654,
+      "overhead_fraction_of_model_work": 1.2532758564221153e-05,
+      "payload_mib": 1.0,
+      "referenced_bytes": 134217728,
+      "roots": 128,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.00012324005365371704,
+        "mean": 4.087034612894058e-05,
+        "median": 3.997795283794403e-05,
+        "min": 3.6986544728279114e-05,
+        "n": 100,
+        "p90": 4.233792424201965e-05
+      },
+      "transfer_bandwidth_gib_s": 42.49830694163429,
+      "transfer_time_s": {
+        "max": 0.003110850229859352,
+        "mean": 0.0029390122182667254,
+        "median": 0.002941293641924858,
+        "min": 0.0028414353728294373,
+        "n": 100,
+        "p90": 0.002975044772028923
+      }
+    },
+    {
+      "branch_factor": 1,
+      "content_hash": "79355bfe3d8fc01da037e0586bff292ad7b1abf96cc84489001f0517159d9b6e",
+      "critical_path_time_s": 0.0017215665429830551,
+      "dense_bytes": 2147483648,
+      "dense_bytes_avoided": 0,
+      "leaves": 128,
+      "materialize_time_s": {
+        "max": 0.0022521577775478363,
+        "mean": 0.0016841696202754975,
+        "median": 0.0016772281378507614,
+        "min": 0.00166374072432518,
+        "n": 100,
+        "p90": 0.001686306670308113
+      },
+      "metadata_bytes": 9654,
+      "overhead_fraction_of_model_work": 2.681567823961145e-05,
+      "payload_mib": 16.0,
+      "referenced_bytes": 2147483648,
+      "roots": 128,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.00012822076678276062,
+        "mean": 4.711836576461792e-05,
+        "median": 4.43384051322937e-05,
+        "min": 3.9227306842803955e-05,
+        "n": 100,
+        "p90": 5.4018571972846985e-05
+      },
+      "transfer_bandwidth_gib_s": 254.89456459759944,
+      "transfer_time_s": {
+        "max": 0.009409310296177864,
+        "mean": 0.007893981914967298,
+        "median": 0.007846381515264511,
+        "min": 0.007764199748635292,
+        "n": 100,
+        "p90": 0.007895560935139656
+      }
+    },
+    {
+      "branch_factor": 1,
+      "content_hash": "4307ada41528a2876c4d62441bacb880613c5e4d16d7608eaed44c1adc475c17",
+      "critical_path_time_s": 0.005625469610095024,
+      "dense_bytes": 8589934592,
+      "dense_bytes_avoided": 0,
+      "leaves": 128,
+      "materialize_time_s": {
+        "max": 0.0062743499875068665,
+        "mean": 0.005578425098210573,
+        "median": 0.00556541234254837,
+        "min": 0.005554294213652611,
+        "n": 100,
+        "p90": 0.005584230646491051
+      },
+      "metadata_bytes": 9654,
+      "overhead_fraction_of_model_work": 8.762413722889445e-05,
+      "payload_mib": 64.0,
+      "referenced_bytes": 8589934592,
+      "roots": 128,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 7.890909910202026e-05,
+        "mean": 6.142903119325638e-05,
+        "median": 6.005726754665375e-05,
+        "min": 5.441904067993164e-05,
+        "n": 100,
+        "p90": 6.955862045288086e-05
+      },
+      "transfer_bandwidth_gib_s": 330.71777823721845,
+      "transfer_time_s": {
+        "max": 0.026038454845547676,
+        "mean": 0.024229113310575486,
+        "median": 0.02418980933725834,
+        "min": 0.02413822151720524,
+        "n": 100,
+        "p90": 0.024234941229224205
+      }
+    },
+    {
+      "branch_factor": 1,
+      "content_hash": "5378df973f810762679c0303d2e2f2521cbfafef76bd23e2559d66904ea03fbf",
+      "critical_path_time_s": 0.02102424018085003,
+      "dense_bytes": 34359738368,
+      "dense_bytes_avoided": 0,
+      "leaves": 128,
+      "materialize_time_s": {
+        "max": 0.020965244621038437,
+        "mean": 0.020935652907937766,
+        "median": 0.020933542400598526,
+        "min": 0.020913053303956985,
+        "n": 100,
+        "p90": 0.02095630019903183
+      },
+      "metadata_bytes": 9654,
+      "overhead_fraction_of_model_work": 0.00032748037664875434,
+      "payload_mib": 256.0,
+      "referenced_bytes": 34359738368,
+      "roots": 128,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.00012853555381298065,
+        "mean": 9.227132424712181e-05,
+        "median": 9.069778025150299e-05,
+        "min": 8.37966799736023e-05,
+        "n": 100,
+        "p90": 9.729713201522827e-05
+      },
+      "transfer_bandwidth_gib_s": 359.45159287332206,
+      "transfer_time_s": {
+        "max": 0.08910148590803146,
+        "mean": 0.08902814554050564,
+        "median": 0.0890245046466589,
+        "min": 0.08898359723389149,
+        "n": 100,
+        "p90": 0.0890663955360651
+      }
+    },
+    {
+      "branch_factor": 4,
+      "content_hash": "2b030209c9a84c2faa4eb6ce0ec74cea7292d05526367cd249b12dd7f1c7388a",
+      "critical_path_time_s": 0.0007641352713108063,
+      "dense_bytes": 536870912,
+      "dense_bytes_avoided": 0,
+      "leaves": 512,
+      "materialize_time_s": {
+        "max": 0.0008160453289747238,
+        "mean": 0.0006821970641613007,
+        "median": 0.0006808973848819733,
+        "min": 0.0006688050925731659,
+        "n": 100,
+        "p90": 0.000688016414642334
+      },
+      "metadata_bytes": 38616,
+      "overhead_fraction_of_model_work": 1.1902418556243088e-05,
+      "payload_mib": 1.0,
+      "referenced_bytes": 536870912,
+      "roots": 128,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.00016740895807743073,
+        "mean": 8.449923247098923e-05,
+        "median": 8.323788642883301e-05,
+        "min": 7.96690583229065e-05,
+        "n": 100,
+        "p90": 8.751638233661652e-05
+      },
+      "transfer_bandwidth_gib_s": 142.73706084506833,
+      "transfer_time_s": {
+        "max": 0.003616081550717354,
+        "mean": 0.003492531720548868,
+        "median": 0.0035029444843530655,
+        "min": 0.003297107294201851,
+        "n": 100,
+        "p90": 0.0035591237246990204
+      }
+    },
+    {
+      "branch_factor": 4,
+      "content_hash": "f0a7aef072b47849678594d52a85f7e2f6d14cbd39e5f07401644e696515a947",
+      "critical_path_time_s": 0.005511576309800148,
+      "dense_bytes": 8589934592,
+      "dense_bytes_avoided": 0,
+      "leaves": 512,
+      "materialize_time_s": {
+        "max": 0.005419459193944931,
+        "mean": 0.005407936498522758,
+        "median": 0.005407428368926048,
+        "min": 0.005398048087954521,
+        "n": 100,
+        "p90": 0.005414726212620735
+      },
+      "metadata_bytes": 38616,
+      "overhead_fraction_of_model_work": 8.58500982834914e-05,
+      "payload_mib": 16.0,
+      "referenced_bytes": 8589934592,
+      "roots": 128,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.00021606497466564178,
+        "mean": 0.00010475846007466316,
+        "median": 0.00010414794087409973,
+        "min": 9.64682549238205e-05,
+        "n": 100,
+        "p90": 0.00010831840336322784
+      },
+      "transfer_bandwidth_gib_s": 330.67102986370935,
+      "transfer_time_s": {
+        "max": 0.024254627525806427,
+        "mean": 0.02419514624401927,
+        "median": 0.024193229153752327,
+        "min": 0.02413831278681755,
+        "n": 100,
+        "p90": 0.024235157296061516
+      }
+    },
+    {
+      "branch_factor": 4,
+      "content_hash": "cfb20f1a34be176a30b8aa9d8aff80a095f9173eb14444cd57d1c02f347eeecd",
+      "critical_path_time_s": 0.020518479868769646,
+      "dense_bytes": 34359738368,
+      "dense_bytes_avoided": 0,
+      "leaves": 512,
+      "materialize_time_s": {
+        "max": 0.02039085142314434,
+        "mean": 0.020370876900851726,
+        "median": 0.020370231941342354,
+        "min": 0.020351853221654892,
+        "n": 100,
+        "p90": 0.02038443274796009
+      },
+      "metadata_bytes": 38616,
+      "overhead_fraction_of_model_work": 0.0003196024901677515,
+      "payload_mib": 64.0,
+      "referenced_bytes": 34359738368,
+      "roots": 128,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.00032808445394039154,
+        "mean": 0.00015399014577269554,
+        "median": 0.00014824792742729187,
+        "min": 0.00013744831085205078,
+        "n": 100,
+        "p90": 0.00015491805970668793
+      },
+      "transfer_bandwidth_gib_s": 359.3653581205559,
+      "transfer_time_s": {
+        "max": 0.08911022543907166,
+        "mean": 0.08904434943571687,
+        "median": 0.08904586732387543,
+        "min": 0.0889726597815752,
+        "n": 100,
+        "p90": 0.08908520638942719
+      }
+    },
+    {
+      "branch_factor": 4,
+      "content_hash": "",
+      "critical_path_time_s": NaN,
+      "dense_bytes": 137438953472,
+      "dense_bytes_avoided": 0,
+      "leaves": 512,
+      "materialize_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "metadata_bytes": 38616,
+      "overhead_fraction_of_model_work": NaN,
+      "payload_mib": 256.0,
+      "referenced_bytes": 137438953472,
+      "roots": 128,
+      "status": "cuda_oom: CUDA out of memory. Tried to allocate 256.00 MiB. GPU 0 has a total capacity of 95.00 GiB of which 133.94 MiB is free. Process 3395135 has 94.87 GiB memory in use. Of the allocated memory 94.50 GiB is allocated by PyTorch, and 0 bytes is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)",
+      "structure_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "transfer_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      }
+    },
+    {
+      "branch_factor": 8,
+      "content_hash": "dc30bbcff855ec724839820dec5434207f793b1d65929157122d5c386a46266d",
+      "critical_path_time_s": 0.0011685602366924286,
+      "dense_bytes": 1073741824,
+      "dense_bytes_avoided": 0,
+      "leaves": 1024,
+      "materialize_time_s": {
+        "max": 0.0018119849264621735,
+        "mean": 0.0010399173572659493,
+        "median": 0.0010212715715169907,
+        "min": 0.0010152999311685562,
+        "n": 100,
+        "p90": 0.0010333694517612457
+      },
+      "metadata_bytes": 77232,
+      "overhead_fraction_of_model_work": 1.8201872845676457e-05,
+      "payload_mib": 1.0,
+      "referenced_bytes": 1073741824,
+      "roots": 128,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.0002494547516107559,
+        "mean": 0.0001551602780818939,
+        "median": 0.00014728866517543793,
+        "min": 0.0001421365886926651,
+        "n": 100,
+        "p90": 0.00019583478569984436
+      },
+      "transfer_bandwidth_gib_s": 201.92370563803487,
+      "transfer_time_s": {
+        "max": 0.00520704872906208,
+        "mean": 0.004949502237141132,
+        "median": 0.004952365532517433,
+        "min": 0.004828710108995438,
+        "n": 100,
+        "p90": 0.0050253551453351974
+      }
+    },
+    {
+      "branch_factor": 8,
+      "content_hash": "cdcb6e4615875882a7e48462f7c46b22bd6b01b60e8834907688579d4acdc863",
+      "critical_path_time_s": 0.010458743199706078,
+      "dense_bytes": 17179869184,
+      "dense_bytes_avoided": 0,
+      "leaves": 1024,
+      "materialize_time_s": {
+        "max": 0.010306455194950104,
+        "mean": 0.010280595533549786,
+        "median": 0.010280095040798187,
+        "min": 0.010269522666931152,
+        "n": 100,
+        "p90": 0.010285964235663414
+      },
+      "metadata_bytes": 77232,
+      "overhead_fraction_of_model_work": 0.00016290877258109154,
+      "payload_mib": 16.0,
+      "referenced_bytes": 17179869184,
+      "roots": 128,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.0004248525947332382,
+        "mean": 0.0001860874332487583,
+        "median": 0.00017864815890789032,
+        "min": 0.0001702774316072464,
+        "n": 100,
+        "p90": 0.00018685683608055115
+      },
+      "transfer_bandwidth_gib_s": 349.3518514813038,
+      "transfer_time_s": {
+        "max": 0.04596378467977047,
+        "mean": 0.04580254828557372,
+        "median": 0.045799098908901215,
+        "min": 0.04565715231001377,
+        "n": 100,
+        "p90": 0.045887839049100876
+      }
+    },
+    {
+      "branch_factor": 8,
+      "content_hash": "",
+      "critical_path_time_s": NaN,
+      "dense_bytes": 68719476736,
+      "dense_bytes_avoided": 0,
+      "leaves": 1024,
+      "materialize_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "metadata_bytes": 77232,
+      "overhead_fraction_of_model_work": NaN,
+      "payload_mib": 64.0,
+      "referenced_bytes": 68719476736,
+      "roots": 128,
+      "status": "cuda_oom: CUDA out of memory. Tried to allocate 512.00 MiB. GPU 0 has a total capacity of 95.00 GiB of which 133.94 MiB is free. Process 3395135 has 94.87 GiB memory in use. Of the allocated memory 94.50 GiB is allocated by PyTorch, and 0 bytes is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)",
+      "structure_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "transfer_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      }
+    },
+    {
+      "branch_factor": 8,
+      "content_hash": "",
+      "critical_path_time_s": NaN,
+      "dense_bytes": 274877906944,
+      "dense_bytes_avoided": 0,
+      "leaves": 1024,
+      "materialize_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "metadata_bytes": 77232,
+      "overhead_fraction_of_model_work": NaN,
+      "payload_mib": 256.0,
+      "referenced_bytes": 274877906944,
+      "roots": 128,
+      "status": "cuda_oom: CUDA out of memory. Tried to allocate 256.00 MiB. GPU 0 has a total capacity of 95.00 GiB of which 133.94 MiB is free. Process 3395135 has 94.87 GiB memory in use. Of the allocated memory 94.50 GiB is allocated by PyTorch, and 0 bytes is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)",
+      "structure_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "transfer_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      }
+    },
+    {
+      "branch_factor": 32,
+      "content_hash": "8e78cfb190efb21624c9831b5fbc29e349767f22a6b366f138a005953c6f1938",
+      "critical_path_time_s": 0.0034507643431425095,
+      "dense_bytes": 4294967296,
+      "dense_bytes_avoided": 0,
+      "leaves": 4096,
+      "materialize_time_s": {
+        "max": 0.003008190542459488,
+        "mean": 0.002960378210991621,
+        "median": 0.0029602032154798508,
+        "min": 0.002952972427010536,
+        "n": 100,
+        "p90": 0.0029635224491357803
+      },
+      "metadata_bytes": 314560,
+      "overhead_fraction_of_model_work": 5.3750223413434724e-05,
+      "payload_mib": 1.0,
+      "referenced_bytes": 4294967296,
+      "roots": 128,
+      "status": "ok",
+      "structure_time_s": {
+        "max": 0.0006369352340698242,
+        "mean": 0.0004936327785253525,
+        "median": 0.0004905611276626587,
+        "min": 0.0004796423017978668,
+        "n": 100,
+        "p90": 0.0004984382539987564
+      },
+      "transfer_bandwidth_gib_s": 301.328556566992,
+      "transfer_time_s": {
+        "max": 0.013499613851308823,
+        "mean": 0.013274587895721198,
+        "median": 0.013274546712636948,
+        "min": 0.013173948973417282,
+        "n": 100,
+        "p90": 0.013327086344361305
+      }
+    },
+    {
+      "branch_factor": 32,
+      "content_hash": "",
+      "critical_path_time_s": NaN,
+      "dense_bytes": 68719476736,
+      "dense_bytes_avoided": 0,
+      "leaves": 4096,
+      "materialize_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "metadata_bytes": 314560,
+      "overhead_fraction_of_model_work": NaN,
+      "payload_mib": 16.0,
+      "referenced_bytes": 68719476736,
+      "roots": 128,
+      "status": "cuda_oom: CUDA out of memory. Tried to allocate 512.00 MiB. GPU 0 has a total capacity of 95.00 GiB of which 133.94 MiB is free. Process 3395135 has 94.87 GiB memory in use. Of the allocated memory 94.50 GiB is allocated by PyTorch, and 0 bytes is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)",
+      "structure_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "transfer_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      }
+    },
+    {
+      "branch_factor": 32,
+      "content_hash": "",
+      "critical_path_time_s": NaN,
+      "dense_bytes": 274877906944,
+      "dense_bytes_avoided": 0,
+      "leaves": 4096,
+      "materialize_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "metadata_bytes": 314560,
+      "overhead_fraction_of_model_work": NaN,
+      "payload_mib": 64.0,
+      "referenced_bytes": 274877906944,
+      "roots": 128,
+      "status": "cuda_oom: CUDA out of memory. Tried to allocate 64.00 MiB. GPU 0 has a total capacity of 95.00 GiB of which 5.94 MiB is free. Process 3395135 has 94.99 GiB memory in use. Of the allocated memory 94.62 GiB is allocated by PyTorch, and 0 bytes is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)",
+      "structure_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "transfer_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      }
+    },
+    {
+      "branch_factor": 32,
+      "content_hash": "",
+      "critical_path_time_s": NaN,
+      "dense_bytes": 1099511627776,
+      "dense_bytes_avoided": 0,
+      "leaves": 4096,
+      "materialize_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "metadata_bytes": 314560,
+      "overhead_fraction_of_model_work": NaN,
+      "payload_mib": 256.0,
+      "referenced_bytes": 1099511627776,
+      "roots": 128,
+      "status": "cuda_oom: CUDA out of memory. Tried to allocate 256.00 MiB. GPU 0 has a total capacity of 95.00 GiB of which 133.94 MiB is free. Process 3395135 has 94.87 GiB memory in use. Of the allocated memory 94.50 GiB is allocated by PyTorch, and 0 bytes is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)",
+      "structure_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      },
+      "transfer_time_s": {
+        "mean": NaN,
+        "median": NaN,
+        "n": 0,
+        "p90": NaN
+      }
+    }
+  ],
+  "cuda_version": "13.0",
+  "gpu_name": "NVIDIA H20",
+  "host": "TENCENT64.site",
+  "memory": {
+    "driver_peak_rss_mib": 1976.0,
+    "gpu_peak_allocated_mib": 96896.0,
+    "gpu_peak_reserved_mib": 96896.0
+  },
+  "model_work_s": 64.2,
+  "placement": "cross_gpu",
+  "repetitions": 100,
+  "representation": "flat_id_join",
+  "torch_version": "2.13.0+cu130",
+  "warmup": 10
+}

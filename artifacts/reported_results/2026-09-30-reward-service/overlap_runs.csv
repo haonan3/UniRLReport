@@ -1,88 +1,79 @@
 session,cluster,unirl_commit,workload,reward,judge_tp,judge_vllm,arm,overlap_impl,flush_after_rollout,prompts,samples_per_prompt,rows_per_rank,micro_batch_size,micros_per_rank,rollout,steady,generate_s,reward_s,generate_reward_s,stack_generate_s,stack_score_s,train_s,weight_sync_s,gate_result,session_note
-20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,baseline,,0,16,8,16,,,1,0,49.18,25.98,75.16,,,95.24,,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
-20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,baseline,,0,16,8,16,,,2,1,49.12,15.48,64.60,,,94.97,1.69,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
-20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,16,8,16,4,2,1,0,,,59.56,48.83,10.55,91.87,,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
-20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,16,8,16,4,2,2,1,,,59.58,48.78,10.58,95.69,1.60,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
-20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,16,8,16,4,2,1,0,,,58.02,48.78,18.26,93.67,,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
-20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,16,8,16,4,2,2,1,,,58.55,48.83,18.83,95.75,1.61,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
-20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,request_batch_only,,0,16,8,16,,,1,0,48.95,19.58,68.53,,,92.05,,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
-20260922-163432,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,request_batch_only,,0,16,8,16,,,2,1,49.01,20.57,69.58,,,94.46,1.61,,evaluation pass enabled; the gate's POST-count check did not account for it (rc=0)
-20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,baseline,,0,16,8,16,,,1,0,49.32,60.41,109.73,,,93.79,,PASS,
-20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,baseline,,0,16,8,16,,,2,1,49.10,49.41,98.51,,,91.56,2.36,PASS,
-20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,16,8,16,4,2,1,0,,,84.82,48.92,35.53,93.21,,PASS,
-20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,16,8,16,4,2,2,1,,,86.89,48.85,37.74,92.32,2.24,PASS,
-20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,16,8,16,4,2,1,0,,,84.42,48.90,59.68,92.84,,PASS,
-20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,16,8,16,4,2,2,1,,,85.76,48.89,61.03,91.46,2.34,PASS,
-20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,request_batch_only,,0,16,8,16,,,1,0,49.38,62.61,111.99,,,91.86,,PASS,
-20260922-170146,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,request_batch_only,,0,16,8,16,,,2,1,49.17,63.93,113.10,,,92.89,2.39,PASS,
-20260922-175009,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,baseline,,0,32,8,32,,,1,0,98.47,28.13,126.60,,,186.22,,PASS,
-20260922-175009,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,baseline,,0,32,8,32,,,2,1,98.23,27.63,125.86,,,187.26,2.37,PASS,
-20260922-175009,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,32,8,32,8,4,1,0,,,111.50,97.87,13.53,187.02,,PASS,
-20260922-175009,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,32,8,32,8,4,2,1,,,111.57,97.87,13.73,185.21,2.33,PASS,
-20260922-175009,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,1,0,,,107.03,99.32,29.13,190.50,,PASS,
-20260922-175009,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,2,1,,,107.21,98.03,34.97,192.92,2.30,PASS,
-20260922-181520,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,baseline,,0,32,8,32,,,1,0,98.25,81.09,179.34,,,185.96,,PASS,
-20260922-181520,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,baseline,,0,32,8,32,,,2,1,98.02,82.12,180.14,,,188.18,2.35,PASS,
-20260922-181520,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,32,8,32,8,4,1,0,,,145.80,97.79,47.56,184.73,,PASS,
-20260922-181520,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,32,8,32,8,4,2,1,,,144.74,97.71,46.59,182.24,2.35,PASS,
-20260922-181520,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,1,0,,,145.54,97.81,120.16,191.40,,PASS,
-20260922-181520,A,1fd8f59,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,2,1,,,145.03,97.62,120.06,192.64,2.41,PASS,
-20260922-190018,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,1,0,,,107.23,97.85,34.18,195.09,,PASS,
-20260922-190018,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,2,1,,,107.35,97.69,34.58,195.90,2.30,PASS,
-20260922-190018,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,32,8,32,8,4,1,0,,,111.43,98.04,13.33,184.68,,PASS,
-20260922-190018,A,1fd8f59,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,32,8,32,8,4,2,1,,,111.54,97.93,13.89,180.57,3.71,PASS,
-20260923-225836,A,97e83f6,bagel_it2i,editscore_8b,8,0.27.0,baseline,,0,32,8,32,,,1,0,98.54,28.51,127.05,,,186.59,,PASS,event-trace instrumentation enabled
-20260923-225836,A,97e83f6,bagel_it2i,editscore_8b,8,0.27.0,baseline,,0,32,8,32,,,2,1,98.32,28.13,126.45,,,195.71,2.35,PASS,event-trace instrumentation enabled
-20260923-225836,A,97e83f6,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,32,8,32,8,4,1,0,,,111.37,97.86,13.12,188.59,,PASS,event-trace instrumentation enabled
-20260923-225836,A,97e83f6,bagel_it2i,editscore_8b,8,0.27.0,serial,,0,32,8,32,8,4,2,1,,,110.91,97.49,13.18,184.19,2.36,PASS,event-trace instrumentation enabled
-20260923-225836,A,97e83f6,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,1,0,,,107.57,97.61,34.41,193.43,,PASS,event-trace instrumentation enabled
-20260923-225836,A,97e83f6,bagel_it2i,editscore_8b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,2,1,,,106.59,97.58,35.99,193.71,2.32,PASS,event-trace instrumentation enabled
-20260923-230352,A,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,baseline,,0,32,8,32,,,1,0,98.30,93.64,191.94,,,183.21,,PASS,event-trace instrumentation enabled
-20260923-230352,A,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,baseline,,0,32,8,32,,,2,1,97.92,81.31,179.23,,,183.20,2.39,PASS,event-trace instrumentation enabled
-20260923-230352,A,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,32,8,32,8,4,1,0,,,146.19,97.85,47.80,183.61,,PASS,event-trace instrumentation enabled
-20260923-230352,A,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,32,8,32,8,4,2,1,,,145.00,97.77,46.75,178.49,2.45,PASS,event-trace instrumentation enabled
-20260923-230352,A,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,1,0,,,146.23,97.83,121.01,186.13,,PASS,event-trace instrumentation enabled
-20260923-230352,A,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,2,1,,,145.55,97.63,120.61,186.05,2.33,PASS,event-trace instrumentation enabled
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,overlap,depth1,0,32,8,32,8,4,1,0,,,107.81,98.14,38.55,197.48,,PASS,
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,overlap,depth1,0,32,8,32,8,4,2,1,,,106.62,97.85,33.03,193.48,2.25,PASS,
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,overlap,depth1,0,32,8,32,8,4,3,1,,,106.93,97.71,35.23,191.86,1.58,PASS,
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,serial,,0,32,8,32,8,4,1,0,,,112.29,97.45,14.23,190.66,,PASS,
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,serial,,0,32,8,32,8,4,2,1,,,111.87,97.57,13.90,190.94,2.25,PASS,
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,serial,,0,32,8,32,8,4,3,1,,,111.42,97.30,13.94,192.69,1.58,PASS,
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,overlap,depth1,1,32,8,32,8,4,1,0,,,107.22,97.57,37.78,189.82,,PASS,
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,overlap,depth1,1,32,8,32,8,4,2,1,,,106.61,97.77,35.46,178.03,2.25,PASS,
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,overlap,depth1,1,32,8,32,8,4,3,1,,,106.72,97.83,36.87,179.56,1.54,PASS,
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,serial,,1,32,8,32,8,4,1,0,,,112.04,97.49,14.12,190.23,,PASS,
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,serial,,1,32,8,32,8,4,2,1,,,111.76,97.38,13.88,177.61,2.34,PASS,
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,serial,,1,32,8,32,8,4,3,1,,,111.33,97.35,13.77,177.31,1.53,PASS,
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,baseline,,0,32,8,32,,,1,0,98.38,32.82,131.20,,,181.03,,PASS,
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,baseline,,0,32,8,32,,,2,1,98.25,28.94,127.19,,,181.45,2.35,PASS,
-20260928-093100,B,97e83f6,bagel_it2i,editscore_8b,4,0.29.0,baseline,,0,32,8,32,,,3,1,98.05,29.74,127.79,,,184.42,1.53,PASS,
-20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,0,32,8,32,8,4,1,0,,,53.33,52.58,1.60,63.40,,PASS,
-20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,0,32,8,32,8,4,2,1,,,52.31,51.72,1.38,57.46,1.89,PASS,
-20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,0,32,8,32,8,4,3,1,,,52.30,51.78,1.33,57.84,1.12,PASS,
-20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,serial,,0,32,8,32,8,4,1,0,,,52.93,51.46,1.03,59.59,,PASS,
-20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,serial,,0,32,8,32,8,4,2,1,,,52.41,51.29,0.84,58.42,1.86,PASS,
-20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,serial,,0,32,8,32,8,4,3,1,,,52.45,51.37,0.85,58.39,1.12,PASS,
-20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,1,32,8,32,8,4,1,0,,,52.64,51.98,1.61,58.64,,PASS,
-20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,1,32,8,32,8,4,2,1,,,52.33,51.81,1.33,54.03,1.89,PASS,
-20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,1,32,8,32,8,4,3,1,,,52.37,51.79,1.34,55.05,1.11,PASS,
 20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,baseline,,0,32,8,32,,,1,0,51.69,6.26,57.95,,,59.74,,PASS,
 20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,baseline,,0,32,8,32,,,2,1,51.49,4.47,55.96,,,58.13,1.78,PASS,
 20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,baseline,,0,32,8,32,,,3,1,51.41,4.56,55.97,,,58.68,1.13,PASS,
-20260928-114630,B,1163848,bagel_it2i,editscore_72b,8,0.27.0,overlap,queued,0,32,8,32,8,4,1,0,,,152.73,97.55,127.34,199.80,,PASS,
-20260928-114630,B,1163848,bagel_it2i,editscore_72b,8,0.27.0,overlap,queued,0,32,8,32,8,4,2,1,,,146.49,97.67,121.49,193.66,2.76,PASS,
-20260928-114630,B,1163848,bagel_it2i,editscore_72b,8,0.27.0,overlap,queued,0,32,8,32,8,4,3,1,,,149.09,97.55,124.35,187.43,1.58,PASS,
-20260928-114630,B,1163848,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,32,8,32,8,4,1,0,,,146.33,97.55,48.10,190.80,,PASS,
-20260928-114630,B,1163848,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,32,8,32,8,4,2,1,,,144.40,97.52,46.38,189.31,2.31,PASS,
-20260928-114630,B,1163848,bagel_it2i,editscore_72b,8,0.27.0,serial,,0,32,8,32,8,4,3,1,,,146.04,97.46,48.16,192.47,1.61,PASS,
-20260928-124606,B,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,1,0,,,144.57,97.64,119.43,186.89,,PASS,
-20260928-124606,B,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,2,1,,,144.33,97.79,119.40,181.91,2.35,PASS,
-20260928-124606,B,97e83f6,bagel_it2i,editscore_72b,8,0.27.0,overlap,depth1,0,32,8,32,8,4,3,1,,,147.15,97.76,122.27,182.60,1.58,PASS,
-20260928-131525,B,1163848,bagel_it2i,editscore_8b,4,0.29.0,overlap,queued,0,32,8,32,8,4,1,0,,,107.95,97.59,39.07,191.25,,PASS,
-20260928-131525,B,1163848,bagel_it2i,editscore_8b,4,0.29.0,overlap,queued,0,32,8,32,8,4,2,1,,,106.78,97.65,36.87,186.04,2.34,PASS,
-20260928-131525,B,1163848,bagel_it2i,editscore_8b,4,0.29.0,overlap,queued,0,32,8,32,8,4,3,1,,,106.76,97.62,35.36,185.96,1.59,PASS,
-20260930-141053,B,fe57386,bagel_it2i,editscore_8b,4,0.29.0,serial,,0,32,8,32,4,8,1,0,,,113.03,97.65,15.18,184.95,,PASS,final tree: a micro may go below a generation group
-20260930-141053,B,fe57386,bagel_it2i,editscore_8b,4,0.29.0,serial,,0,32,8,32,4,8,2,1,,,112.96,97.83,14.63,180.00,2.31,PASS,final tree: a micro may go below a generation group
-20260930-141053,B,fe57386,bagel_it2i,editscore_8b,4,0.29.0,overlap,queued,0,32,8,32,4,8,1,0,,,105.41,97.80,49.65,184.04,,PASS,final tree: a micro may go below a generation group
-20260930-141053,B,fe57386,bagel_it2i,editscore_8b,4,0.29.0,overlap,queued,0,32,8,32,4,8,2,1,,,104.75,97.86,53.31,179.17,2.29,PASS,final tree: a micro may go below a generation group
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,0,32,8,32,8,4,1,0,,,53.33,52.58,1.60,63.40,,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,1,32,8,32,8,4,1,0,,,52.64,51.98,1.61,58.64,,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,0,32,8,32,8,4,2,1,,,52.31,51.72,1.38,57.46,1.89,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,1,32,8,32,8,4,2,1,,,52.33,51.81,1.33,54.03,1.89,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,0,32,8,32,8,4,3,1,,,52.30,51.78,1.33,57.84,1.12,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,overlap,depth1,1,32,8,32,8,4,3,1,,,52.37,51.79,1.34,55.05,1.11,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,serial,,0,32,8,32,8,4,1,0,,,52.93,51.46,1.03,59.59,,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,serial,,0,32,8,32,8,4,2,1,,,52.41,51.29,0.84,58.42,1.86,PASS,
+20260928-093606,B,97e83f6,bagel_t2i,pickscore_local,,,serial,,0,32,8,32,8,4,3,1,,,52.45,51.37,0.85,58.39,1.12,PASS,
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,baseline,,0,32,8,32,,,1,0,74.65,34.91,109.55,,,192.45,,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,baseline,,0,32,8,32,,,2,1,73.49,29.02,102.52,,,191.53,3.05,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,baseline,,0,32,8,32,,,3,1,73.31,28.59,101.89,,,190.86,2.18,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,baseline,,0,32,8,32,,,4,1,73.26,28.84,102.11,,,191.88,1.62,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,overlap,queued,0,32,8,32,8,4,1,0,,,82.41,72.95,31.54,191.96,,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,overlap,queued,1,32,8,32,8,4,1,0,,,82.47,72.95,36.98,185.47,,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,overlap,queued,0,32,8,32,8,4,2,1,,,82.64,72.80,33.45,200.42,2.78,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,overlap,queued,1,32,8,32,8,4,2,1,,,82.26,72.85,33.07,180.71,2.45,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,overlap,queued,0,32,8,32,8,4,3,1,,,82.47,72.70,37.80,197.36,1.58,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,overlap,queued,1,32,8,32,8,4,3,1,,,81.91,72.69,36.74,179.46,1.79,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,overlap,queued,0,32,8,32,8,4,4,1,,,82.82,72.72,36.65,201.44,1.89,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,serial,,0,32,8,32,8,4,1,0,,,87.42,73.34,13.35,189.03,,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,serial,,1,32,8,32,8,4,1,0,,,86.80,72.97,13.32,182.79,,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,serial,,0,32,8,32,8,4,2,1,,,86.80,72.75,13.60,186.95,2.88,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,serial,,1,32,8,32,8,4,2,1,,,86.98,72.81,13.56,182.78,3.09,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,serial,,0,32,8,32,8,4,3,1,,,86.43,72.67,13.36,192.13,1.73,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,serial,,1,32,8,32,8,4,3,1,,,86.87,72.78,13.61,180.33,2.16,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220600,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,serial,,0,32,8,32,8,4,4,1,,,86.58,72.72,13.56,193.16,1.93,PASS,EditScore-8B 32 rows/rank; #547+#445 on unirl-det
+20261014-220700,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,baseline,,0,16,8,16,,,1,0,37.00,17.78,54.78,,,95.65,,PASS,EditScore-8B 16 rows/rank; #547+#445 on unirl-det
+20261014-220700,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,baseline,,0,16,8,16,,,2,1,36.72,16.27,52.99,,,97.44,2.34,PASS,EditScore-8B 16 rows/rank; #547+#445 on unirl-det
+20261014-220700,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,baseline,,0,16,8,16,,,3,1,36.72,15.50,52.22,,,101.40,2.47,PASS,EditScore-8B 16 rows/rank; #547+#445 on unirl-det
+20261014-220700,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,overlap,queued,0,16,8,16,8,2,1,0,,,46.00,36.88,16.82,95.00,,PASS,EditScore-8B 16 rows/rank; #547+#445 on unirl-det
+20261014-220700,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,overlap,queued,0,16,8,16,8,2,2,1,,,45.46,36.31,15.87,91.14,2.79,PASS,EditScore-8B 16 rows/rank; #547+#445 on unirl-det
+20261014-220700,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,overlap,queued,0,16,8,16,8,2,3,1,,,45.61,36.44,18.21,93.25,1.67,PASS,EditScore-8B 16 rows/rank; #547+#445 on unirl-det
+20261014-220700,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,request_batch_only,,0,16,8,16,,,1,0,36.94,22.93,59.87,,,96.06,,PASS,EditScore-8B 16 rows/rank; #547+#445 on unirl-det
+20261014-220700,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,request_batch_only,,0,16,8,16,,,2,1,36.64,20.00,56.64,,,93.83,3.19,PASS,EditScore-8B 16 rows/rank; #547+#445 on unirl-det
+20261014-220700,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,request_batch_only,,0,16,8,16,,,3,1,36.75,20.12,56.87,,,96.40,2.29,PASS,EditScore-8B 16 rows/rank; #547+#445 on unirl-det
+20261014-220700,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,serial,,0,16,8,16,8,2,1,0,,,47.42,36.73,10.45,94.91,,PASS,EditScore-8B 16 rows/rank; #547+#445 on unirl-det
+20261014-220700,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,serial,,0,16,8,16,8,2,2,1,,,47.13,36.47,10.60,91.39,2.89,PASS,EditScore-8B 16 rows/rank; #547+#445 on unirl-det
+20261014-220700,Pod4,73e9b69,bagel_it2i,editscore_8b,8,0.19.0,serial,,0,16,8,16,8,2,3,1,,,47.23,36.38,10.71,92.62,2.03,PASS,EditScore-8B 16 rows/rank; #547+#445 on unirl-det
+20261014-220800,Pod4,d3757e6,bagel_it2i_pr550,editscore_8b,8,0.19.0,baseline,,0,32,8,32,,,1,0,57.60,27.87,85.46,,,191.86,,PASS,EditScore-8B 32 rows/rank; PR#550 sibling packing on unirl-pr550
+20261014-220800,Pod4,d3757e6,bagel_it2i_pr550,editscore_8b,8,0.19.0,baseline,,0,32,8,32,,,2,1,56.76,28.44,85.19,,,188.56,2.91,PASS,EditScore-8B 32 rows/rank; PR#550 sibling packing on unirl-pr550
+20261014-220800,Pod4,d3757e6,bagel_it2i_pr550,editscore_8b,8,0.19.0,baseline,,0,32,8,32,,,3,1,56.53,28.92,85.46,,,192.32,2.09,PASS,EditScore-8B 32 rows/rank; PR#550 sibling packing on unirl-pr550
+20261014-220800,Pod4,d3757e6,bagel_it2i_pr550,editscore_8b,8,0.19.0,baseline,,0,32,8,32,,,4,1,56.57,28.65,85.22,,,194.55,1.75,PASS,EditScore-8B 32 rows/rank; PR#550 sibling packing on unirl-pr550
+20261014-220800,Pod4,d3757e6,bagel_it2i_pr550,editscore_8b,8,0.19.0,overlap,queued,0,32,8,32,8,4,1,0,,,65.75,56.41,34.71,189.09,,PASS,EditScore-8B 32 rows/rank; PR#550 sibling packing on unirl-pr550
+20261014-220800,Pod4,d3757e6,bagel_it2i_pr550,editscore_8b,8,0.19.0,overlap,queued,0,32,8,32,8,4,2,1,,,66.04,56.32,37.27,194.40,2.77,PASS,EditScore-8B 32 rows/rank; PR#550 sibling packing on unirl-pr550
+20261014-220800,Pod4,d3757e6,bagel_it2i_pr550,editscore_8b,8,0.19.0,overlap,queued,0,32,8,32,8,4,3,1,,,65.17,56.20,36.12,197.42,1.62,PASS,EditScore-8B 32 rows/rank; PR#550 sibling packing on unirl-pr550
+20261014-220800,Pod4,d3757e6,bagel_it2i_pr550,editscore_8b,8,0.19.0,overlap,queued,0,32,8,32,8,4,4,1,,,65.84,56.21,36.84,197.72,1.55,PASS,EditScore-8B 32 rows/rank; PR#550 sibling packing on unirl-pr550
+20261014-220800,Pod4,d3757e6,bagel_it2i_pr550,editscore_8b,8,0.19.0,serial,,0,32,8,32,8,4,1,0,,,70.28,56.53,13.31,188.38,,PASS,EditScore-8B 32 rows/rank; PR#550 sibling packing on unirl-pr550
+20261014-220800,Pod4,d3757e6,bagel_it2i_pr550,editscore_8b,8,0.19.0,serial,,0,32,8,32,8,4,2,1,,,70.05,56.21,13.39,190.98,2.33,PASS,EditScore-8B 32 rows/rank; PR#550 sibling packing on unirl-pr550
+20261014-220800,Pod4,d3757e6,bagel_it2i_pr550,editscore_8b,8,0.19.0,serial,,0,32,8,32,8,4,3,1,,,69.76,56.12,13.30,191.17,2.00,PASS,EditScore-8B 32 rows/rank; PR#550 sibling packing on unirl-pr550
+20261014-220800,Pod4,d3757e6,bagel_it2i_pr550,editscore_8b,8,0.19.0,serial,,0,32,8,32,8,4,4,1,,,69.46,56.32,12.75,190.87,2.09,PASS,EditScore-8B 32 rows/rank; PR#550 sibling packing on unirl-pr550
+20261014-222500,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,baseline,,0,32,8,32,,,1,0,74.36,88.66,163.03,,,200.91,,PASS,EditScore-72B 32 rows/rank; #547+#445 on unirl-det
+20261014-222500,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,baseline,,0,32,8,32,,,2,1,73.63,83.85,157.48,,,197.12,2.65,PASS,EditScore-72B 32 rows/rank; #547+#445 on unirl-det
+20261014-222500,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,baseline,,0,32,8,32,,,3,1,73.63,81.46,155.09,,,195.97,1.62,PASS,EditScore-72B 32 rows/rank; #547+#445 on unirl-det
+20261014-222500,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,baseline,,0,32,8,32,,,4,1,74.18,82.52,156.70,,,194.36,1.84,PASS,EditScore-72B 32 rows/rank; #547+#445 on unirl-det
+20261014-222500,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,overlap,queued,0,32,8,32,8,4,1,0,,,139.58,73.16,120.80,184.96,,PASS,EditScore-72B 32 rows/rank; #547+#445 on unirl-det
+20261014-222500,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,overlap,queued,0,32,8,32,8,4,2,1,,,140.22,73.19,121.30,180.86,2.38,PASS,EditScore-72B 32 rows/rank; #547+#445 on unirl-det
+20261014-222500,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,overlap,queued,0,32,8,32,8,4,3,1,,,139.91,73.10,121.29,184.58,2.00,PASS,EditScore-72B 32 rows/rank; #547+#445 on unirl-det
+20261014-222500,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,overlap,queued,0,32,8,32,8,4,4,1,,,139.13,73.16,120.45,182.12,1.68,PASS,EditScore-72B 32 rows/rank; #547+#445 on unirl-det
+20261014-222500,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,serial,,0,32,8,32,8,4,1,0,,,140.74,73.25,67.29,185.13,,PASS,EditScore-72B 32 rows/rank; #547+#445 on unirl-det
+20261014-222500,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,serial,,0,32,8,32,8,4,2,1,,,141.84,73.08,68.35,184.18,2.47,PASS,EditScore-72B 32 rows/rank; #547+#445 on unirl-det
+20261014-222500,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,serial,,0,32,8,32,8,4,3,1,,,140.10,72.97,66.77,182.20,1.60,PASS,EditScore-72B 32 rows/rank; #547+#445 on unirl-det
+20261014-222500,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,serial,,0,32,8,32,8,4,4,1,,,140.43,73.07,66.89,184.15,2.11,PASS,EditScore-72B 32 rows/rank; #547+#445 on unirl-det
+20261014-222600,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,baseline,,0,16,8,16,,,1,0,37.07,49.48,86.55,,,92.77,,PASS,EditScore-72B 16 rows/rank; #547+#445 on unirl-det
+20261014-222600,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,baseline,,0,16,8,16,,,2,1,36.81,47.36,84.16,,,91.17,2.42,PASS,EditScore-72B 16 rows/rank; #547+#445 on unirl-det
+20261014-222600,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,baseline,,0,16,8,16,,,3,1,36.82,48.72,85.54,,,93.27,1.65,PASS,EditScore-72B 16 rows/rank; #547+#445 on unirl-det
+20261014-222600,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,overlap,queued,0,16,8,16,8,2,1,0,,,80.29,36.63,61.65,94.55,,PASS,EditScore-72B 16 rows/rank; #547+#445 on unirl-det
+20261014-222600,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,overlap,queued,0,16,8,16,8,2,2,1,,,78.02,36.52,59.45,90.97,2.56,PASS,EditScore-72B 16 rows/rank; #547+#445 on unirl-det
+20261014-222600,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,overlap,queued,0,16,8,16,8,2,3,1,,,79.74,36.57,61.25,91.14,1.99,PASS,EditScore-72B 16 rows/rank; #547+#445 on unirl-det
+20261014-222600,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,request_batch_only,,0,16,8,16,,,1,0,37.01,64.63,101.64,,,93.50,,PASS,EditScore-72B 16 rows/rank; #547+#445 on unirl-det
+20261014-222600,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,request_batch_only,,0,16,8,16,,,2,1,36.82,60.77,97.59,,,92.96,2.46,PASS,EditScore-72B 16 rows/rank; #547+#445 on unirl-det
+20261014-222600,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,request_batch_only,,0,16,8,16,,,3,1,36.85,62.77,99.61,,,95.84,2.17,PASS,EditScore-72B 16 rows/rank; #547+#445 on unirl-det
+20261014-222600,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,serial,,0,16,8,16,8,2,1,0,,,80.81,36.66,43.91,93.16,,PASS,EditScore-72B 16 rows/rank; #547+#445 on unirl-det
+20261014-222600,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,serial,,0,16,8,16,8,2,2,1,,,78.47,36.59,41.60,90.84,2.31,PASS,EditScore-72B 16 rows/rank; #547+#445 on unirl-det
+20261014-222600,Pod6,73e9b69,bagel_it2i,editscore_72b,8,0.19.0,serial,,0,16,8,16,8,2,3,1,,,78.88,36.59,42.02,91.87,1.59,PASS,EditScore-72B 16 rows/rank; #547+#445 on unirl-det

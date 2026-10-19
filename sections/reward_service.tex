@@ -91,24 +91,15 @@ Overlapped execution also imposes a reproducibility constraint: if an in-process
 \label{sec:reward-results}
 
 \paragraph{Experimental setup.}
-We evaluate the three scheduling modes on a single node of eight NVIDIA H20 GPUs while fine-tuning BAGEL~\citep{deng2025bagel} with Low-Rank Adaptation (LoRA) for instruction-guided image editing, using eight data-parallel vLLM-Omni rollout engines (TP=1).
+We evaluate the three scheduling modes on a single node of eight NVIDIA H20 GPUs while fine-tuning BAGEL~\citep{deng2025bagel} with Low-Rank Adaptation (LoRA) for instruction-guided image editing, using eight data-parallel vLLM-Omni rollout engines (TP=1) with restored source conditioning (Section~\ref{sec:fidelity-layout}).
 Each rollout processes 32 root prompts with eight image edits per prompt (256 generated rows in total, or 32 rows per rank), which a micro-batch size of eight partitions into four micro-batches per rank.
 On a second node, an 8B or 72B EditScore vision--language judge~\citep{luo2025editscore}---served by a single tensor-parallel vLLM instance behind the standalone single-scorer HTTP server---scores each source--edit image pair.
-Each run executes two to three rollouts; we exclude the first rollout as startup warm-up and pool steady-state rollouts across repeated sessions on two allocations of identical hardware.
-Phase durations are recorded by the driver's monotonic phase timers.
-
-Because these runs were collected prior to the conditioning-injection fix analyzed in Section~\ref{sec:fidelity-layout}, the image-editing wall-clock durations in Table~\ref{tab:reward-overlap} and Figure~\ref{fig:reward-overlap} are rescaled estimates reflecting the restored conditioning path.
-Specifically, generation durations are scaled by the ratio between the fixed and unfixed conditioning paths measured at 16 rows per rank in Table~\ref{tab:fidelity-chain}, under the assumption that the same factor applies at 32 rows per rank across all micro-batches.
-Reward-side durations---judge service time, queueing delay, and non-overlapped reward wait time---are retained directly from the measurements, as the judge evaluates the same number of $512\times512$ image pairs at identical request batch sizes.
-When the judge has idle capacity during generation, the full generation time reduction carries over to end-to-end rollout time; when the judge is saturated, only the earlier arrival of the first micro-batch reduces total wall-clock time.
-Both the raw measurements and the rescaling model are archived in the artifact bundle.
-Because the rollout counts are small and cover a single model and workload shape, these results characterize the mechanism's behavior and approximate magnitude rather than a multi-seed performance distribution.
-In 13 of the runs, worker-side tracing additionally logged the start and completion timestamps of every generated micro-batch and HTTP reward call, while the judge server logged request arrival and completion times.
-Judge service times, total judge busy time, queueing delays, and per-pair scoring costs reported below are taken directly from these traces; arrival timestamps and overlap windows that depend on generation speed follow the rescaled estimate and are explicitly labeled as estimated.
-% TODO[data]: Re-measure the image-editing rows of Table~\ref{tab:reward-overlap} and Figure~\ref{fig:reward-overlap} directly with injected conditioning (UniRL #547). Tracked in UniRLReport issue #19.
+Each run executes three to four rollouts; we exclude the first rollout as startup warm-up and average across steady-state rollouts.
+Phase durations are recorded by the driver's monotonic phase timers, while worker-side tracing additionally logs the start and completion timestamps of every generated micro-batch and HTTP reward call alongside the judge server's request arrival and completion timestamps (Figure~\ref{fig:reward-timeline}).
+Because the rollout counts are small and cover a single model and workload shape, these results characterize the mechanism's behavior and magnitude rather than a multi-seed performance distribution.
 
 \begin{table}[H]
-\caption{Generation plus reward wall-clock time per rollout across three scheduling modes (mean and min--max range over steady-state rollouts). The upper two blocks pair BAGEL image editing with a remote EditScore judge; the bottom block pairs BAGEL text-to-image generation with an in-process PickScore backend. The overlapped entries pool runs with unbounded request queueing and runs with single-in-flight queueing (reported separately in the artifact bundle). $^{\dagger}$Estimated for the restored conditioning path of Section~\ref{sec:fidelity-layout} from measured reward-side traces; rollout counts reflect the underlying traced runs.}
+\caption{Generation plus reward wall-clock time per rollout across three scheduling modes (mean and min--max range over steady-state rollouts). The upper two blocks pair BAGEL image editing with a remote EditScore judge; the bottom block pairs BAGEL text-to-image generation with an in-process PickScore backend.}
 \label{tab:reward-overlap}
 \centering
 \small
@@ -118,38 +109,46 @@ Judge service times, total judge busy time, queueing delays, and per-pair scorin
 \paragraph{Regime 1: Judge with spare capacity.}
 With the 8B EditScore judge, serial micro-batching reduces combined generation and reward time from \RSSmallBase{}\,s to \RSSmallSerial{}\,s (\RSSmallSerialSaving{}), and overlapping generation with scoring further reduces it to \RSSmallOverlap{}\,s (\RSSmallOverlapSaving{}).
 Generation itself requires approximately \RSGenEstimate{}\,s across all three schedules (Figure~\ref{fig:reward-overlap}); the schedules differ in how much reward latency remains exposed after generation completes.
-Under the whole-shard baseline, all eight ranks submit their 32-pair requests simultaneously at the end of generation; the server processes them sequentially at \RSSmallWholeService{}\,s per request, so the last rank waits \RSSmallWholeWaitMax{}\,s for a score that takes the judge \RSSmallWholeService{}\,s to compute.
+Under the whole-shard baseline, all eight ranks submit their 32-pair requests simultaneously at the end of generation; the server processes them sequentially at \RSSmallWholeService{}\,s per request, so the last rank waits \RSSmallWholeWaitMax{}\,s for a score that takes the judge \RSSmallWholeService{}\,s to compute (Figure~\ref{fig:reward-timeline}a).
 Under serial micro-batching, the eight ranks contend simultaneously only on their first micro-batch, where the maximum wait is \RSSmallSerialFirstWaitMax{}\,s.
-Those staggered completion times desynchronize the ranks on subsequent micro-batches, allowing later requests to reach an idle judge and return in a median of \RSSmallSerialLaterWait{}\,s.
-Under overlapped micro-batching, generation proceeds without waiting for reward responses, so the ranks remain synchronized and contend on every micro-batch; however, those queueing delays occur concurrently with the generation of subsequent micro-batches, leaving only the final micro-batch's scoring latency exposed after generation finishes.
-Total judge busy time is \RSSmallOverlapWork{}\,s per rollout, which fits within the estimated \RSSmallOverlapWindow{}\,s window between the arrival of the first micro-batch and the completion of generation.
+Those staggered completion times desynchronize the ranks on subsequent micro-batches, allowing later requests to reach an idle judge and return in a median of \RSSmallSerialLaterWait{}\,s (Figure~\ref{fig:reward-timeline}c).
+Under overlapped micro-batching, generation proceeds without waiting for reward responses, so the ranks remain synchronized and contend on every micro-batch; however, those queueing delays occur concurrently with the generation of subsequent micro-batches, leaving only the final micro-batch's scoring latency exposed after generation finishes (Figure~\ref{fig:reward-timeline}e).
+Total judge busy time is \RSSmallOverlapWork{}\,s per rollout, which fits within the \RSSmallOverlapWindow{}\,s window between the arrival of the first micro-batch and the completion of generation.
+When additionally combined with sibling request packing (Section~\ref{sec:fidelity-pack}), which shortens generation to 56.2\,s, serial and overlapped micro-batching reduce combined generation and reward time from \RSSmallPackedBase{}\,s to \RSSmallPackedSerial{}\,s and \RSSmallPackedOverlap{}\,s (\RSSmallPackedSaving{} total reduction).
 
 \paragraph{Regime 2: Saturated judge.}
-With the 72B EditScore judge, serial micro-batching reduces combined generation and reward time from \RSLargeBase{}\,s to \RSLargeSerial{}\,s (\RSLargeSerialSaving{}), while overlapped micro-batching yields \RSLargeOverlap{}\,s (range \RSLargeOverlapMin{}--\RSLargeOverlapMax{}\,s versus \RSLargeSerialMin{}--\RSLargeSerialMax{}\,s for serial), showing no further improvement.
-In both micro-batched schedules, the 72B judge remains continuously busy from the arrival of the first micro-batch (an estimated \RSLargeFirstArrival{}\,s into the rollout) until the final request completes.
+With the 72B EditScore judge, serial micro-batching reduces combined generation and reward time from \RSLargeBase{}\,s to \RSLargeSerial{}\,s (\RSLargeSerialSaving{}), while overlapped micro-batching yields \RSLargeOverlap{}\,s (\RSLargeOverlapSaving{}, range \RSLargeOverlapMin{}--\RSLargeOverlapMax{}\,s versus \RSLargeSerialMin{}--\RSLargeSerialMax{}\,s for serial).
+In both micro-batched schedules, the 72B judge remains continuously busy from the arrival of the first micro-batch (\RSLargeFirstArrival{}\,s into the rollout) until the final request completes (Figures~\ref{fig:reward-timeline}d and~\ref{fig:reward-timeline}f).
 Consequently, total rollout plus reward time is lower-bounded by the first request's arrival time plus the judge's total service work, regardless of whether subsequent requests are issued serially or overlapped.
-Total judge service work per traced rollout ranged from \RSLargeSerialWorkMin{} to \RSLargeSerialWorkMax{}\,s under the serial schedule and from \RSLargeOverlapWorkMin{} to \RSLargeOverlapWorkMax{}\,s under the overlapped schedule, with rollout-to-rollout variation of up to 3\,s within the same arm; the small difference between the serial and overlapped means in Table~\ref{tab:reward-overlap} is within this run-to-run variation.
+Total judge service work per traced rollout ranged from \RSLargeSerialWorkMin{} to \RSLargeSerialWorkMax{}\,s under the serial schedule and from \RSLargeOverlapWorkMin{} to \RSLargeOverlapWorkMax{}\,s under the overlapped schedule; the small difference between the serial and overlapped means in Table~\ref{tab:reward-overlap} is within this run-to-run variation.
 Once the judge is fully utilized throughout the overlap window, further wall-clock reductions require either additional judge replicas or lower per-request scoring cost.
 
 \paragraph{Conditions for judge saturation.}
 Whether a deployment enters the saturated regime depends on the ratio of total reward service work to the generation overlap window rather than on judge parameter count alone.
 Pairing a 72B judge with a 7B-active-parameter policy and serving all eight data-parallel worker ranks from a single judge replica intentionally stresses the reward bottleneck.
-Even at the lower per-pair cost of whole-shard 32-pair requests, a single 72B judge replica requires \RSLargeWholeWork{}\,s of service time per rollout, which already exceeds the estimated \RSLargeWindow{}\,s window between the arrival of the first micro-batch and the end of generation; smaller eight-pair micro-batches further increase total judge work to \RSLargeSerialWork{}\,s (analyzed below).
+Even at the lower per-pair cost of whole-shard 32-pair requests, a single 72B judge replica requires \RSLargeWholeWork{}\,s of service time per rollout, which already exceeds the \RSLargeWindow{}\,s window between the arrival of the first micro-batch and the end of generation; smaller eight-pair micro-batches further increase total judge work to \RSLargeSerialWork{}\,s (analyzed below).
 Operating the 72B judge with spare capacity at this rollout shape would therefore require multiple judge replicas, while cross-request continuous batching or prefill--decode separation would reduce the replica count needed.
 We include the single-replica 72B configuration as a boundary stress test of the overlap schedule rather than a recommended production provisioning.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{artifacts/reported_results/2026-09-30-reward-service/figures/overlap_wallclock.pdf}
-\caption{Breakdown of rollout wall-clock time for the two remote EditScore judges in Table~\ref{tab:reward-overlap} (estimated as described in the table caption). Generation duration is constant across schedules; the schedules differ in the portion of reward evaluation time exposed outside generation.}
+\caption{Breakdown of rollout wall-clock time for the two remote EditScore judges in Table~\ref{tab:reward-overlap}. Generation duration is constant across schedules; the schedules differ in the portion of reward evaluation time exposed outside generation.}
 \label{fig:reward-overlap}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{artifacts/reported_results/2026-09-30-reward-service/figures/overlap_timeline.pdf}
+\caption{Recorded per-rank generation intervals, in-flight HTTP reward calls, and judge-server service intervals on the second rollout of each schedule for the 8B (left) and 72B (right) EditScore judges.}
+\label{fig:reward-timeline}
 \end{figure}
 
 \paragraph{Batch-size overhead of micro-batched requests.}
 Because the standalone single-scorer server processes one HTTP request at a time without cross-request batching, splitting a 32-pair shard into four eight-pair requests trades per-request batching efficiency for an earlier start.
 On the 72B judge, an eight-pair request takes \RSLargeSerialService{}\,s (\RSLargeMicroPerPair{}\,s per pair) whereas a 32-pair request takes \RSLargeWholeService{}\,s (\RSLargeWholePerPair{}\,s per pair), raising total judge work per rollout from \RSLargeWholeWork{}\,s to \RSLargeSerialWork{}\,s; on the 8B judge, per-pair cost rises from \RSSmallWholePerPair{}\,s to \RSSmallMicroPerPair{}\,s, raising total judge work from \RSSmallWholeWork{}\,s to \RSSmallMicroWork{}\,s.
 Micro-batched scheduling reduces end-to-end wall-clock time despite this overhead because judge evaluation begins one quarter of the way through generation rather than after the full shard finishes.
-When requests are split into smaller chunks \emph{without} interleaving them with generation, only the batch-size penalty remains: in a post-generation ablation at 16 rows per rank, splitting the whole-shard call into two consecutive eight-pair requests increased combined generation and reward time from \RSSmallShallowBase{}\,s to \RSSmallShallowSplit{}\,s on the 8B judge and from \RSLargeShallowBase{}\,s to \RSLargeShallowSplit{}\,s on the 72B judge.
+When requests are split into smaller chunks \emph{without} interleaving them with generation, only the batch-size penalty remains: in a shallower shape at 16 rows per rank, splitting the post-generation whole-shard call into two consecutive eight-pair requests increased combined generation and reward time from \RSSmallShallowBase{}\,s to \RSSmallShallowSplit{}\,s on the 8B judge and from \RSLargeShallowBase{}\,s to \RSLargeShallowSplit{}\,s on the 72B judge, whereas two-micro-batch \texttt{RewardStack} schedules reduced it to \RSSmallShallowSerial{}\,s (serial) and \RSSmallShallowOverlap{}\,s (overlapped) on the 8B judge and to \RSLargeShallowSerial{}\,s and \RSLargeShallowOverlap{}\,s on the 72B judge.
 Enabling cross-request continuous batching on the judge server would eliminate this small-batch compute penalty while preserving the early-start advantage of micro-batching.
 
 \paragraph{In-process scoring baseline.}
@@ -159,8 +158,7 @@ Because in-process scoring is already negligible relative to generation, backgro
 \paragraph{Interaction with training-phase memory collection.}
 Executing multiple generation and scoring micro-batches within a single rollout leaves uncollected Python objects and cached allocations in the worker heap.
 When the subsequent training phase began without an explicit garbage-collection and cache-flush pass at the rollout boundary, training step time increased from \RSTrainRemoteCollect{}\,s to \RSTrainRemoteNoCollect{}\,s in the 8B-judge runs and from \RSTrainLocalCollect{}\,s to \RSTrainLocalNoCollect{}\,s in the in-process PickScore runs.
-\texttt{RewardStack} therefore triggers an explicit garbage-collection and CUDA cache-flush pass at the end of each rollout before returning the scored shard.
-Because the training role reconstructs its own model conditions $C_i$ during replay independently of the rollout engine's conditioning path (Section~\ref{sec:fidelity-layout}), these training-phase durations are unaffected by the rollout conditioning bug and are reported as direct measurements rather than rescaled estimates, illustrating why rollout scheduling changes must be evaluated across the full post-training iteration.
+\texttt{RewardStack} therefore triggers an explicit garbage-collection and CUDA cache-flush pass at the end of each rollout before returning the scored shard, illustrating why rollout scheduling changes must be evaluated across the full post-training iteration.
 
 \subsection{GPU Sharing Across Lightweight Scorers via MPS}
 \label{sec:reward-mps}

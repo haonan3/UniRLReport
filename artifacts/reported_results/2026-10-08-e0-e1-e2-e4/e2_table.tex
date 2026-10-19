@@ -4,10 +4,18 @@
 \toprule
 Metric & Base & Rollout 300 & $\Delta$ score & 95\% interval & $\Delta$ relative \\
 \midrule
+\multicolumn{6}{@{}l}{\textbf{UniRL (E2, 3 training seeds)}} \\
 HPSv3 & 1.2024 & 9.8126 & +8.6102 & [+8.3831, +8.8373] & -- \\
 ImageReward & $-$0.2784 & 1.1148 & +1.3932 & [+1.3147, +1.4718] & -- \\
 PickScore & 0.8021 & 0.8991 & +0.0970 & [+0.0936, +0.1005] & -- \\
 Composition (VQAScore) & 0.1011 & 0.1552 & +0.0541 & [+0.0473, +0.0608] & +53.5\% \\
-LPIPS diversity & 0.7987 & -- & -- & [$-$26.58\%, $-$22.98\%] & $-$24.78\% \\
+LPIPS diversity & 0.7987 & 0.6007 & $-$0.1979 & [$-$26.58\%, $-$22.98\%] & $-$24.78\% \\
+\midrule
+\multicolumn{6}{@{}l}{\textbf{VeRL-Omni reference (E2-R, 3 training seeds)}} \\
+HPSv3 & 1.2024 & 8.7269 & +7.5245 & [+5.2048, +9.8442] & -- \\
+ImageReward & $-$0.2784 & 0.8349 & +1.1133 & [+0.3627, +1.8639] & -- \\
+PickScore & 0.8021 & 0.8849 & +0.0829 & [+0.0539, +0.1118] & -- \\
+Composition (VQAScore) & 0.1011 & 0.1124 & +0.0113 & [$-$0.0757, +0.0983] & +11.2\% \\
+LPIPS diversity & 0.7987 & 0.5616 & $-$0.2371 & [$-$39.31\%, $-$20.06\%] & $-$29.69\% \\
 \bottomrule
 \end{tabularx}

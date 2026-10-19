@@ -1,0 +1,28 @@
+{
+  "schema_version": 2,
+  "evidence_tier": "raw_log_verified_multi_rep",
+  "measured_on": "2026-10-14",
+  "generator": "generate.py",
+  "generator_sha256": "e5cab65618059ae8837f46da5869899b337d52d889a2bdad18bad85feb632d05",
+  "versions": {
+    "python": "3.11.6",
+    "matplotlib": "3.10.9",
+    "numpy": "2.4.3"
+  },
+  "reproduction": "python3 generate.py",
+  "sha256": {
+    "arm_summary.csv": "6e5a40a62f3f1d363cfd22c45b53a525fd6db2a7c2d12d5fb8178f1b5fde803f",
+    "data/arm_summary.csv": "6e5a40a62f3f1d363cfd22c45b53a525fd6db2a7c2d12d5fb8178f1b5fde803f",
+    "data/evidence.json": "449f702b7452a5cdf7994efc87c5ba85896fff94b8c5036f9e9dcc0a7213d428",
+    "data/per_rep_summary.csv": "c7b16f29fcf64077f30bace6648abe94465042f504eb3405e8a2b7934da34dc8",
+    "data/per_step_metrics.csv": "b95cd9af0fe3c95a7234bbe60027a7152a69163f4609ea93029d4a2d8cb26be7",
+    "evidence.json": "449f702b7452a5cdf7994efc87c5ba85896fff94b8c5036f9e9dcc0a7213d428",
+    "figures/e3_e5_systems.pdf": "3b5c07d8cd6a181a245bf858fa040c32852950e02ef1817bbfc558780cbf33b0",
+    "figures/e3_e5_systems.png": "56c56658b853f9b708182fffc24379257b290043f69803fd5c5719d67449337d",
+    "generate.py": "e5cab65618059ae8837f46da5869899b337d52d889a2bdad18bad85feb632d05",
+    "macros.tex": "b960a1bd54cd41420ebe51713322aaab20fec77ce170949c5639b5bda40be661",
+    "per_rep_summary.csv": "c7b16f29fcf64077f30bace6648abe94465042f504eb3405e8a2b7934da34dc8",
+    "per_step_metrics.csv": "b95cd9af0fe3c95a7234bbe60027a7152a69163f4609ea93029d4a2d8cb26be7",
+    "systems_table.tex": "f5915aa0e6dc4621160da90b984d5a9b231ea7e317a6e4658605fcaa32bb65c0"
+  }
+}
