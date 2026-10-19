@@ -127,15 +127,11 @@ X_0 \xrightarrow{\pi_v} \mathcal{T}
 The compact notation hides three forms of heterogeneity.
 
 \paragraph{Trajectory heterogeneity.}
-The trajectory state and tensor layout required for a policy update depend on the generative process.
-For AR policies, a replay segment typically stores variable-length packed token sequences, attention and loss masks, rollout log probabilities, and per-token critic value estimates or returns.
-For stochastic differential equation (SDE) diffusion or flow policies, a replay segment instead stores latent snapshots at selected denoising steps, a shared noise schedule, the indices of sampled transitions, and rollout transition statistics (such as step log probabilities or transition means).
-Multi-stage pipelines and multi-turn agentic workflows further introduce branching lineage and interleaved environment observations.
-
-For example, suppose each root prompt $p$ branches into $k_1$ text rewrites $w_{p,j}$, and each rewrite branches into $k_2$ images $x_{p,j,k}$.
-Although the image generator conditions directly on $w_{p,j}$, credit assignment $\mathcal{G}$ may normalize rewards either across the $k_2$ images sharing rewrite $w_{p,j}$ or across all $k_1 k_2$ images descending from root prompt $p$.
-Supporting both grouping scopes over a flattened image batch requires explicitly retaining or reconstructing the parent and root identifiers $(p, j)$ for every row.
-This branching structure motivates explicit lineage tracking, whereas the diffusion model's denoising state independently motivates typed replay segments; neither mechanism subsumes the other.
+Trajectories vary along two orthogonal axes: the per-stage state required for policy replay and the cross-stage lineage created by multi-stage generation.
+Within a stage, the trajectory state and tensor layout depend on the generative process: an AR policy replays variable-length packed token sequences, attention and loss masks, rollout log probabilities, and token-level value estimates, whereas an SDE diffusion or flow policy replays multi-step latent snapshots, a shared noise schedule, sampled transition indices, and transition statistics.
+Across stages, composed pipelines and multi-turn workflows introduce branching lineage where conditioning and credit assignment operate at different tree depths.
+For instance, when each root prompt $p$ branches into $k_1$ text rewrites $w_{p,j}$ and each rewrite branches into $k_2$ images $x_{p,j,k}$, the image stage conditions locally on $w_{p,j}$, yet credit assignment $\mathcal{G}$ may normalize rewards either within the $k_2$ sibling images of $w_{p,j}$ or across all $k_1 k_2$ descendants of root prompt $p$.
+A trajectory representation must therefore pair typed per-stage replay segments with explicit tree lineage across stages.
 
 \paragraph{Role heterogeneity.}
 Generation, reward evaluation, replay, gradient computation, and weight publication differ in runtime, parallel layout, and lifecycle, not only in kernels.
